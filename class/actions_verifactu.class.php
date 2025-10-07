@@ -75,6 +75,21 @@ class ActionsVerifactu extends CommonHookActions
         $this->db = $db;
     }
 
+    /**
+     * Execute action before PDF (document) creation
+     *
+     * @param   array<string,mixed> $parameters Array of parameters
+     * @param   CommonObject        $object     Object output on PDF
+     * @param   string              $action     'add', 'update', 'view'
+     * @return  int                             Return integer <0 if KO,
+     *                                          =0 if OK but we want to process standard actions too,
+     *                                          >0 if OK and we want to replace standard actions.
+     */
+    public function beforePDFCreation($parameters, &$object, &$action)
+    {
+        return 0;
+    }
+
     public function printUnderHeaderPDFline($parameters, &$pdfhandler)
     {
         $object = $parameters['object'];
