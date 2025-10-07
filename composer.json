@@ -1,0 +1,8 @@
+{
+    "require-dev": {
+        "caprel/dolibarr-stubs": "^18.0"
+    },
+    "require": {
+        "josemmo/verifactu-php": "^0.0.3"
+    }
+}
