@@ -30,7 +30,6 @@
  */
 
 use josemmo\Verifactu\Models\ComputerSystem;
-use josemmo\Verifactu\Models\Records\CorrectiveType;
 use josemmo\Verifactu\Models\Records\BreakdownDetails;
 use josemmo\Verifactu\Models\Records\FiscalIdentifier;
 use josemmo\Verifactu\Models\Records\InvoiceIdentifier;
@@ -75,6 +74,11 @@ function verifactuAdminPrepareHead()
 function verifactuRegisterInvoice($invoice, $action)
 {
     global $db, $conf, $hookmanager;
+
+    $enabled = getDolGlobalString('VERIFACTU_ENABLED') == '1';
+    if (!$enabled) {
+        return 0;
+    }
 
     if (
         $invoice->status == 0 &&
@@ -129,6 +133,7 @@ function verifactuRegisterInvoice($invoice, $action)
     $parameters = array(
         'file' => $file,
         'invoice' => $invoice,
+        'action' => $action,
     );
 
     $reshook = $hookmanager->executeHooks(
@@ -192,11 +197,14 @@ function verifactuInvoiceToRecord($invoice)
         case 0:
             $invoice_type = InvoiceType::Factura;
             break;
+        // case 1:
+        //     $invoice_type = InvoiceType::Sustitutiva;
+        //     break;
         case 1:
-            $invoice_type = InvoiceType::Sustitutiva;
+            $invoice_type = InvoiceType::R1;
             break;
         case 2:
-            $invoice_type = InvoiceType::R1;
+            $invoice_type = InvoiceType::R2;
             break;
         default:
             $invoice_type = InvoiceType::Factura;
@@ -222,16 +230,15 @@ function verifactuInvoiceToRecord($invoice)
         $record->recipients[0] = new FiscalIdentifier($thirdparty->nom, $thirdparty->idprof1);
     }
 
-    if ($record->invoiceType === InvoiceType::Sustitutiva) {
+    if ($record->invoiceType === InvoiceType::R1) {
         $record->correctiveType = 'S';
-
-        $record->
-    } elseif ($record->invoiceType === InvoiceType::R1) {
+    } elseif ($record->invoiceType === InvoiceType::R2) {
         $record->correctiveType = 'I';
     }
 
     if ($record->correctiveType !== null) {
         $source_invoice = verifactuGetSourceInvoice($invoice);
+        $source_invoice->fetch_thirdparty();
 
         $source_id = new InvoiceIdentifier();
         $source_id->issuerId = $source_invoice->thirdparty->idprof1;
@@ -275,7 +282,6 @@ function verifactuInvoiceToRecord($invoice)
     }
 
     $record->validate();
-
     return $record;
 }
 
@@ -306,7 +312,7 @@ function verifactuGetComputerSystem()
     $system->id = 'DV';
     $system->version = '0.0.1';
     $system->installationNumber = '001';
-    $system->onlySupportsVerifactu = false;
+    $system->onlySupportsVerifactu = true;
     $system->supportsMultipleTaxpayers = false;
     $system->hasMultipleTaxpayers = false;
     $system->validate();
@@ -380,7 +386,7 @@ function verifactuGetSourceInvoice($invoice)
         return;
     }
 
-    return new RegistrationRecord($invoice);
+    return $invoice;
 }
 
 function verifactuGetPost($field)

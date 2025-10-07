@@ -71,7 +71,8 @@ $formfile = new FormFile($db);
 
 // Enter here all parameters in your setup page
 $invalid = false;
-$toggle = $formSetup->newItem('VERIFACTU_YESNO')->setAsYesNo();
+$toggle = $formSetup->newItem('VERIFACTU_ENABLED')->setAsYesNo();
+$toggle->fieldValue = '1';
 
 $formSetup->newItem('COMPANY_SECTION_TITLE')->setAsTitle();
 
@@ -101,18 +102,18 @@ $invalid = $invalid || $cert_field->fieldAttr['error'];
 $pass_field = $formSetup->newItem('VERIFACTU_PASSWORD')->setAsPassword();
 
 if ($invalid) {
-    $toggle->fieldAttr ['disabled'] = true;
-    $toggle->fieldAttr ['error'] = true;
+    $toggle->fieldAttr['disabled'] = true;
+    $toggle->fieldAttr['error'] = true;
 
     ob_start();
 
     ?>
     <div style="opacity:0.4">
-        <div id="confirm_VERIFACTU_YESNO" title="" style="display: none;"></div>
-        <span id="set_VERIFACTU_YESNO" class="valignmiddle inline-block linkobject" style="cursor: default;">
+        <div id="confirm_VERIFACTU_ENABLED" title="" style="display: none;"></div>
+        <span id="set_VERIFACTU_ENABLED" class="valignmiddle inline-block linkobject" style="cursor: default;">
             <span class="fas fa-toggle-off" style=" color: #999;" title="Disabled"></span>
         </span>
-        <span id="del_VERIFACTU_YESNO" class="valignmiddle inline-block linkobject hideobject" style="cursor: default;">
+        <span id="del_VERIFACTU_ENABLED" class="valignmiddle inline-block linkobject hideobject" style="cursor: default;">
             <span class="fas fa-toggle-on font-status4" style="" title="Enabled"></span>
         </span>
     </div>
@@ -129,8 +130,6 @@ $setupnotempty += count($formSetup->items);
 
 if ($action === 'update' && !empty($user->admin)) {
     $post = verifactuPrepareSetupPost();
-    dolibarr_set_const($db, 'VERIFACTU_COMPANY_NAME', $post['VERIFACTU_COMPANY_NAME'] ?: $name_field->fieldValue);
-    dolibarr_set_const($db, 'VERIFACTU_VAT', $post['VERIFACTU_VAT'] ?: $vat_field->fieldValue);
     $formSetup->saveConfFromPost();
 } elseif ($action === 'upload' && !empty($user->admin)) {
     $filepath = verifactuUploadCert();
