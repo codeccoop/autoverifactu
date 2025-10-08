@@ -137,4 +137,55 @@ class ActionsVerifactu extends CommonHookActions
     {
         return 0;
     }
+
+    public function addMoreActionsButtons($parameters, &$object, $action, &$hookmanager)
+    {
+            global $langs;
+
+            echo dolGetButtonAction(
+                $object->status == 0 ? $langs->trans('Please, verify the invoice in order to generate the Veri*Factu document') : $langs->trans('Check verifactu validity'),
+                $langs->trans('Verifactu'),
+                'default',
+                $_SERVER['PHP_SELF'] . '?facid=' . $object->id . '&action=verifactu&token=' . newToken(),
+                '',
+                $object->status > 0,
+                array(
+                    'attr' => array(
+                        'class' => 'classfortooltip',
+                        'title' => ''
+                    ),
+                )
+            );
+    }
+
+    public function dolGetButtonAction(&$parameters, $object, $action)
+    {
+        global $langs;
+
+        if ($object->status > 0) {
+            $url = parse_url($parameters['url']);
+            parse_str($url['query'] ?? '', $query);
+
+            $action = $query['action'] ?? null;
+            if (
+                in_array($action, array('modif', 'reopen', 'delete'))
+                && $parameters['userRight']
+            ) {
+                $label = $langs->trans('Disabled by Veri*Factu');
+
+                $button = dolGetButtonAction(
+                    $label,
+                    $parameters['html'],
+                    $parameters['actionType'],
+                    '',
+                    $parameters['id'],
+                    0,
+                    $parameters['params']
+                );
+
+                $this->resprints = $button;
+                return 1;
+            }
+        }
+    }
 }

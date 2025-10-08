@@ -145,7 +145,7 @@ class modVerifactu extends DolibarrModules
         // A condition to hide module
         $this->hidden = getDolGlobalInt('MODULE_VERIFACTU_DISABLED'); // A condition to disable module;
         // List of module class names that must be enabled if this module is enabled. Example: array('always'=>array('modModuleToEnable1','modModuleToEnable2'), 'FR'=>array('modModuleToEnableFR')...)
-        $this->depends = array('modFacture', 'modBlockedLog');
+        $this->depends = array('modFacture');
         // List of module class names to disable if this one is disabled. Example: array('modModuleToDisable1', ...)
         $this->requiredby = array();
         // List of module class names this module is in conflict with. Example: array('modModuleToDisable1', ...)
