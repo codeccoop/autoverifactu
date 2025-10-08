@@ -69,7 +69,7 @@ class InterfaceVerifactuFreezeInvoices extends DolibarrTriggers
             return 0;
         }
 
-        print_r(['action' => $action, 'object' => $object->element, 'status' => $object->status]);
+        // print_r(['action' => $action, 'object' => $object->element, 'status' => $object->status]);
         switch ($action) {
             case 'BILL_CANCEL':
                 dol_syslog('Verifactu cancel record registry for invoice #' . $object->id);

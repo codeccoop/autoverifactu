@@ -101,7 +101,7 @@ $cert_field->fieldAttr['disabled'] = true;
 $cert_field->fieldAttr['error'] = empty($cert_field->fieldValue);
 $invalid = $invalid || $cert_field->fieldAttr['error'];
 
-$pass_field = $formSetup->newItem('VERIFACTU_PASSWORD')->setAsPassword();
+$pass_field = $formSetup->newItem('VERIFACTU_PASSWORD')->setAsGenericPassword();
 
 $formSetup->newItem('SYSTEM_SECTION_TITLE')->setAsTitle();
 
@@ -215,7 +215,7 @@ $formfile->form_attach_new_file(
     '',
     0,
     'verifactu-certupload',
-    '.pem',
+    '.pem,.p12',
     '',
     0,
     0,
