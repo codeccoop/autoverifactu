@@ -15,9 +15,10 @@ ModuleVerifactuDesc = Verifactu description
 VerifactuSetup = Verifactu setup
 Settings = Settings
 VerifactuSetupPage = Verifactu setup page
-COMPANY_SECTION_TITLE = Company
-VERIFACTU_YESNO = Verifactu Yes/No
-VERIFACTU_COMPANY_NAME = Company
+COMPANY_SECTION_TITLE = Company/Organization
+SYSTEM_SECTION_TITLE = System
+VERIFACTU_ENABLED = Veri*Factu enabled
+VERIFACTU_COMPANY_NAME = Name
 VERIFACTU_COMPANY_NAMETooltip = Legal name of your company
 VERIFACTU_VAT = VAT ID
 VERIFACTU_VATTooltip = VAT ID number with which you expend invocies
@@ -25,7 +26,9 @@ VERIFACTU_CERT = Certificate
 VERIFACTU_CERTTooltip = Path to the uploaded PEM file. If the field is empty, you have to upload your company certificate using the upload form below. 
 VERIFACTU_PASSWORD = Certificate password (optional)
 VERIFACTU_PASSWORDTooltip = If your PEM file is encrypted with a password, you should inform it en order to decrypt the certificate before each request to the verifactu API
-
+VERIFACTU_DATE_VALIDATION = Is invoice validation date mandatory?
+VERIFACTU_DATE_VALIDATIONTooltip = Invoice date has to be set to the date when it's validated
+VERIFACTU_BLOCKEDLOG_ENABLED = Is BlockedLog module enabled?
 #
 # About page
 #

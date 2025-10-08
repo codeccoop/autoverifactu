@@ -37,6 +37,8 @@ require_once dirname(__DIR__) . '/lib/verifactu.lib.php';
  * @var User $user
  */
 
+global $db, $langs, $conf;
+
 // Translations
 $langs->loadLangs(array('admin', 'verifactu@verifactu'));
 
@@ -101,6 +103,22 @@ $invalid = $invalid || $cert_field->fieldAttr['error'];
 
 $pass_field = $formSetup->newItem('VERIFACTU_PASSWORD')->setAsPassword();
 
+$formSetup->newItem('SYSTEM_SECTION_TITLE')->setAsTitle();
+
+$date_valid_field = $formSetup->newItem('VERIFACTU_DATE_VALIDATION');
+$date_valid_field->fieldValue = $langs->trans('Active');
+$date_valid_field->fieldParams['isMandatory'] = 1;
+$date_valid_field->fieldAttr['disabled'] = true;
+$date_valid_field->fieldAttr['error'] = empty(getDolGlobalInt('FAC_FORCE_DATE_VALIDATION'));
+$invalid = $invalid || $date_valid_field->fieldAttr['error'];
+
+$blocklog_field = $formSetup->newItem('VERIFACTU_BLOCKEDLOG_ENABLED');
+$blocklog_field->fieldValue = $langs->trans('Active');
+$blocklog_field->fieldParams['isMandatory'] = 1;
+$blocklog_field->fieldAttr['disabled'] = true;
+$blocklog_field->fieldAttr['error'] = empty($conf->modules['blockedlog']);
+$invalid = $invalid || $blocklog_field->fieldAttr['error'];
+
 if ($invalid) {
     $toggle->fieldAttr['disabled'] = true;
     $toggle->fieldAttr['error'] = true;
@@ -129,8 +147,9 @@ $setupnotempty += count($formSetup->items);
  */
 
 if ($action === 'update' && !empty($user->admin)) {
-    $post = verifactuPrepareSetupPost();
-    $formSetup->saveConfFromPost();
+    verifactuSetupPost();
+
+    header('Location: ' . $_SERVER['PHP_SELF']);
 } elseif ($action === 'upload' && !empty($user->admin)) {
     $filepath = verifactuUploadCert();
 
@@ -138,8 +157,13 @@ if ($action === 'update' && !empty($user->admin)) {
         $filepath = str_replace(DOL_DATA_ROOT . '/', '', $filepath);
         dolibarr_set_const($db, 'VERIFACTU_CERT', $filepath);
         $cert_field->fieldValue = $filepath;
+        header('Location: ' . $_SERVER['PHP_SELF']);
     } else {
         dol_syslog('Unable to upload the user cert file', LOG_ERR);
+        dolibarr_set_const($db, 'VERIFACTU_CERT', null);
+
+        http_response_code(400);
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?uploaderror=1');
     }
 }
 
@@ -169,8 +193,9 @@ echo dol_get_fiche_head($head, 'settings', $langs->trans($title), -1, "verifactu
 echo '<span class="opacitymedium">'.$langs->trans("VerifactuSetupPage").'</span><br><br>';
 
 if (!empty($formSetup->items)) {
+    echo '<div id="verifactuSetupForm">';
     echo $formSetup->generateOutput(true);
-    echo '<br>';
+    echo '</div>';
 }
 
 if (empty($setupnotempty)) {

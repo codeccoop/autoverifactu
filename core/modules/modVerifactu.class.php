@@ -113,7 +113,7 @@ class modVerifactu extends DolibarrModules
             'theme' => 0,
             // Set this to relative path of css file if module has its own css file
             'css' => array(
-                //    '/verifactu/css/verifactu.css.php',
+                '/verifactu/css/setup.css.php',
             ),
             // Set this to relative path of js file if module must load a js on all pages
             'js' => array(
@@ -145,7 +145,7 @@ class modVerifactu extends DolibarrModules
         // A condition to hide module
         $this->hidden = getDolGlobalInt('MODULE_VERIFACTU_DISABLED'); // A condition to disable module;
         // List of module class names that must be enabled if this module is enabled. Example: array('always'=>array('modModuleToEnable1','modModuleToEnable2'), 'FR'=>array('modModuleToEnableFR')...)
-        $this->depends = array('modFacture');
+        $this->depends = array('modFacture', 'modBlockedLog');
         // List of module class names to disable if this one is disabled. Example: array('modModuleToDisable1', ...)
         $this->requiredby = array();
         // List of module class names this module is in conflict with. Example: array('modModuleToDisable1', ...)
@@ -239,14 +239,16 @@ class modVerifactu extends DolibarrModules
      */
     public function init($options = '')
     {
-        global $conf, $langs;
+        global $db, $conf, $langs;
+
+        dolibarr_set_const($db, 'FAC_FORCE_DATE_VALIDATION', '1');
 
         // Create tables of module at module activation
         //$result = $this->_load_tables('/install/mysql/', 'verifactu');
-        $result = $this->_load_tables('/verifactu/sql/');
-        if ($result < 0) {
-            return -1; // Do not activate module if error 'not allowed' returned when loading module SQL queries (the _load_table run sql with run_sql with the error allowed parameter set to 'default')
-        }
+        // $result = $this->_load_tables('/verifactu/sql/');
+        // if ($result < 0) {
+        //     return -1; // Do not activate module if error 'not allowed' returned when loading module SQL queries (the _load_table run sql with run_sql with the error allowed parameter set to 'default')
+        // }
 
         // Create extrafields during init
         //include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
@@ -263,8 +265,8 @@ class modVerifactu extends DolibarrModules
 
         $sql = array();
 
-        $where = 'rd.module = \'facture\' AND rd.perms = \'invoice_advance\'';
-        $where .= ' AND rd.subperms IN (\'unvalidate\', \'reopen\')';
+        // $where = 'rd.module = \'facture\' AND rd.perms = \'invoice_advance\'';
+        // $where .= ' AND rd.subperms IN (\'unvalidate\', \'reopen\')';
 
         // $i = 0;
         // $sql[$i] = 'UPDATE ' . $this->db->prefix() . 'rights_def rd';
