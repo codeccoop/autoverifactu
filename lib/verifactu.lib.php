@@ -77,6 +77,7 @@ function verifactuRegisterInvoice($invoice, $action)
 
     $enabled = getDolGlobalString('VERIFACTU_ENABLED') == '1';
     if (!$enabled) {
+        dol_syslog('Veri*Factu bridge is not enabled');
         return 0;
     }
 
@@ -137,9 +138,9 @@ function verifactuRegisterInvoice($invoice, $action)
     );
 
     $reshook = $hookmanager->executeHooks(
-        'beforeVerifactoRecord',
+        'beforeVerifactuRecord',
         $parameters,
-        $object,
+        $invoice,
     );
 
     if ($reshook < 0) {
@@ -154,6 +155,14 @@ function verifactuRegisterInvoice($invoice, $action)
         if (!$result) {
             dol_syslog('Error on verifactu request ' . print_r($e, true), LOG_ERR);
             return -1;
+        } else {
+            $parameters['xml'] = $xml;
+
+            $reshook = $hookmanager->executeHooks(
+                'afterVerifactuRecord',
+                $parameters,
+                $invoice,
+            );
         }
     } catch (Exception $e) {
         dol_syslog('Error on verifactu request ' . print_r($e, true), LOG_ERR);
@@ -344,19 +353,6 @@ function verifactuUploadCert()
     return $dest;
 }
 
-function verifactuPrepareSetupPost()
-{
-    $fields = ['COMPANY_NAME', 'VAT', 'CERT', 'PASSWORD'];
-
-    foreach ($fields as $field) {
-        $field = 'VERIFACTU_' . $field;
-        $value = verifactuGetPost($field);
-        $_POST[$field] = $value;
-    }
-
-    return $_POST;
-}
-
 function verifactuGetLastValidInvoice()
 {
     global $db;
@@ -389,7 +385,43 @@ function verifactuGetSourceInvoice($invoice)
     return $invoice;
 }
 
+function verifactuPrepareSetupPost()
+{
+    $fields = ['CERT', 'PASSWORD'];
+
+    foreach ($fields as $field) {
+        $field = 'VERIFACTU_' . $field;
+        $value = verifactuGetPost($field);
+        $_POST[$field] = $value;
+    }
+
+    return $_POST;
+}
+
+
 function verifactuGetPost($field)
 {
     return GETPOST($field) ?: getDolGlobalString($field);
+}
+
+
+function verifactuSetupPost()
+{
+    global $db, $mysoc, $conf;
+
+    $certpath = verifactuGetPost('VERIFACTU_CERT');
+    $fullcertpath = DOL_DATA_ROOT . '/' . $certpath;
+    dolibarr_set_const($db, 'VERIFACTU_CERT', (string) $certpath);
+
+    $password = verifactuGetPost('VERIFACTU_PASSWORD');
+    dolibarr_set_const($db, 'VERIFACTU_PASSWORD', $password);
+
+    $enabled = verifactuGetPost('VERIFACTU_ENABLED');
+
+    $enabled = $enabled && !empty($mysoc->idprof1) && !empty($mysoc->nom);
+    $enabled = $enabled && is_file($fullcertpath);
+    $enabled = $enabled && getDolGlobalString('FAC_FORCE_DATE_VALIDATION');
+    $enabled = $enabled && !empty($conf->modules['blockedlog']);
+
+    dolibarr_set_const($db, 'VERIFACTU_ENABLED', (string) $enabled);
 }

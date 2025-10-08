@@ -146,7 +146,7 @@ class ActionsVerifactu extends CommonHookActions
                 $object->status == 0 ? $langs->trans('Please, verify the invoice in order to generate the Veri*Factu document') : $langs->trans('Check verifactu validity'),
                 $langs->trans('Verifactu'),
                 'default',
-                $_SERVER['PHP_SELF'] . '?facid=' . $object->id . '&action=verifactu&token=' . newToken(),
+                DOL_URL_ROOT . '/custom/verifactu/ajax/verify.php?facid=' . $object->id . '&token=' . newToken(),
                 '',
                 $object->status > 0,
                 array(
@@ -162,17 +162,36 @@ class ActionsVerifactu extends CommonHookActions
     {
         global $langs;
 
-        if ($object->status > 0) {
-            $url = parse_url($parameters['url']);
-            parse_str($url['query'] ?? '', $query);
+        $url = parse_url($parameters['url']);
+        parse_str($url['query'] ?? '', $query);
 
-            $action = $query['action'] ?? null;
-            if (
-                in_array($action, array('modif', 'reopen', 'delete'))
-                && $parameters['userRight']
-            ) {
+        $action = $query['action'] ?? null;
+
+        if (
+            $object->status > 0
+            && in_array($action, array('modif', 'reopen', 'delete'), true)
+        ) {
                 $label = $langs->trans('Disabled by Veri*Factu');
 
+                $button = dolGetButtonAction(
+                    $label,
+                    $parameters['html'],
+                    $parameters['actionType'],
+                    '',
+                    $parameters['id'],
+                    0,
+                    $parameters['params']
+                );
+
+                $this->resprints = $button;
+                return 1;
+        } elseif ($object->status == 0 && $action === 'valid') {
+            $object->fetch_thirdparty();
+            $thirdparty = $object->thirdparty;
+            $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
+
+            if (!$valid_id) {
+                $label = $langs->trans('Veri*Factu requires invoice third parties to have a valid professional ID');
                 $button = dolGetButtonAction(
                     $label,
                     $parameters['html'],
