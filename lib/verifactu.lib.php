@@ -39,6 +39,7 @@ use josemmo\Verifactu\Models\Records\RegimeType;
 use josemmo\Verifactu\Models\Records\RegistrationRecord;
 use josemmo\Verifactu\Models\Records\TaxType;
 use josemmo\Verifactu\Services\AeatClient;
+use UXML\UXML;
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -110,7 +111,7 @@ function verifactuRegisterInvoice($invoice, $action)
 
     $invoiceref = dol_sanitizeFileName($invoice->ref);
     $dir = $conf->facture->multidir_output[$invoice->entity ?? $conf->entity] . '/' . $invoiceref;
-    $file = $dir . '/' . $invoiceref . '.xml';
+    $file = $dir . '/' . $invoiceref . '-verifactu.xml';
 
     if (!file_exists($dir)) {
         if (dol_mkdir($dir) < 0) {
@@ -150,6 +151,16 @@ function verifactuRegisterInvoice($invoice, $action)
 
     try {
         $xml = verifactuSendInvoice($invoice);
+        $uxml = UXML::fromString($xml);
+
+        $body = $uxml->get('env:Body');
+        $faults = $body ? $body->getAll('env:Fault') : [];
+
+        if (!$body || count($faults) > 0) {
+            dol_syslog('Invalid SOAP response with error ' . $fault, LOG_ERR);
+            return -1;
+        }
+
         $result = file_put_contents($file, $xml);
 
         if (!$result) {
@@ -164,7 +175,7 @@ function verifactuRegisterInvoice($invoice, $action)
                 $invoice,
             );
         }
-    } catch (Exception $e) {
+    } catch (Error | Exception $e) {
         dol_syslog('Error on verifactu request ' . print_r($e, true), LOG_ERR);
         return -1;
     }
