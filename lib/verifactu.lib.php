@@ -370,9 +370,9 @@ function verifactuGetLastValidInvoice()
 {
     global $db;
 
-    $sql = 'SELECT rowid FROM ' . $db->prefix() . 'factures';
+    $sql = 'SELECT rowid FROM ' . $db->prefix() . 'facture';
     $sql .= ' WHERE fk_statut > 0';
-    $sql .= ' ORDER BY rowid DESC LIMIT 1';
+    $sql .= ' ORDER BY date_valid DESC';
     $result = $db->query($sql);
 
     if ($result && $db->num_rows($result)) {
