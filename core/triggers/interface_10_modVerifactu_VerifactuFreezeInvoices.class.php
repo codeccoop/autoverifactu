@@ -61,6 +61,7 @@ class InterfaceVerifactuFreezeInvoices extends DolibarrTriggers
      * @param User          $user       Object user
      * @param Translate     $langs      Object langs
      * @param Conf          $conf       Object conf
+     * 
      * @return int                      Return integer <0 if KO, 0 if no triggered ran, >0 if OK
      */
     public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
@@ -69,6 +70,7 @@ class InterfaceVerifactuFreezeInvoices extends DolibarrTriggers
             return 0;
         }
 
+        // TODO: Handle donations. As far as i know, theu have to be declared as invoices to the AEAT, it isn't?
         // print_r(['action' => $action, 'object' => $object->element, 'status' => $object->status]);
         switch ($action) {
             case 'BILL_CANCEL':

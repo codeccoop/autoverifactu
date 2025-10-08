@@ -37,9 +37,9 @@ include_once DOL_DOCUMENT_ROOT . '/core/modules/DolibarrModules.class.php';
 class modVerifactu extends DolibarrModules
 {
     /**
-     * Constructor. Define names, constants, directories, boxes, permissions
+     * Constructor. Define names, constants, directories, boxes, permissions.
      *
-     * @param DoliDB $db Database handler
+     * @param DoliDB $db Database handler.
      */
     public function __construct($db)
     {
@@ -139,7 +139,10 @@ class modVerifactu extends DolibarrModules
         $this->dirs = array('/verifactu/temp');
 
         // Config pages. Put here list of php page, stored into verifactu/admin directory, to use to setup module.
-        $this->config_page_url = array('setup.php@verifactu');
+        $this->config_page_url = array(
+            'setup.php@verifactu',
+            'about.php@verifactu'
+        );
 
         // Dependencies
         // A condition to hide module
@@ -232,10 +235,11 @@ class modVerifactu extends DolibarrModules
     /**
      *  Function called when module is enabled.
      *  The init function add constants, boxes, permissions and menus (defined in constructor) into Dolibarr database.
-     *  It also creates data directories
+     *  It also creates data directories.
      *
-     *  @param      string  $options    Options when enabling module ('', 'noboxes')
-     *  @return     int<-1,1>           1 if OK, <=0 if KO
+     *  @param      string  $options    Options when enabling module ('', 'noboxes').
+     * 
+     *  @return     int<-1,1>           1 if OK, <=0 if KO.
      */
     public function init($options = '')
     {
@@ -302,6 +306,7 @@ class modVerifactu extends DolibarrModules
      *  Data directories are not deleted
      *
      *  @param  string      $options    Options when enabling module ('', 'noboxes')
+     * 
      *  @return int<-1,1>               1 if OK, <=0 if KO
      */
     public function remove($options = '')

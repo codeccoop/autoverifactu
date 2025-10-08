@@ -45,23 +45,23 @@ class ActionsVerifactu extends CommonHookActions
     public $error = '';
 
     /**
-     * @var string[] Errors
+     * @var string[] Errors.
      */
     public $errors = array();
 
 
     /**
-     * @var mixed[] Hook results. Propagated to $hookmanager->resArray for later reuse
+     * @var mixed[] Hook results. Propagated to $hookmanager->resArray for later reuse.
      */
     public $results = array();
 
     /**
-     * @var ?string String displayed by executeHook() immediately after return
+     * @var ?string String displayed by executeHook() immediately after return.
      */
     public $resprints;
 
     /**
-     * @var int     Priority of hook (50 is used if value is not defined)
+     * @var int     Priority of hook (50 is used if value is not defined).
      */
     public $priority;
 
@@ -69,7 +69,7 @@ class ActionsVerifactu extends CommonHookActions
     /**
      * Constructor
      *
-     *  @param  DoliDB  $db      Database handler
+     *  @param  DoliDB  $db      Database handler.
      */
     public function __construct($db)
     {
@@ -79,9 +79,10 @@ class ActionsVerifactu extends CommonHookActions
     /**
      * Execute action before PDF (document) creation
      *
-     * @param   array<string,mixed> $parameters Array of parameters
-     * @param   CommonObject        $object     Object output on PDF
-     * @param   string              $action     'add', 'update', 'view'
+     * @param   array<string,mixed> $parameters Array of parameters.
+     * @param   CommonObject        $object     Object output on PDF.
+     * @param   string              $action     'add', 'update', 'view'.
+     * 
      * @return  int                             Return integer <0 if KO,
      *                                          =0 if OK but we want to process standard actions too,
      *                                          >0 if OK and we want to replace standard actions.
@@ -112,6 +113,17 @@ class ActionsVerifactu extends CommonHookActions
         return 0;
     }
 
+    /**
+     * Execute action after PDF (document) header creation. Writes the QR code before the
+     * invoice body is opened.
+     *
+     * @param   array<string,mixed> $parameters     Array of parameters.
+     * @param   PDFCT               &$pdfhandler    Object output on PDF.
+     * @param   string              $action         'add', 'update', 'view'.
+     * 
+     * @return  int                                 Return always 0.
+     *                                              Overwrites the hookmanager results array
+     */
     public function printUnderHeaderPDFline($parameters, &$pdfhandler)
     {
         $object = $parameters['object'];
@@ -160,7 +172,19 @@ class ActionsVerifactu extends CommonHookActions
         return 0;
     }
 
-    public function addMoreActionsButtons($parameters, &$object, $action, &$hookmanager)
+    /**
+     * Execute action on card page buttons render. If it is a facture page,
+     * it adds a "verifactu" button to the row.
+     * 
+     * @param  array<string,mixed>  $parameters  Array of parameters.
+     * @param  CommonObect          &$object     Instance of the owner object of the page.
+     * @param  string               $action      Global action.
+     * 
+     * @return null                              Empty response. The button
+     *                                           html is echoed to the output
+     *                                           buffer.
+     */
+    public function addMoreActionsButtons($parameters, &$object, $action)
     {
         global $langs;
 
@@ -182,6 +206,19 @@ class ActionsVerifactu extends CommonHookActions
         }
     }
 
+    /**
+     * Execute action on each card page buttons render. If it is a facture page,
+     * then check userRights for each button based on the button action and
+     * the state of the invoice.
+     * 
+     * @param  array<string,mixed>  $parameters  Array of parameters.
+     * @param  CommonObect          &$object     Instance of the owner object of
+     *                                           the page.
+     * @param  string               $action      Global action.
+     * 
+     * @return int<0,1>                          1 if button has been overwrited,
+     *                                           0 otherwise.
+     */
     public function dolGetButtonAction(&$parameters, $object, $action)
     {
         global $langs;
@@ -193,8 +230,8 @@ class ActionsVerifactu extends CommonHookActions
             $action = $query['action'] ?? null;
 
             if (
-            $object->status > 0
-            && in_array($action, array('modif', 'reopen', 'delete'), true)
+                $object->status > 0
+                && in_array($action, array('modif', 'reopen', 'delete'), true)
             ) {
                 $label = $langs->trans('Disabled by Veri*Factu');
 
