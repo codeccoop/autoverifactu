@@ -112,6 +112,7 @@ function verifactuRegisterInvoice($invoice, $action)
     $invoiceref = dol_sanitizeFileName($invoice->ref);
     $dir = $conf->facture->multidir_output[$invoice->entity ?? $conf->entity] . '/' . $invoiceref;
     $file = $dir . '/' . $invoiceref . '-verifactu.xml';
+    $hidden = $dir . '/.verifactu.xml';
 
     if (!file_exists($dir)) {
         if (dol_mkdir($dir) < 0) {
@@ -162,6 +163,7 @@ function verifactuRegisterInvoice($invoice, $action)
         }
 
         $result = file_put_contents($file, $xml);
+        $result = $result && file_put_contents($hidden, $xml);
 
         if (!$result) {
             dol_syslog('Error on verifactu request ' . print_r($e, true), LOG_ERR);
@@ -374,7 +376,7 @@ function verifactuGetLastValidInvoice()
     $result = $db->query($sql);
 
     if ($result && $db->num_rows($result)) {
-        $obj = db->fetch_object($resql);
+        $obj = $db->fetch_object($result);
         $invoice = new Facutre($db);
         $invoice->fetch($obj->rowid);
         return $invoice;

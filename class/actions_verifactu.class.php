@@ -26,6 +26,7 @@
  */
 
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonhookactions.class.php';
+require_once DOL_DOCUMENT_ROOT . '/blockedlog/class/blockedlog.class.php';
 require_once dirname(__DIR__) . '/lib/verifactu.lib.php';
 
 /**
@@ -87,6 +88,27 @@ class ActionsVerifactu extends CommonHookActions
      */
     public function beforePDFCreation($parameters, &$object, &$action)
     {
+        global $conf;
+
+        if ($object->element === 'facture' && $object->status == 1) {
+            $invoiceref = dol_sanitizeFileName($object->ref);
+            $dir = $conf->facture->multidir_output[$object->entity ?? $conf->entity] . '/' . $invoiceref;
+            $file = $dir . '/' . $invoiceref . '-verifactu.xml';
+            $hidden = $dir . '/.verifactu.xml';
+
+            if (!is_file($hidden)) {
+                dol_syslog('Immutable xml copy not found for invoice #' . $object->id, LOG_ERR);
+                return -1;
+            } elseif (!is_file($file)) {
+                $result = file_put_contents($file, file_get_contents($hidden));
+
+                if (!$result) {
+                    dol_syslog('Unable to recreate verifactu xml from immutable copy for invoice #' . $object->id, LOG_ERR);
+                    return -1;
+                }
+            }
+        }
+
         return 0;
     }
 
@@ -107,12 +129,12 @@ class ActionsVerifactu extends CommonHookActions
                 25,
                 25,
                 array(
-                    'border' => false,
-                    'padding' => 0,
-                    'fgcolor' => array(25, 25, 25),
-                    'bgcolor' => false,
-                    'module_width' => 1,
-                    'module_height' => 1,
+                'border' => false,
+                'padding' => 0,
+                'fgcolor' => array(25, 25, 25),
+                'bgcolor' => false,
+                'module_width' => 1,
+                'module_height' => 1,
                 ),
                 25,
             );
@@ -140,22 +162,22 @@ class ActionsVerifactu extends CommonHookActions
 
     public function addMoreActionsButtons($parameters, &$object, $action, &$hookmanager)
     {
-            global $langs;
+        global $langs;
 
-            echo dolGetButtonAction(
-                $object->status == 0 ? $langs->trans('Please, verify the invoice in order to generate the Veri*Factu document') : $langs->trans('Check verifactu validity'),
-                $langs->trans('Verifactu'),
-                'default',
-                DOL_URL_ROOT . '/custom/verifactu/ajax/verify.php?facid=' . $object->id . '&token=' . newToken(),
-                '',
-                $object->status > 0,
-                array(
-                    'attr' => array(
-                        'class' => 'classfortooltip',
-                        'title' => ''
-                    ),
-                )
-            );
+        echo dolGetButtonAction(
+            $object->status == 0 ? $langs->trans('Please, verify the invoice in order to generate the Veri*Factu document') : $langs->trans('Check verifactu validity'),
+            $langs->trans('Verifactu'),
+            'default',
+            DOL_URL_ROOT . '/custom/verifactu/ajax/verify.php?facid=' . $object->id . '&token=' . newToken(),
+            '',
+            $object->status > 0,
+            array(
+                'attr' => array(
+                    'class' => 'classfortooltip',
+                    'title' => ''
+                ),
+            )
+        );
     }
 
     public function dolGetButtonAction(&$parameters, $object, $action)
@@ -168,20 +190,20 @@ class ActionsVerifactu extends CommonHookActions
         $action = $query['action'] ?? null;
 
         if (
-            $object->status > 0
-            && in_array($action, array('modif', 'reopen', 'delete'), true)
+        $object->status > 0
+        && in_array($action, array('modif', 'reopen', 'delete'), true)
         ) {
-                $label = $langs->trans('Disabled by Veri*Factu');
+            $label = $langs->trans('Disabled by Veri*Factu');
 
-                $button = dolGetButtonAction(
-                    $label,
-                    $parameters['html'],
-                    $parameters['actionType'],
-                    '',
-                    $parameters['id'],
-                    0,
-                    $parameters['params']
-                );
+            $button = dolGetButtonAction(
+                $label,
+                $parameters['html'],
+                $parameters['actionType'],
+                '',
+                $parameters['id'],
+                0,
+                $parameters['params']
+            );
 
                 $this->resprints = $button;
                 return 1;
