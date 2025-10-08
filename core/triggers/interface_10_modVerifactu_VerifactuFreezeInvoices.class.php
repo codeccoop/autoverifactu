@@ -75,8 +75,8 @@ class InterfaceVerifactuFreezeInvoices extends DolibarrTriggers
                 dol_syslog('Verifactu cancel record registry for invoice #' . $object->id);
                 return verifactuRegisterInvoice($object, $action);
             case 'BILL_VALIDATE':
-            case 'DON_VALIDATE':
-            case 'CASHCONTROL_VALIDATE':
+            // case 'DON_VALIDATE':
+            // case 'CASHCONTROL_VALIDATE':
                 $object->fetch_thirdparty();
                 $thirdparty = $object->thirdparty;
                 $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
@@ -97,7 +97,7 @@ class InterfaceVerifactuFreezeInvoices extends DolibarrTriggers
                 dol_syslog('Verifactu disables invoice unvalidations');
                 return -1;
             case 'BILL_DELETE':
-            case 'DON_DELETE':
+            // case 'DON_DELETE':
                 if ($object->status != 0) {
                     dol_syslog('Verifactu disables validated invoices removals');
                     return -1;
@@ -105,7 +105,7 @@ class InterfaceVerifactuFreezeInvoices extends DolibarrTriggers
 
                 return 0;
             case 'BILL_MODIFY':
-            case 'DON_MODIFY':
+            // case 'DON_MODIFY':
                 if ($object->status != 0) {
                     dol_syslog('Verifactu disables validated invoices edits');
                     return -1;

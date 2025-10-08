@@ -88,8 +88,8 @@ function verifactuRegisterInvoice($invoice, $action)
             $action,
             array(
                 'BILL_VALIDATE',
-                'DON_VALIDATE',
-                'CASHCONTROL_VALIDATE',
+                // 'DON_VALIDATE',
+                // 'CASHCONTROL_VALIDATE',
             ),
             true,
         )

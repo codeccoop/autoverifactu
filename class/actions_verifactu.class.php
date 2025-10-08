@@ -164,56 +164,40 @@ class ActionsVerifactu extends CommonHookActions
     {
         global $langs;
 
-        echo dolGetButtonAction(
-            $object->status == 0 ? $langs->trans('Please, verify the invoice in order to generate the Veri*Factu document') : $langs->trans('Check verifactu validity'),
-            $langs->trans('Verifactu'),
-            'default',
-            DOL_URL_ROOT . '/custom/verifactu/ajax/verify.php?facid=' . $object->id . '&token=' . newToken(),
-            '',
-            $object->status > 0,
-            array(
+        if ($object->element === 'facture') {
+            echo dolGetButtonAction(
+                $object->status == 0 ? $langs->trans('Please, verify the invoice in order to generate the Veri*Factu document') : $langs->trans('Check verifactu validity'),
+                $langs->trans('Verifactu'),
+                'default',
+                DOL_URL_ROOT . '/custom/verifactu/ajax/verify.php?facid=' . $object->id . '&token=' . newToken(),
+                '',
+                $object->status > 0,
+                array(
                 'attr' => array(
                     'class' => 'classfortooltip',
                     'title' => ''
                 ),
-            )
-        );
+                )
+            );
+        }
     }
 
     public function dolGetButtonAction(&$parameters, $object, $action)
     {
         global $langs;
 
-        $url = parse_url($parameters['url']);
-        parse_str($url['query'] ?? '', $query);
+        if ($object->element === 'facture') {
+            $url = parse_url($parameters['url']);
+            parse_str($url['query'] ?? '', $query);
 
-        $action = $query['action'] ?? null;
+            $action = $query['action'] ?? null;
 
-        if (
-        $object->status > 0
-        && in_array($action, array('modif', 'reopen', 'delete'), true)
-        ) {
-            $label = $langs->trans('Disabled by Veri*Factu');
+            if (
+            $object->status > 0
+            && in_array($action, array('modif', 'reopen', 'delete'), true)
+            ) {
+                $label = $langs->trans('Disabled by Veri*Factu');
 
-            $button = dolGetButtonAction(
-                $label,
-                $parameters['html'],
-                $parameters['actionType'],
-                '',
-                $parameters['id'],
-                0,
-                $parameters['params']
-            );
-
-                $this->resprints = $button;
-                return 1;
-        } elseif ($object->status == 0 && $action === 'valid') {
-            $object->fetch_thirdparty();
-            $thirdparty = $object->thirdparty;
-            $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
-
-            if (!$valid_id) {
-                $label = $langs->trans('Veri*Factu requires invoice third parties to have a valid professional ID');
                 $button = dolGetButtonAction(
                     $label,
                     $parameters['html'],
@@ -224,8 +208,28 @@ class ActionsVerifactu extends CommonHookActions
                     $parameters['params']
                 );
 
-                $this->resprints = $button;
-                return 1;
+                    $this->resprints = $button;
+                    return 1;
+            } elseif ($object->status == 0 && $action === 'valid') {
+                $object->fetch_thirdparty();
+                $thirdparty = $object->thirdparty;
+                $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
+
+                if (!$valid_id) {
+                    $label = $langs->trans('Veri*Factu requires invoice third parties to have a valid professional ID');
+                    $button = dolGetButtonAction(
+                        $label,
+                        $parameters['html'],
+                        $parameters['actionType'],
+                        '',
+                        $parameters['id'],
+                        0,
+                        $parameters['params']
+                    );
+
+                    $this->resprints = $button;
+                    return 1;
+                }
             }
         }
     }
