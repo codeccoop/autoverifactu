@@ -327,11 +327,13 @@ function verifactuGetInvoiceBreakdown($invoice)
 
 function verifactuGetComputerSystem()
 {
+    global $mysoc;
+
     $system = new ComputerSystem();
-    $system->vendorName = 'Còdec Solucions Digitals, SCCL';
-    $system->vendorNif = 'F13976543';
-    $system->name = 'Módulo Verifactu de Dolibarr';
-    $system->id = 'DV';
+    $system->vendorName = $mysoc->nom;
+    $system->vendorNif = $mysoc->idprof1;
+    $system->name = 'Módulo Auto Verifactu de Dolibarr';
+    $system->id = 'AV';
     $system->version = '0.0.1';
     $system->installationNumber = '001';
     $system->onlySupportsVerifactu = true;
