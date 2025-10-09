@@ -17,9 +17,9 @@
  */
 
 /**
- * \file        htdocs/custom/verifactu/admin/about.php
- * \ingroup     verifactu
- * \brief       About page of module verifactu.
+ * \file        htdocs/custom/autoverifactu/admin/about.php
+ * \ingroup     autoverifactu
+ * \brief       About page of module Autoverifactu.
  */
 
 require_once dirname(__DIR__) . '/env.php';
@@ -27,10 +27,10 @@ require_once dirname(__DIR__) . '/env.php';
 // Libraries
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
-require_once dirname(__DIR__) . '/lib/verifactu.lib.php';
+require_once dirname(__DIR__) . '/lib/autoverifactu.lib.php';
 
 // Translations
-$langs->loadLangs(array('errors', 'admin', 'verifactu@verifactu'));
+$langs->loadLangs(array('errors', 'admin', 'autoverifactu@autoverifactu'));
 
 // Access control
 if (!$user->admin) {
@@ -55,9 +55,9 @@ $backtopage = GETPOST('backtopage', 'alpha');
 $form = new Form($db);
 
 $help_url = '';
-$title = 'VerifactuSetup';
+$title = 'AutoverifactuSetup';
 
-llxHeader('', $langs->trans($title), $help_url, '', 0, 0, '', '', '', 'mod-verifactu page-admin_about');
+llxHeader('', $langs->trans($title), $help_url, '', 0, 0, '', '', '', 'mod-autoverifactu page-admin_about');
 
 // Subheader
 $linkback = '<a href="'.($backtopage ? $backtopage : DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1').'">'.$langs->trans("BackToModuleList").'</a>';
@@ -65,11 +65,11 @@ $linkback = '<a href="'.($backtopage ? $backtopage : DOL_URL_ROOT.'/admin/module
 echo load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 
 // Configuration header
-$head = verifactuAdminPrepareHead();
-echo dol_get_fiche_head($head, 'about', $langs->trans($title), 0, 'verifactu@verifactu');
+$head = autoverifactuAdminPrepareHead();
+echo dol_get_fiche_head($head, 'about', $langs->trans($title), 0, 'autoverifactu@autoverifactu');
 
-dol_include_once('/verifactu/core/modules/modVerifactu.class.php');
-$tmpmodule = new modVerifactu($db);
+dol_include_once('/autoverifactu/core/modules/modAutoverifactu.class.php');
+$tmpmodule = new modAutoverifactu($db);
 echo $tmpmodule->getDescLong();
 
 // Page end

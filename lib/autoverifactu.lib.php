@@ -18,9 +18,9 @@
  */
 
 /**
- * \file    htdocs/custom/verifactu/lib/verifactu.lib.php
- * \ingroup verifactu
- * \brief   Library files with common functions for Verifactu
+ * \file    htdocs/custom/autoverifactu/lib/autoverifactu.lib.php
+ * \ingroup autoverifactu
+ * \brief   Library files with common functions for Autoverifactu
  */
 
 /**
@@ -48,35 +48,35 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
-function verifactuAdminPrepareHead()
+function autoverifactuAdminPrepareHead()
 {
     global $langs, $conf;
-    $langs->load('verifactu@verifactu');
+    $langs->load('autoverifactu@autoverifactu');
 
     $h = 0;
     $head = array();
 
-    $head[$h][0] = DOL_URL_ROOT . '/custom/verifactu/admin/setup.php';
+    $head[$h][0] = DOL_URL_ROOT . '/custom/autoverifactu/admin/setup.php';
     $head[$h][1] = $langs->trans('Settings');
     $head[$h][2] = 'settings';
     $h++;
 
-    $head[$h][0] = DOL_URL_ROOT . '/custom/verifactu/admin/about.php';
+    $head[$h][0] = DOL_URL_ROOT . '/custom/autoverifactu/admin/about.php';
     $head[$h][1] = $langs->trans('About');
     $head[$h][2] = 'about';
     $h++;
 
-    complete_head_from_modules($conf, $langs, null, $head, $h, 'verifactu@verifactu');
-    complete_head_from_modules($conf, $langs, null, $head, $h, 'verifactu@verifactu', 'remove');
+    complete_head_from_modules($conf, $langs, null, $head, $h, 'autoverifactu@autoverifactu');
+    complete_head_from_modules($conf, $langs, null, $head, $h, 'autoverifactu@autoverifactu', 'remove');
 
     return $head;
 }
 
-function verifactuRegisterInvoice($invoice, $action)
+function autoverifactuRegisterInvoice($invoice, $action)
 {
     global $db, $conf, $hookmanager;
 
-    $enabled = getDolGlobalString('VERIFACTU_ENABLED') == '1';
+    $enabled = getDolGlobalString('AUTOVERIFACTU_ENABLED') == '1';
     if (!$enabled) {
         dol_syslog('Veri*Factu bridge is not enabled');
         return 0;
@@ -131,7 +131,7 @@ function verifactuRegisterInvoice($invoice, $action)
         $hookmanager = new HookManager($db);
     }
 
-    $hookmanager->initHooks(array('verifactu'));
+    $hookmanager->initHooks(array('autoverifactu'));
 
     $parameters = array(
         'file' => $file,
@@ -140,7 +140,7 @@ function verifactuRegisterInvoice($invoice, $action)
     );
 
     $reshook = $hookmanager->executeHooks(
-        'beforeVerifactuRecord',
+        'beforeAutoverifactuRecord',
         $parameters,
         $invoice,
     );
@@ -151,7 +151,7 @@ function verifactuRegisterInvoice($invoice, $action)
     }
 
     try {
-        $xml = verifactuSendInvoice($invoice);
+        $xml = autoverifactuSendInvoice($invoice);
         $uxml = UXML::fromString($xml);
 
         $body = $uxml->get('env:Body');
@@ -172,7 +172,7 @@ function verifactuRegisterInvoice($invoice, $action)
             $parameters['xml'] = $xml;
 
             $reshook = $hookmanager->executeHooks(
-                'afterVerifactuRecord',
+                'afterAutoverifactuRecord',
                 $parameters,
                 $invoice,
             );
@@ -185,22 +185,22 @@ function verifactuRegisterInvoice($invoice, $action)
     return 0;
 }
 
-function verifactuSendInvoice($invoice)
+function autoverifactuSendInvoice($invoice)
 {
     global $mysoc;
 
-    $record = verifactuInvoiceToRecord($invoice);
+    $record = autoverifactuInvoiceToRecord($invoice);
 
     // Define los datos del SIF
-    $system = verifactuGetComputerSystem();
+    $system = autoverifactuGetComputerSystem();
 
     // Crea un cliente para el webservice de la AEAT
     $taxpayer = new FiscalIdentifier($mysoc->nom, $mysoc->idprof1);
     $client = new AeatClient(
         $system,
         $taxpayer,
-        DOL_DATA_ROOT . '/' . (getDolGlobalString('VERIFACTU_CERT') ?: ''),
-        getDolGlobalString('VERIFACTU_PASSWORD') ?: null,
+        DOL_DATA_ROOT . '/' . (getDolGlobalString('AUTOVERIFACTU_CERT') ?: ''),
+        getDolGlobalString('AUTOVERIFACTU_PASSWORD') ?: null,
     );
 
     $client->setProduction(false); // <-- para usar el entorno de preproducción
@@ -210,7 +210,7 @@ function verifactuSendInvoice($invoice)
     return $res->asXML() . "\n";
 }
 
-function verifactuInvoiceToRecord($invoice)
+function autoverifactuInvoiceToRecord($invoice)
 {
     global $mysoc;
     $thirdparty = $invoice->thirdparty;
@@ -259,7 +259,7 @@ function verifactuInvoiceToRecord($invoice)
     }
 
     if ($record->correctiveType !== null) {
-        $source_invoice = verifactuGetSourceInvoice($invoice);
+        $source_invoice = autoverifactuGetSourceInvoice($invoice);
         $source_invoice->fetch_thirdparty();
 
         $source_id = new InvoiceIdentifier();
@@ -270,7 +270,7 @@ function verifactuInvoiceToRecord($invoice)
         $record->correctedInvoices[0] = $source_id;
     }
 
-    $record->breakdown = verifactuGetInvoiceBreakdown($invoice);
+    $record->breakdown = autoverifactuGetInvoiceBreakdown($invoice);
 
     $tax_total = 0;
     $base_total = 0;
@@ -290,7 +290,7 @@ function verifactuInvoiceToRecord($invoice)
     $record->hashedAt = new DateTimeImmutable();
     $record->hash = $record->calculateHash();
 
-    $previous = verifactuGetLastValidInvoice();
+    $previous = autoverifactuGetLastValidInvoice();
     if ($previous) {
         $record->previousInvoiceId = new InvoiceIdentifier();
         $record->previousInvoiceId->issuerId = $mysoc->idprof1;
@@ -307,7 +307,7 @@ function verifactuInvoiceToRecord($invoice)
     return $record;
 }
 
-function verifactuGetInvoiceBreakdown($invoice)
+function autoverifactuGetInvoiceBreakdown($invoice)
 {
     $lines = [];
 
@@ -325,14 +325,14 @@ function verifactuGetInvoiceBreakdown($invoice)
     return $lines;
 }
 
-function verifactuGetComputerSystem()
+function autoverifactuGetComputerSystem()
 {
     global $mysoc;
 
     $system = new ComputerSystem();
     $system->vendorName = $mysoc->nom;
     $system->vendorNif = $mysoc->idprof1;
-    $system->name = 'Módulo Auto Verifactu de Dolibarr';
+    $system->name = 'Módulo Auto-Veri*Factu de Dolibarr';
     $system->id = 'AV';
     $system->version = '0.0.1';
     $system->installationNumber = '001';
@@ -342,101 +342,4 @@ function verifactuGetComputerSystem()
     $system->validate();
 
     return $system;
-}
-
-function verifactuUploadCert()
-{
-    global $conf;
-    $upload_dir = $conf->verifactu->dir_output . '/';
-
-    if (!is_dir($upload_dir)) {
-        dol_mkdir($upload_dir);
-    }
-
-    if (!empty($_FILES['userfile']['tmp_name'])) {
-        $file = $_FILES['userfile'];
-        $filename = dol_sanitizeFileName($file['name']);
-        $dest = $upload_dir . $filename;
-
-        if (dol_move_uploaded_file($file['tmp_name'], $dest, 1, 0, $file['error'])) {
-            // $file_id = dol_add_file($dest, $filename, 'verifactu');
-        } else {
-            return;
-        }
-    }
-
-    return $dest;
-}
-
-function verifactuGetLastValidInvoice()
-{
-    global $db;
-
-    $sql = 'SELECT rowid FROM ' . $db->prefix() . 'facture';
-    $sql .= ' WHERE fk_statut > 0';
-    $sql .= ' ORDER BY date_valid DESC';
-    $result = $db->query($sql);
-
-    if ($result && $db->num_rows($result)) {
-        $obj = $db->fetch_object($result);
-        $invoice = new Facutre($db);
-        $invoice->fetch($obj->rowid);
-        return $invoice;
-    }
-}
-
-function verifactuGetSourceInvoice($invoice)
-{
-    $prev_id = $invoice->fk_facture_source;
-
-    global $db;
-    $invoice = new Facture($db);
-    $found = $invoice->fetch($prev_id);
-
-    if (!$found) {
-        return;
-    }
-
-    return $invoice;
-}
-
-function verifactuPrepareSetupPost()
-{
-    $fields = ['CERT', 'PASSWORD'];
-
-    foreach ($fields as $field) {
-        $field = 'VERIFACTU_' . $field;
-        $value = verifactuGetPost($field);
-        $_POST[$field] = $value;
-    }
-
-    return $_POST;
-}
-
-
-function verifactuGetPost($field)
-{
-    return GETPOST($field) ?: getDolGlobalString($field);
-}
-
-
-function verifactuSetupPost()
-{
-    global $db, $mysoc, $conf;
-
-    $certpath = verifactuGetPost('VERIFACTU_CERT');
-    $fullcertpath = DOL_DATA_ROOT . '/' . $certpath;
-    dolibarr_set_const($db, 'VERIFACTU_CERT', (string) $certpath);
-
-    $password = verifactuGetPost('VERIFACTU_PASSWORD');
-    dolibarr_set_const($db, 'VERIFACTU_PASSWORD', $password);
-
-    $enabled = verifactuGetPost('VERIFACTU_ENABLED');
-
-    $enabled = $enabled && !empty($mysoc->idprof1) && !empty($mysoc->nom);
-    $enabled = $enabled && is_file($fullcertpath);
-    $enabled = $enabled && getDolGlobalString('FAC_FORCE_DATE_VALIDATION');
-    $enabled = $enabled && !empty($conf->modules['blockedlog']);
-
-    dolibarr_set_const($db, 'VERIFACTU_ENABLED', (string) $enabled);
 }

@@ -18,21 +18,19 @@
  */
 
 /**
- * \file    htdocs/custom/verifactu/class/actions_verifactu.class.php
- * \ingroup verifactu
- * \brief   Example hook overload.
- *
- * TODO: Write detailed description here.
+ * \file    htdocs/custom/autoverifactu/class/actions_autoverifactu.class.php
+ * \ingroup autoverifactu
+ * \brief   Autoverifactu action hooks
  */
 
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonhookactions.class.php';
 require_once DOL_DOCUMENT_ROOT . '/blockedlog/class/blockedlog.class.php';
-require_once dirname(__DIR__) . '/lib/verifactu.lib.php';
+require_once dirname(__DIR__) . '/lib/autoverifactu.lib.php';
 
 /**
- * Class ActionsVerifactu
+ * Class ActionsAutoverifactu
  */
-class ActionsVerifactu extends CommonHookActions
+class ActionsAutoverifactu extends CommonHookActions
 {
     /**
      * @var DoliDB Database handler.
@@ -82,7 +80,7 @@ class ActionsVerifactu extends CommonHookActions
      * @param   array<string,mixed> $parameters Array of parameters.
      * @param   CommonObject        $object     Object output on PDF.
      * @param   string              $action     'add', 'update', 'view'.
-     * 
+     *
      * @return  int                             Return integer <0 if KO,
      *                                          =0 if OK but we want to process standard actions too,
      *                                          >0 if OK and we want to replace standard actions.
@@ -120,7 +118,7 @@ class ActionsVerifactu extends CommonHookActions
      * @param   array<string,mixed> $parameters     Array of parameters.
      * @param   PDFCT               &$pdfhandler    Object output on PDF.
      * @param   string              $action         'add', 'update', 'view'.
-     * 
+     *
      * @return  int                                 Return always 0.
      *                                              Overwrites the hookmanager results array
      */
@@ -175,11 +173,11 @@ class ActionsVerifactu extends CommonHookActions
     /**
      * Execute action on card page buttons render. If it is a facture page,
      * it adds a "verifactu" button to the row.
-     * 
+     *
      * @param  array<string,mixed>  $parameters  Array of parameters.
      * @param  CommonObect          &$object     Instance of the owner object of the page.
      * @param  string               $action      Global action.
-     * 
+     *
      * @return null                              Empty response. The button
      *                                           html is echoed to the output
      *                                           buffer.
@@ -193,7 +191,7 @@ class ActionsVerifactu extends CommonHookActions
                 $object->status == 0 ? $langs->trans('Please, verify the invoice in order to generate the Veri*Factu document') : $langs->trans('Check verifactu validity'),
                 $langs->trans('Verifactu'),
                 'default',
-                DOL_URL_ROOT . '/custom/verifactu/ajax/verify.php?facid=' . $object->id . '&token=' . newToken(),
+                DOL_URL_ROOT . '/custom/autoverifactu/ajax/verify.php?facid=' . $object->id . '&token=' . newToken(),
                 '',
                 $object->status > 0,
                 array(
@@ -210,12 +208,12 @@ class ActionsVerifactu extends CommonHookActions
      * Execute action on each card page buttons render. If it is a facture page,
      * then check userRights for each button based on the button action and
      * the state of the invoice.
-     * 
+     *
      * @param  array<string,mixed>  $parameters  Array of parameters.
      * @param  CommonObect          &$object     Instance of the owner object of
      *                                           the page.
      * @param  string               $action      Global action.
-     * 
+     *
      * @return int<0,1>                          1 if button has been overwrited,
      *                                           0 otherwise.
      */

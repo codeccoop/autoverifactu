@@ -19,7 +19,7 @@
  */
 
 /**
- * \file       htdocs/custom/verifactu/ajax/verify.php
+ * \file       htdocs/custom/autoverifactu/ajax/verify.php
  * \brief      File to return Ajax response on myobject list request
  */
 

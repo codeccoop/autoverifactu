@@ -20,21 +20,21 @@
  */
 
 /**
- *  \defgroup   verifactu     Module Verifactu
+ *  \defgroup   autoverifactu     Module Autoverifactu
  *  \brief      Module with triggers to bridge Dolibarr bills to the verifactu system
  *
- *  \file       htdocs/custom/verifactu/core/modules/modVerifactu.class.php
- *  \ingroup    verifactu
- *  \brief      Verifactu module definition
+ *  \file       htdocs/custom/autoverifactu/core/modules/modAutoverifactu.class.php
+ *  \ingroup    autoverifactu
+ *  \brief      Autoverifactu module definition
  */
 
 include_once DOL_DOCUMENT_ROOT . '/core/modules/DolibarrModules.class.php';
 
 
 /**
- *  Description and activation class for module Verifactu
+ *  Description and activation class for module Autoverifactu
  */
-class modVerifactu extends DolibarrModules
+class modAutoverifactu extends DolibarrModules
 {
     /**
      * Constructor. Define names, constants, directories, boxes, permissions.
@@ -52,7 +52,7 @@ class modVerifactu extends DolibarrModules
         $this->numero = 77088; // TODO Go on page https://wiki.dolibarr.org/index.php/List_of_modules_id to reserve an id number for your module
 
         // Key text used to identify module (for permissions, menus, etc...)
-        $this->rights_class = 'verifactu';
+        $this->rights_class = 'autoverifactu';
 
         // Family can be 'base' (core modules),'crm','financial','hr','projects','products','ecm','technic' (transverse modules),'interface' (link with external tools),'other','...'
         // It is used to group modules by family in module setup page
@@ -63,11 +63,11 @@ class modVerifactu extends DolibarrModules
 
         // Gives the possibility for the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
         //$this->familyinfo = array('myownfamily' => array('position' => '01', 'label' => $langs->trans("MyOwnFamily")));
-        // Module label (no space allowed), used if translation string 'ModuleVerifactuName' not found (Verifactu is name of module).
+        // Module label (no space allowed), used if translation string 'ModuleAutoverifactuName' not found (Autoverifactu is name of module).
         $this->name = preg_replace('/^mod/i', '', get_class($this));
 
         // DESCRIPTION_FLAG
-        // Module description, used if translation string 'ModuleVerifactuDesc' not found (Verifactu is name of module).
+        // Module description, used if translation string 'ModuleAutoverifactuDesc' not found (Autoverifactu is name of module).
         $this->description = 'Bridge Dolibarr bills to the vVeri*Factu system';
         // Used only if file README.md and README-LL.md not found.
         $this->descriptionlong = 'With this module activated, each validated bill will be immediatly sent to the verifactu system and freezed';
@@ -75,14 +75,14 @@ class modVerifactu extends DolibarrModules
         // Author
         $this->editor_name = 'Còdec';
         $this->editor_url = 'https://www.codeccoop.org';      // Must be an external online web site
-        $this->editor_squarred_logo = 'logo-codec.png@verifactu';                   // Must be image filename into the module/img directory followed with @modulename. Example: 'myimage.png@verifactu'
+        $this->editor_squarred_logo = 'logo-codec.png@autoverifactu';                   // Must be image filename into the module/img directory followed with @modulename. Example: 'myimage.png@autoverifactu'
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated', 'experimental_deprecated' or a version string like 'x.y.z'
         $this->version = '1.0';
         // Url to the file with your last numberversion of this module
         //$this->url_last_version = 'http://www.example.com/versionmodule.txt';
 
-        // Key used in llx_const table to save module status enabled/disabled (where VERIFACTU is value of property name of module in uppercase)
+        // Key used in llx_const table to save module status enabled/disabled (where AUTOVERIFACTU is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
 
         // Name of image file used for this module.
@@ -113,11 +113,11 @@ class modVerifactu extends DolibarrModules
             'theme' => 0,
             // Set this to relative path of css file if module has its own css file
             'css' => array(
-                '/verifactu/css/setup.css.php',
+                '/autoverifactu/css/setup.css.php',
             ),
             // Set this to relative path of js file if module must load a js on all pages
             'js' => array(
-                //   '/verifactu/js/verifactu.js.php',
+                //   '/autoverifactu/js/autoverifactu.js.php',
             ),
             // Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context to 'all'
             /* BEGIN MODULEBUILDER HOOKSCONTEXTS */
@@ -135,18 +135,18 @@ class modVerifactu extends DolibarrModules
         );
 
         // Data directories to create when module is enabled.
-        // Example: this->dirs = array("/verifactu/temp","/verifactu/subdir");
-        $this->dirs = array('/verifactu/temp');
+        // Example: this->dirs = array("/autoverifactu/temp","/autoverifactu/subdir");
+        $this->dirs = array('/autoverifactu/temp');
 
-        // Config pages. Put here list of php page, stored into verifactu/admin directory, to use to setup module.
+        // Config pages. Put here list of php page, stored into autoverifactu/admin directory, to use to setup module.
         $this->config_page_url = array(
-            'setup.php@verifactu',
-            'about.php@verifactu'
+            'setup.php@autoverifactu',
+            'about.php@autoverifactu'
         );
 
         // Dependencies
         // A condition to hide module
-        $this->hidden = getDolGlobalInt('MODULE_VERIFACTU_DISABLED'); // A condition to disable module;
+        $this->hidden = getDolGlobalInt('MODULE_AUTOVERIFACTU_DISABLED'); // A condition to disable module;
         // List of module class names that must be enabled if this module is enabled. Example: array('always'=>array('modModuleToEnable1','modModuleToEnable2'), 'FR'=>array('modModuleToEnableFR')...)
         $this->depends = array('modFacture', 'modBlockedLog');
         // List of module class names to disable if this one is disabled. Example: array('modModuleToDisable1', ...)
@@ -155,7 +155,7 @@ class modVerifactu extends DolibarrModules
         $this->conflictwith = array();
 
         // The language file dedicated to your module
-        $this->langfiles = array('verifactu@verifactu');
+        $this->langfiles = array('autoverifactu@autoverifactu');
 
         // Prerequisites
         $this->phpmin = array(8, 0); // Minimum version of PHP required by module
@@ -169,17 +169,26 @@ class modVerifactu extends DolibarrModules
         $this->warnings_activation_ext = array();   // Warning to show when we activate an external module. array('always'='text') or array('FR'='textfr','MX'='textmx'...)
         $this->warnings_unactivation = array('ES' => 'BlockedLogAreRequiredByYourCountryLegislation');
 
-        // $this->automatic_activation = array('ES'=>'VerifactuWasAutomaticallyActivatedBecauseOfYourCountryChoice');
+        // $this->automatic_activation = array('ES'=>'AutoverifactuWasAutomaticallyActivatedBecauseOfYourCountryChoice');
 
-        $this->always_enabled = (isModEnabled('verifactu')
-            && getDolGlobalString('VERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY')
-            && in_array((empty($mysoc->country_code) ? '' : $mysoc->country_code), explode(',', getDolGlobalString('VERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY')))
+        $this->always_enabled = (isModEnabled('autoverifactu')
+            && getDolGlobalString('AUTOVERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY')
+            && in_array((empty($mysoc->country_code) ? '' : $mysoc->country_code), explode(',', getDolGlobalString('AUTOVERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY')))
             && $this->alreadyUsed());
 
-        // Constants
-        // List of particular constants to add when module is enabled (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
+        /* Constants */
+        // List of particular constants to add when module is enabled (key, 'chaine',
+        // value, desc, visible, 'current' or 'allentities', deleteonunactive).
         $this->const = array(
-            1 => array('VERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY', 'chaine', 'ES', 'This is list of country code where the module may be mandatory', 0, 'current', 0)
+            1 => array(
+                'AUTOVERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY',
+                'chaine',
+                'ES',
+                'This is list of country code where the module may be mandatory',
+                0,
+                'current',
+                0,
+            )
         );
 
         // Some keys to add into the overwriting translation tables
@@ -188,9 +197,9 @@ class modVerifactu extends DolibarrModules
             'fr_FR:ParentCompany'=>'Maison mère ou revendeur'
         )*/
 
-        if (!isModEnabled('verifactu')) {
-            $conf->verifactu = new stdClass();
-            $conf->verifactu->enabled = 0;
+        if (!isModEnabled('autoverifactu')) {
+            $conf->autoverifactu = new stdClass();
+            $conf->autoverifactu->enabled = 0;
         }
 
         // Array to add new pages in new tabs
@@ -201,7 +210,7 @@ class modVerifactu extends DolibarrModules
         $this->dictionaries = array();
 
         // Boxes/Widgets
-        // Add here list of php file(s) stored in verifactu/core/boxes that contains a class to show a widget.
+        // Add here list of php file(s) stored in autoverifactu/core/boxes that contains a class to show a widget.
         $this->boxes = array();
 
         // Cronjobs (List of cron jobs entries to add when module is enabled)
@@ -218,15 +227,15 @@ class modVerifactu extends DolibarrModules
         // $this->menu[$r++] = array(
         //     'fk_menu' => '', // Will be stored into mainmenu + leftmenu. Use '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
         //     'type' => 'top', // This is a Top menu entry
-        //     'titre' => 'Verifactu',
+        //     'titre' => 'Autoverifactu',
         //     'prefix' => img_picto('', $this->picto, 'class="pictofixedwidth valignmiddle"'),
-        //     'mainmenu' => 'verifactu',
+        //     'mainmenu' => 'autoverifactu',
         //     'leftmenu' => '',
-        //     'url' => '/verifactu/verifactuindex.php',
-        //     'langs' => 'verifactu@verifactu', // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+        //     'url' => '/autoverifactu/autoverifactuindex.php',
+        //     'langs' => 'autoverifactu@autoverifactu', // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
         //     'position' => 1000 + $r,
-        //     'enabled' => 'isModEnabled("verifactu")', // Define condition to show or hide menu entry. Use 'isModEnabled("verifactu")' if entry must be visible if module is enabled.
-        //     'perms' => '1', // Use 'perms'=>'$user->hasRight("verifactu", "myobject", "read")' if you want your menu with a permission rules
+        //     'enabled' => 'isModEnabled("autoverifactu")', // Define condition to show or hide menu entry. Use 'isModEnabled("autoverifactu")' if entry must be visible if module is enabled.
+        //     'perms' => '1', // Use 'perms'=>'$user->hasRight("autoverifactu", "myobject", "read")' if you want your menu with a permission rules
         //     'target' => '',
         //     'user' => 0, // 0=Menu for internal users, 1=external users, 2=both
         // );
@@ -238,7 +247,7 @@ class modVerifactu extends DolibarrModules
      *  It also creates data directories.
      *
      *  @param      string  $options    Options when enabling module ('', 'noboxes').
-     * 
+     *
      *  @return     int<-1,1>           1 if OK, <=0 if KO.
      */
     public function init($options = '')
@@ -248,19 +257,21 @@ class modVerifactu extends DolibarrModules
         dolibarr_set_const($db, 'FAC_FORCE_DATE_VALIDATION', '1');
 
         // Create tables of module at module activation
-        //$result = $this->_load_tables('/install/mysql/', 'verifactu');
-        // $result = $this->_load_tables('/verifactu/sql/');
-        // if ($result < 0) {
-        //     return -1; // Do not activate module if error 'not allowed' returned when loading module SQL queries (the _load_table run sql with run_sql with the error allowed parameter set to 'default')
-        // }
+        // $result = $this->_load_tables('/install/mysql/', 'autoverifactu');
+        $result = $this->_load_tables('/autoverifactu/sql/');
+        if ($result < 0) {
+            // Do not activate module if error 'not allowed' returned when loading module SQL queries
+            // (the _load_table run sql with run_sql with the error allowed parameter set to 'default').
+            return -1;
+        }
 
         // Create extrafields during init
         // include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
         // $extrafields = new ExtraFields($this->db);
         //
         // $extrafields->addExtraField(
-        //     'verifactu_xml',
-        //     'Verifactu',
+        //     'autoverifactu_xml',
+        //     'Autoverifactu',
         //     'text',
         //     1,
         //     0,
@@ -275,8 +286,8 @@ class modVerifactu extends DolibarrModules
         //     0,
         //     '',
         //     '',
-        //     'verifactu@verifactu',
-        //     'isModEnabled("verifactu")'
+        //     'autoverifactu@autoverifactu',
+        //     'isModEnabled("autoverifactu")'
         // );
 
         // Permissions
@@ -306,7 +317,7 @@ class modVerifactu extends DolibarrModules
      *  Data directories are not deleted
      *
      *  @param  string      $options    Options when enabling module ('', 'noboxes')
-     * 
+     *
      *  @return int<-1,1>               1 if OK, <=0 if KO
      */
     public function remove($options = '')

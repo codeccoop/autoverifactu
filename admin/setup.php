@@ -18,16 +18,16 @@
  */
 
 /**
- * \file    htdocs/custom/verifactu/admin/setup.php
- * \ingroup verifactu
- * \brief   Verifactu setup page.
+ * \file    htdocs/custom/autoverifactu/admin/setup.php
+ * \ingroup autoverifactu
+ * \brief   Autoverifactu setup page.
  */
 
 require_once dirname(__DIR__) . '/env.php';
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
-require_once dirname(__DIR__) . '/lib/verifactu.lib.php';
+require_once dirname(__DIR__) . '/lib/autoverifactu.lib.php';
 
 /**
  * @var Conf $conf
@@ -40,11 +40,11 @@ require_once dirname(__DIR__) . '/lib/verifactu.lib.php';
 global $db, $langs, $conf;
 
 // Translations
-$langs->loadLangs(array('admin', 'verifactu@verifactu'));
+$langs->loadLangs(array('admin', 'autoverifactu@autoverifactu'));
 
 // Initialize a technical object to manage hooks of page. Note that conf->hooks_modules contains an array of hook context
 /** @var HookManager $hookmanager */
-$hookmanager->initHooks(array('verifactusetup', 'globalsetup'));
+$hookmanager->initHooks(array('autoverifactusetup', 'globalsetup'));
 
 // Parameters
 $action = GETPOST('action', 'aZ09');
@@ -73,46 +73,46 @@ $formfile = new FormFile($db);
 
 // Enter here all parameters in your setup page
 $invalid = false;
-$toggle = $formSetup->newItem('VERIFACTU_ENABLED')->setAsYesNo();
+$toggle = $formSetup->newItem('AUTOVERIFACTU_ENABLED')->setAsYesNo();
 $toggle->fieldValue = '1';
 
 $formSetup->newItem('COMPANY_SECTION_TITLE')->setAsTitle();
 
-$name_field = $formSetup->newItem('VERIFACTU_COMPANY_NAME');
-$name_field->fieldValue = verifactuGetPost('VERIFACTU_COMPANY_NAME') ?: $mysoc->nom;
+$name_field = $formSetup->newItem('AUTOVERIFACTU_COMPANY_NAME');
+$name_field->fieldValue = autoverifactuGetPost('AUTOVERIFACTU_COMPANY_NAME') ?: $mysoc->nom;
 $name_field->fieldParams['isMandatory'] = 1;
 $name_field->fieldAttr['placeholder'] = $langs->trans('Your company name');
 $name_field->fieldAttr['disabled'] = true;
 $name_field->fieldAttr['error'] = empty($name_field->fieldValue);
 $invalid = $invalid || $name_field->fieldAttr['error'];
 
-$vat_field = $formSetup->newItem('VERIFACTU_VAT');
-$vat_field->fieldValue = verifactuGetPost('VERIFACTU_VAT') ?: $mysoc->idprof1;
+$vat_field = $formSetup->newItem('AUTOVERIFACTU_VAT');
+$vat_field->fieldValue = autoverifactuGetPost('AUTOVERIFACTU_VAT') ?: $mysoc->idprof1;
 $vat_field->fieldParams['isMandatory'] = 1;
 $vat_field->fieldAttr['placeholder'] = $langs->trans('Your company VAT number');
 $vat_field->fieldAttr['disabled'] = true;
 $vat_field->fieldAttr['error'] = empty($vat_field->fieldValue);
 $invalid = $invalid || $vat_field->fieldAttr['error'];
 
-$cert_field = $formSetup->newItem('VERIFACTU_CERT');
+$cert_field = $formSetup->newItem('AUTOVERIFACTU_CERT');
 $cert_field->fieldParams['isMandatory'] = 1;
 $cert_field->fieldAttr['placeholder'] = $langs->trans('path/to/your/certificate.pem');
 $cert_field->fieldAttr['disabled'] = true;
 $cert_field->fieldAttr['error'] = empty($cert_field->fieldValue);
 $invalid = $invalid || $cert_field->fieldAttr['error'];
 
-$pass_field = $formSetup->newItem('VERIFACTU_PASSWORD')->setAsGenericPassword();
+$pass_field = $formSetup->newItem('AUTOVERIFACTU_PASSWORD')->setAsGenericPassword();
 
 $formSetup->newItem('SYSTEM_SECTION_TITLE')->setAsTitle();
 
-$date_valid_field = $formSetup->newItem('VERIFACTU_DATE_VALIDATION');
+$date_valid_field = $formSetup->newItem('AUTOVERIFACTU_DATE_VALIDATION');
 $date_valid_field->fieldValue = $langs->trans('Active');
 $date_valid_field->fieldParams['isMandatory'] = 1;
 $date_valid_field->fieldAttr['disabled'] = true;
 $date_valid_field->fieldAttr['error'] = empty(getDolGlobalInt('FAC_FORCE_DATE_VALIDATION'));
 $invalid = $invalid || $date_valid_field->fieldAttr['error'];
 
-$blocklog_field = $formSetup->newItem('VERIFACTU_BLOCKEDLOG_ENABLED');
+$blocklog_field = $formSetup->newItem('AUTOVERIFACTU_BLOCKEDLOG_ENABLED');
 $blocklog_field->fieldValue = $langs->trans('Active');
 $blocklog_field->fieldParams['isMandatory'] = 1;
 $blocklog_field->fieldAttr['disabled'] = true;
@@ -127,11 +127,11 @@ if ($invalid) {
 
     ?>
     <div style="opacity:0.4">
-        <div id="confirm_VERIFACTU_ENABLED" title="" style="display: none;"></div>
-        <span id="set_VERIFACTU_ENABLED" class="valignmiddle inline-block linkobject" style="cursor: default;">
+        <div id="confirm_AUTOVERIFACTU_ENABLED" title="" style="display: none;"></div>
+        <span id="set_AUTOVERIFACTU_ENABLED" class="valignmiddle inline-block linkobject" style="cursor: default;">
             <span class="fas fa-toggle-off" style=" color: #999;" title="Disabled"></span>
         </span>
-        <span id="del_VERIFACTU_ENABLED" class="valignmiddle inline-block linkobject hideobject" style="cursor: default;">
+        <span id="del_AUTOVERIFACTU_ENABLED" class="valignmiddle inline-block linkobject hideobject" style="cursor: default;">
             <span class="fas fa-toggle-on font-status4" style="" title="Enabled"></span>
         </span>
     </div>
@@ -147,20 +147,20 @@ $setupnotempty += count($formSetup->items);
  */
 
 if ($action === 'update' && !empty($user->admin)) {
-    verifactuSetupPost();
+    autoverifactuSetupPost();
 
     header('Location: ' . $_SERVER['PHP_SELF']);
 } elseif ($action === 'upload' && !empty($user->admin)) {
-    $filepath = verifactuUploadCert();
+    $filepath = autoverifactuUploadCert();
 
     if ($filepath) {
         $filepath = str_replace(DOL_DATA_ROOT . '/', '', $filepath);
-        dolibarr_set_const($db, 'VERIFACTU_CERT', $filepath);
+        dolibarr_set_const($db, 'AUTOVERIFACTU_CERT', $filepath);
         $cert_field->fieldValue = $filepath;
         header('Location: ' . $_SERVER['PHP_SELF']);
     } else {
         dol_syslog('Unable to upload the user cert file', LOG_ERR);
-        dolibarr_set_const($db, 'VERIFACTU_CERT', null);
+        dolibarr_set_const($db, 'AUTOVERIFACTU_CERT', null);
 
         http_response_code(400);
         header('Location: ' . $_SERVER['PHP_SELF'] . '?uploaderror=1');
@@ -176,9 +176,9 @@ $action = 'edit';
 $form = new Form($db);
 
 $help_url = '';
-$title = 'VerifactuSetup';
+$title = 'AutoverifactuSetup';
 
-llxHeader('', $langs->trans($title), $help_url, '', 0, 0, '', '', '', 'mod-verifactu page-admin');
+llxHeader('', $langs->trans($title), $help_url, '', 0, 0, '', '', '', 'mod-autoverifactu page-admin');
 
 // Subheader
 $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php?restore_lastsearch_values=1">' . img_picto($langs->trans("BackToModuleList"), 'back', 'class="pictofixedwidth"').'<span class="hideonsmartphone">'.$langs->trans("BackToModuleList").'</span></a>';
@@ -186,14 +186,21 @@ $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php?restore_lastsearch_
 echo load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 
 // Configuration header
-$head = verifactuAdminPrepareHead();
-echo dol_get_fiche_head($head, 'settings', $langs->trans($title), -1, "verifactu@verifactu");
+$head = autoverifactuAdminPrepareHead();
+
+echo dol_get_fiche_head(
+    $head,
+    'settings',
+    $langs->trans($title),
+    -1,
+    'autoverifactu@autoverifactu',
+);
 
 // Setup page goes here
-echo '<span class="opacitymedium">'.$langs->trans("VerifactuSetupPage").'</span><br><br>';
+echo '<span class="opacitymedium">' . $langs->trans('AutoverifactuSetupPage') . '</span><br><br>';
 
 if (!empty($formSetup->items)) {
-    echo '<div id="verifactuSetupForm">';
+    echo '<div id="autoverifactuSetupForm">';
     echo $formSetup->generateOutput(true);
     echo '</div>';
 }
@@ -214,7 +221,7 @@ $formfile->form_attach_new_file(
     1,
     '',
     0,
-    'verifactu-certupload',
+    'autoverifactu-certupload',
     '.pem,.p12',
     '',
     0,

@@ -53,7 +53,7 @@ if (empty($dolibarr_nocache)) {
 
 ?>
 
-#verifactuSetupForm input[error="1"] {
+#autoverifactuSetupForm input[error="1"] {
  border: indianred 1px solid;
  color: indianred;
 }
