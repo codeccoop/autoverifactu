@@ -75,8 +75,17 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
         // print_r(['action' => $action, 'object' => $object->element, 'status' => $object->status]);
         switch ($action) {
             case 'BILL_CANCEL':
-                dol_syslog('Auto-Veri*Factu cancel record registry for invoice #' . $object->id);
-                return autoverifactuRegisterInvoice($object, $action);
+                $result = autoverifactuRegisterInvoice($object, $action);
+                if ($result < 0) {
+                    dol_print_error(
+                        $this->db,
+                        $langs->trans(
+                            'Veri*Factu invoice record creation has failed'
+                        ),
+                    );
+                }
+
+                return $result;
             case 'BILL_VALIDATE':
             // case 'DON_VALIDATE':
             // case 'CASHCONTROL_VALIDATE':
@@ -100,8 +109,17 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                     return -1;
                 }
 
-                dol_syslog('Auto-Veri*Factu record registry for invoice #' . $object->id);
-                return autoverifactuRegisterInvoice($object, $action);
+                $result = autoverifactuRegisterInvoice($object, $action);
+                if ($result < 0) {
+                    dol_print_error(
+                        $this->db,
+                        $langs->trans(
+                            'Veri*Factu invoice record creation has failed'
+                        ),
+                    );
+                }
+
+                return $result;
             case 'BILL_UNVALIDATE':
             case 'BILL_UNPAYED':
                 dol_syslog('Auto-Veri*Factu disables invoice unvalidations');

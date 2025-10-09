@@ -257,13 +257,12 @@ class modAutoverifactu extends DolibarrModules
         dolibarr_set_const($db, 'FAC_FORCE_DATE_VALIDATION', '1');
 
         // Create tables of module at module activation
-        // $result = $this->_load_tables('/install/mysql/', 'autoverifactu');
-        $result = $this->_load_tables('/autoverifactu/sql/');
-        if ($result < 0) {
-            // Do not activate module if error 'not allowed' returned when loading module SQL queries
-            // (the _load_table run sql with run_sql with the error allowed parameter set to 'default').
-            return -1;
-        }
+        // $result = $this->_load_tables('/autoverifactu/sql/');
+        // if ($result < 0) {
+        //     // Do not activate module if error 'not allowed' returned when loading module SQL queries
+        //     // (the _load_table run sql with run_sql with the error allowed parameter set to 'default').
+        //     return -1;
+        // }
 
         // Create extrafields during init
         // include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
