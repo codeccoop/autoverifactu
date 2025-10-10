@@ -41,8 +41,8 @@ function autoverifactuValidation($invoice)
         return -1;
     }
 
-    $record = autoverifactuInvoiceRecord($invoice);
-    $immutable = autoverifactuInvoiceRecordFromLog($blockedlog);
+    $record = autoverifactuInvoiceToRecord($invoice);
+    $immutable = autoverifactuRecordFromLog($blockedlog);
 
     $error = $record->hash !== $immutable->hash;
     if ($error) {
@@ -67,4 +67,58 @@ function autoverifactuFetchBlockedLog($invoice)
         $blockedlog->fetch($obj->rowid);
         return $blockedlog;
     }
+}
+
+/**
+ * Gets the source invoice from the fk_facture_source value.
+ * 
+ * @param Facture Invoice object.
+ * 
+ * @return Facture|null
+ */
+function autoverifactuGetLastValidInvoice()
+{
+    global $db;
+
+    $sql = 'SELECT rowid FROM ' . $db->prefix() . 'facture';
+    $sql .= ' WHERE fk_statut > 0';
+    $sql .= ' ORDER BY date_valid DESC';
+    $result = $db->query($sql);
+
+    if ($result && $db->num_rows($result)) {
+        $obj = $db->fetch_object($result);
+        $invoice = new Facutre($db);
+        $invoice->fetch($obj->rowid);
+        return $invoice;
+    }
+}
+
+/**
+ * Gets the source invoice from the fk_facture_source value.
+ * 
+ * @param Facture Invoice object.
+ * 
+ * @return Facture|null
+ */
+function autoverifactuGetSourceInvoice($invoice)
+{
+    $prev_id = $invoice->fk_facture_source;
+    if (emptu($prev_id)) {
+        return;
+    }
+
+    global $db;
+    $invoice = new Facture($db);
+    $found = $invoice->fetch($prev_id);
+
+    if (!$found) {
+        return;
+    }
+
+    return $invoice;
+}
+
+function autoverifactuRecordFromLog($blockedlog)
+{
+    // TODO: Implement this for validation
 }

@@ -28,17 +28,9 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
-function autoverifactuPrepareSetupPost()
+function autoverifactuGetPost($field)
 {
-    $fields = ['CERT', 'PASSWORD'];
-
-    foreach ($fields as $field) {
-        $field = 'AUTOVERIFACTU_' . $field;
-        $value = autoverifactuGetPost($field);
-        $_POST[$field] = $value;
-    }
-
-    return $_POST;
+    return GETPOST($field) ?: getDolGlobalString($field);
 }
 
 function autoverifactuSetupPost()
@@ -60,11 +52,6 @@ function autoverifactuSetupPost()
     $enabled = $enabled && !empty($conf->modules['blockedlog']);
 
     dolibarr_set_const($db, 'AUTOVERIFACTU_ENABLED', (string) $enabled);
-}
-
-function autoverifactuGetPost($field)
-{
-    return GETPOST($field) ?: getDolGlobalString($field);
 }
 
 function autoverifactuUploadCert()
@@ -89,36 +76,4 @@ function autoverifactuUploadCert()
     }
 
     return $dest;
-}
-
-function autoverifactuGetLastValidInvoice()
-{
-    global $db;
-
-    $sql = 'SELECT rowid FROM ' . $db->prefix() . 'facture';
-    $sql .= ' WHERE fk_statut > 0';
-    $sql .= ' ORDER BY date_valid DESC';
-    $result = $db->query($sql);
-
-    if ($result && $db->num_rows($result)) {
-        $obj = $db->fetch_object($result);
-        $invoice = new Facutre($db);
-        $invoice->fetch($obj->rowid);
-        return $invoice;
-    }
-}
-
-function autoverifactuGetSourceInvoice($invoice)
-{
-    $prev_id = $invoice->fk_facture_source;
-
-    global $db;
-    $invoice = new Facture($db);
-    $found = $invoice->fetch($prev_id);
-
-    if (!$found) {
-        return;
-    }
-
-    return $invoice;
 }

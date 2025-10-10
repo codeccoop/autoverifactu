@@ -35,7 +35,7 @@ class AeatClient
         $this->client = new Client([
             'cert' => ($certPassword === null) ? $certPath : [$certPath, $certPassword],
             'headers' => [
-                'User-Agent' => "Mozilla/5.0 (compatible; dolAutoVerifactu/0.0.1)",
+                'User-Agent' => "Mozilla/5.0 (compatible; Módulo Auto-Veri*Factu de Dolibarr/0.0.1)",
             ],
         ]);
     }
