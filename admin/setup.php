@@ -28,6 +28,7 @@ require_once dirname(__DIR__) . '/env.php';
 // Libraries
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once dirname(__DIR__) . '/lib/autoverifactu.lib.php';
+require_once dirname(__DIR__) . '/lib/setup.lib.php';
 
 /**
  * @var Conf $conf
@@ -102,6 +103,7 @@ $cert_field->fieldAttr['error'] = empty($cert_field->fieldValue);
 $invalid = $invalid || $cert_field->fieldAttr['error'];
 
 $pass_field = $formSetup->newItem('AUTOVERIFACTU_PASSWORD')->setAsGenericPassword();
+$pass_field->fieldParams['isMandatory'] = 0;
 
 $formSetup->newItem('SYSTEM_SECTION_TITLE')->setAsTitle();
 
@@ -233,5 +235,14 @@ $formfile->form_attach_new_file(
 // Page end
 echo dol_get_fiche_end();
 
+?>
+    <script id="harry-potter">
+    document.addEventListener("DOMContentLoaded", function () {
+        const input = document.getElementById("AUTOVERIFACTU_PASSWORD");
+        input.removeAttribute("required");
+        input.removeAttribute("aria-required");
+    });
+    </script>
+<?php
 llxFooter();
 $db->close();
