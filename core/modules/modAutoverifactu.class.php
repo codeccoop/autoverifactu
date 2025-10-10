@@ -265,29 +265,29 @@ class modAutoverifactu extends DolibarrModules
         // }
 
         // Create extrafields during init
-        // include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
-        // $extrafields = new ExtraFields($this->db);
-        //
-        // $extrafields->addExtraField(
-        //     'autoverifactu_xml',
-        //     'Autoverifactu',
-        //     'text',
-        //     1,
-        //     0,
-        //     'facture',
-        //     0,
-        //     0,
-        //     '',
-        //     array('options' => array(1 => 1)),
-        //     0,
-        //     '',
-        //     0,
-        //     0,
-        //     '',
-        //     '',
-        //     'autoverifactu@autoverifactu',
-        //     'isModEnabled("autoverifactu")'
-        // );
+        include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+        $extrafields = new ExtraFields($this->db);
+
+        $extrafields->addExtraField(
+            'verifactued',
+            'Autoverifactu',
+            'boolean',
+            1,
+            0,
+            'facture',
+            0,
+            0,
+            '',
+            '',
+            0,
+            '',
+            0,
+            '',
+            '',
+            '',
+            'autoverifactu@autoverifactu',
+            'isModEnabled("autoverifactu")'
+        );
 
         // Permissions
         $this->remove($options);

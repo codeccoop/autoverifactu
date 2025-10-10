@@ -28,7 +28,9 @@
  * @return array<array{string,string,string}>
  */
 
-function autoverifactuValidation($invoice)
+require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
+
+function autoverifactuIntegrityValidation($invoice)
 {
     $blockedlog = autoverifactuFetchBlockedLog($invoice);
 
@@ -71,9 +73,9 @@ function autoverifactuFetchBlockedLog($invoice)
 
 /**
  * Gets the source invoice from the fk_facture_source value.
- * 
+ *
  * @param Facture Invoice object.
- * 
+ *
  * @return Facture|null
  */
 function autoverifactuGetLastValidInvoice()
@@ -95,15 +97,15 @@ function autoverifactuGetLastValidInvoice()
 
 /**
  * Gets the source invoice from the fk_facture_source value.
- * 
+ *
  * @param Facture Invoice object.
- * 
+ *
  * @return Facture|null
  */
 function autoverifactuGetSourceInvoice($invoice)
 {
     $prev_id = $invoice->fk_facture_source;
-    if (emptu($prev_id)) {
+    if (!$prev_id) {
         return;
     }
 
@@ -121,4 +123,89 @@ function autoverifactuGetSourceInvoice($invoice)
 function autoverifactuRecordFromLog($blockedlog)
 {
     // TODO: Implement this for validation
+}
+
+/**
+* Performs a verifactu system requirements check.
+*
+* @return int 1 if OK, 0 if KO.
+*/
+function autoverifactuSystemCheck()
+{
+    global $mysoc;
+
+    if (empty($mysoc->nom) || empty($mysoc->idprof1)) {
+        return 0;
+    }
+
+    require_once DOL_DOCUMENT_ROOT . '/core/lib/profid.lib.php';
+    $check = isValidTinForES($mysoc->idprof1);
+    if ($check < 0) {
+        return 0;
+    }
+
+    $certpath = getDolGlobalString('AUTOVERIFACTU_CERT');
+    if (!($certpath && is_file($certpath))) {
+        return 0;
+    }
+
+    $docpath = getDolGlobalString('AUTOVERIFACTU_REPONSABILITY_DOC');
+    if (!($docpath && is_file($docpath))) {
+        return 0;
+    }
+
+    return 1;
+}
+
+function autoverifactuValidateRecord($record)
+{
+    if (!isset($record->breakdown, $record->totalTaxAmount, $record->totalAmount)) {
+        return 0;
+    }
+
+    $expectedTax = 0;
+    $expectedBase = 0;
+    foreach ($record->breakdown as $details) {
+        if (!isset($details->taxAmount, $details->baseAmount, $details->taxRate)) {
+            return 0;
+        }
+
+        $validTaxAmount = false;
+        $expectedTax = $details->baseAmount * $details->taxRate / 100;
+        for ($t = -0.02; $t <= 0.02; $t += 0.01) {
+            $taxAmount = number_format($expectedTax + $t, 2, '.', '');
+            if ($details->taxAmount === $taxAmount) {
+                $validTaxAmount = true;
+                break;
+            }
+        }
+
+        if (!$validTaxAmount) {
+            return 0;
+        }
+
+        $expectedTax += $details->taxAmount;
+        $expectedBase += $details->baseAmount;
+    }
+
+    $expectedTax = number_format($expectedTax, 2, '.', '');
+    $expectedBase = number_format($expectedBase, 2, '.', '');
+    $expectedTotal = number_format($expectedTax + $expectedBase, 2, '.', '');
+
+    $isTotalValid = false;
+    for ($t = -0.02; $t <= 0.02; $t += 0.01) {
+        $total = number_format($expectedTotal + $t, 2, '.', '');
+        if ($record->totalAmount === $total) {
+            $isTotalValid = true;
+            break;
+        }
+    }
+
+    return (int) $isTotalValid;
+}
+
+function autoverifactuIsInvoiceRecorded($invoice)
+{
+    $invoice->fetch_optionals($invoice->id);
+    return !!($invoice->array_options['verifactued'] ?? false);
 }
