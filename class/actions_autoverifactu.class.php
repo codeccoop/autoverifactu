@@ -26,6 +26,7 @@
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonhookactions.class.php';
 require_once DOL_DOCUMENT_ROOT . '/blockedlog/class/blockedlog.class.php';
 require_once dirname(__DIR__) . '/lib/autoverifactu.lib.php';
+require_once dirname(__DIR__) . '/lib/validation.lib.php';
 
 /**
  * Class ActionsAutoverifactu
@@ -72,6 +73,46 @@ class ActionsAutoverifactu extends CommonHookActions
     public function __construct($db)
     {
         $this->db = $db;
+    }
+
+    /**
+     * Overload the doActions function : replacing the parent's function with the one below
+     *
+     * @param   array<string,mixed> $parameters     Hook metadata (context, etc...)
+     * @param   CommonObject        $object         The object to process (an invoice if you are
+     *                                              in invoice module, a propale in propale's module, etc...)
+     * @param   ?string             $action         Current action (if set). Generally create or edit or null
+     * @param   HookManager         $hookmanager    Hook manager propagated to allow calling another hook
+     *
+     * @return  int                                 Return integer < 0 on error, 0 on success, 1 to replace
+     *                                              standard code
+     */
+    public function doActions($parameters, &$object, &$action, $hookmanager)
+    {
+        global $langs;
+
+        if ($parameters['currentcontext'] === 'invoicecard') {
+            switch ($action) {
+                case 'verifactu':
+                    $result = autoverifactuValidation($object);
+
+                    if ($result > 0) {
+                        $this->resprints = $langs->trans('Invoice validation succed');
+                    } elseif (!$result) {
+                        $this->errors[] = $langs->trans('Unable to find invoice entry on the immutable log');
+                    } else {
+                        $this->errors[] = $langs->trans('It seems your invoice data is not consistent');
+                    }
+            }
+        // } elseif ($parameters['currentcontext'] === 'pdfgeneration') }{
+        //  switch ($action) {
+        //
+        //  }
+        }
+
+        if (count($this->errors)) {
+            return -1;
+        }
     }
 
     /**
@@ -191,13 +232,13 @@ class ActionsAutoverifactu extends CommonHookActions
                 $object->status == 0 ? $langs->trans('Please, verify the invoice in order to generate the Veri*Factu document') : $langs->trans('Check verifactu validity'),
                 $langs->trans('Verifactu'),
                 'default',
-                DOL_URL_ROOT . '/custom/autoverifactu/ajax/verify.php?facid=' . $object->id . '&token=' . newToken(),
+                $_SERVER['PHP_SELF'] . '?action=verifactu&token=' . newToken() . '&id=' . $object->id,
                 '',
                 $object->status > 0,
                 array(
                 'attr' => array(
-                    'class' => 'classfortooltip',
-                    'title' => ''
+                'class' => 'classfortooltip',
+                'title' => ''
                 ),
                 )
             );
@@ -228,8 +269,8 @@ class ActionsAutoverifactu extends CommonHookActions
             $action = $query['action'] ?? null;
 
             if (
-                $object->status > 0
-                && in_array($action, array('modif', 'reopen', 'delete'), true)
+            $object->status > 0
+            && in_array($action, array('modif', 'reopen', 'delete'), true)
             ) {
                 $label = $langs->trans('Disabled by Veri*Factu');
 

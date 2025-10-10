@@ -31,7 +31,7 @@
  */
 
 require_once DOL_DOCUMENT_ROOT . '/core/triggers/dolibarrtriggers.class.php';
-require_once dirname(__DIR__, 2) . '/lib/autoverifactu.lib.php';
+require_once dirname(__DIR__, 2) . '/lib/verifactu.lib.php';
 
 
 /**
