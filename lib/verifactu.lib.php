@@ -162,18 +162,10 @@ function autoverifactuRegisterInvoice($invoice, $action)
 
 function autoverifactuSendInvoice($invoice)
 {
-    global $mysoc;
-
     $record = autoverifactuInvoiceToRecord($invoice);
 
-    // Define los datos del SIF
-    $system = autoverifactuGetComputerSystem();
-
     // Crea un cliente para el webservice de la AEAT
-    $taxpayer = new FiscalIdentifier($mysoc->nom, $mysoc->idprof1);
     $client = new AeatClient(
-        $system,
-        $taxpayer,
         DOL_DATA_ROOT . '/' . (getDolGlobalString('AUTOVERIFACTU_CERT') ?: ''),
         getDolGlobalString('AUTOVERIFACTU_PASSWORD') ?: null,
     );
@@ -317,8 +309,4 @@ function autoverifactuGetComputerSystem()
     $system->validate();
 
     return $system;
-}
-
-function autoverifactuValidation($invoice)
-{
 }
