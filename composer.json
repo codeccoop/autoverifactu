@@ -1,7 +1,6 @@
 {
   "name": "codeccoop/auto-verifactu-dolibarr",
   "require-dev": {
-    "caprel/dolibarr-stubs": "^18.0",
-    "guzzlehttp/guzzle": "^7.10"
+    "caprel/dolibarr-stubs": "^18.0"
   }
 }

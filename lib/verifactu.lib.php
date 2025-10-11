@@ -226,15 +226,6 @@ function autoverifactuSendInvoice($invoice, &$xml)
         throw new Exception('Inconsistent invoice data');
     }
 
-    $certPath = DOL_DATA_ROOT . '/' . getDolGlobalString('AUTOVERIFACTU_CERT');
-    $certPass = getDolGlobalString('AUTOVERIFACTU_PASSWORD') ?: null;
-
-    if ($certPass) {
-        $cert = array($certPath, $certPass);
-    } else {
-        $cert  = $certPath;
-    }
-
     $envelope = autoverifactuSoapEnvelope(
         $record,
         array(
@@ -243,28 +234,59 @@ function autoverifactuSendInvoice($invoice, &$xml)
         ),
     );
 
-    echo $envelope;
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, VERIFACTU_BASE_URL . '/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP');
+    curl_setopt($ch, CURLOPT_POST, 1);
 
-    $client = new Client(array('cert' => $cert));
+    curl_setopt($ch, CURLOPT_VERBOSE, 1);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+    curl_setopt($ch, CURLOPT_FAILONERROR, 1);
 
-    $res = $client->post(
-        '/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP',
+    $certPath = DOL_DATA_ROOT . '/' . getDolGlobalString('AUTOVERIFACTU_CERT');
+    curl_setopt($ch, CURLOPT_SSLCERT, $certPath);
+
+    // curl_setopt($ch, CURLOPT_SSLKEY, $keyfile);
+
+    if (str_ends_with($certPath, '.pem')) {
+        curl_setopt($ch, CURLOPT_SSLCERTTYPE, 'PEM');
+    } else {
+        curl_setopt($ch, CURLOPT_SSLCERTTYPE, '_P12_');
+    }
+
+    if ($certPass = getDolGlobalString('AUTOVERIFACTU_PASSWORD')) {
+        curl_setopt($ch, CURLOPT_SSLCERTPASSWD, $certPass);
+    }
+
+    curl_setopt(
+        $ch,
+        CURLOPT_HTTPHEADER,
         array(
-            'base_uri' => VERIFACTU_BASE_URL,
-            'headers' => array(
-                'User-Agent' => 'Mozilla/5.0 (compatible; Módulo Auto-Veri*Factu de Dolibarr/0.0.1',
-                'Content-Type' => 'text/xml',
-            ),
-            'body' => $envelope,
+            'Content-Type: text/xml',
+            'User-Agent: Mozilla/5.0 (compatible; Módulo Auto-Veri*Factu de Dolibarr/0.0.1',
         ),
     );
 
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $envelope);
+    $res = curl_exec($ch);
+
+    if ($res === false) {
+        $error = curl_error($ch);
+        $code = curl_errno($ch);
+        curl_close($ch);
+
+        throw new Exception('cURL error: ' . $error, $code);
+    }
+
+    curl_close($ch);
+
     $xml = new DOMDocument();
-    $xml->loadXML($res->getBody()->getContents() . "\n");
+    $xml->loadXML($res . "\n");
     $faults = $xml->getElementsByTagName('env:Fault');
 
     if ($faults->count() > 0) {
-        throw new Exception($xml->saveXML());
+        throw new Exception($xml->saveXML(), 400);
     }
 
     return $record;
