@@ -90,11 +90,8 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                     // registration after invoice validation is mandatory.
                     $result = -1;
 
-                    dol_print_error(
-                        $this->db,
-                        $langs->trans(
-                            'Veri*Factu invoice record creation has failed'
-                        ),
+                    $this->errors[] = $langs->trans(
+                        'Veri*Factu invoice record creation has failed'
                     );
                 }
 
@@ -115,15 +112,12 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
 
                 if (!($thirdparty->idprof1 && $valid_id) && !$is_pos_bill) {
                     dol_syslog(
-                        sprintf('Skip validation for invoice #%d due to a thirdparty without idprof1', $object->id),
+                        sprintf('Skip validation for invoice #%d due to a thirdparty without a valid idprof1', $object->id),
                         LOG_ERR
                     );
 
-                    dol_print_error(
-                        $this->db,
-                        $langs->trans(
-                            'Veri*Factu requires invoice third parties to have a valid professional ID'
-                        ),
+                    $this->errors[] = $langs->trans(
+                        'Veri*Factu requires invoice third parties to have a valid professional ID'
                     );
 
                     return -1;
@@ -136,11 +130,8 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                     // registration after invoice validation is mandatory.
                     $result = -1;
 
-                    dol_print_error(
-                        $this->db,
-                        $langs->trans(
-                            'Veri*Factu invoice record creation has failed'
-                        ),
+                    $this->errors[] = $langs->trans(
+                        'Veri*Factu invoice record creation has failed'
                     );
                 }
 
@@ -150,7 +141,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 if ($object->type <= 2) {
                     // NOTE: Deposit invoices (3) should be recorded?
                     dol_syslog('Auto-Veri*Factu disables invoice unvalidations');
-                    dol_print_error($this->db, $langs->trans('Validated invoices are not editables'));
+                    $this->errors[] = $langs->trans('Validated invoices are not editables');
                     return -1;
                 }
 
@@ -160,7 +151,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 if ($object->status != 0 && $object->type <= 2) {
                     // NOTE: Deposit invoices (3) should be recorded?
                     dol_syslog('Auto-Veri*Factu disables validated invoices removals');
-                    dol_print_error($this->db, $langs->trans('Validated invoices can\'t be deleted'));
+                    $this->errors[] = $langs->trans('Validated invoices can\'t be deleted');
                     return -1;
                 }
 
@@ -170,7 +161,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 if ($object->status != 0 && $object->type <= 2) {
                     // NOTE: Deposit invoices (3) should be recorded?
                     dol_syslog('Auto-Veri*Factu disables validated invoices edits');
-                    dol_print_error($this->db, $langs->trans('Validated invoices can\'t be modified'));
+                    $this->errors[] = $langs->trans('Validated invoices can\'t be modified');
                     return -1;
                 }
 
