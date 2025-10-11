@@ -99,30 +99,6 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
             case 'BILL_VALIDATE':
             // case 'DON_VALIDATE':
             // case 'CASHCONTROL_VALIDATE':
-                if ($object->type > 2) {
-                    // NOTE: Deposit invoices (3) should be recorded?
-                    dol_syslog('Skip invoice registration for non recordable invoice type ' . $object->type);
-                    return 0;
-                }
-
-                $object->fetch_thirdparty();
-                $thirdparty = $object->thirdparty;
-                $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
-                $is_pos_bill = $object->module_source === 'takepos';
-
-                if (!($thirdparty->idprof1 && $valid_id) && !$is_pos_bill) {
-                    dol_syslog(
-                        sprintf('Skip validation for invoice #%d due to a thirdparty without a valid idprof1', $object->id),
-                        LOG_ERR
-                    );
-
-                    $this->errors[] = $langs->trans(
-                        'Veri*Factu requires invoice third parties to have a valid professional ID'
-                    );
-
-                    return -1;
-                }
-
                 $result = autoverifactuRegisterInvoice($object, $action);
 
                 if ($result <= 0) {

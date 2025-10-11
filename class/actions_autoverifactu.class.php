@@ -306,7 +306,7 @@ class ActionsAutoverifactu extends CommonHookActions
                 $thirdparty = $object->thirdparty;
                 $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
 
-                if (!$valid_id) {
+                if (!$thirdparty->idprof1 || !$valid_id) {
                     $label = $langs->trans('Veri*Factu requires invoice third parties to have a valid professional ID');
                     $button = dolGetButtonAction(
                         $label,

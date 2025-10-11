@@ -57,6 +57,10 @@ function autoverifactuIntegrityCheck($invoice)
     $record = autoverifactuInvoiceToRecord($invoice);
     $immutable = autoverifactuRecordFromLog($blockedlog);
 
+    if (!$record || !$immutable) {
+        return -1;
+    }
+
     $error = $record->hash !== $immutable->hash;
     if ($error) {
         return -1;
@@ -201,14 +205,14 @@ function autoverifactuSystemCheck()
     }
 
     $certpath = getDolGlobalString('AUTOVERIFACTU_CERT');
-    if (!($certpath && is_file($certpath))) {
+    if (!($certpath && is_file(DOL_DATA_ROOT . '/' . $certpath))) {
         return 0;
     }
 
-    $docpath = getDolGlobalString('AUTOVERIFACTU_REPONSABILITY_DOC');
-    if (!($docpath && is_file($docpath))) {
-        return 0;
-    }
+    // $docpath = getDolGlobalString('AUTOVERIFACTU_REPONSABILITY_DOC');
+    // if (!($docpath && is_file($docpath))) {
+    //     return 0;
+    // }
 
     return 1;
 }
@@ -227,9 +231,9 @@ function autoverifactuValidateRecord($record)
         }
 
         $validTaxAmount = false;
-        $expectedTax = $details->baseAmount * $details->taxRate / 100;
+        $expectedLineTax = $details->baseAmount * $details->taxRate / 100;
         for ($t = -0.02; $t <= 0.02; $t += 0.01) {
-            $taxAmount = number_format($expectedTax + $t, 2, '.', '');
+            $taxAmount = number_format($expectedLineTax + $t, 2, '.', '');
             if ($details->taxAmount === $taxAmount) {
                 $validTaxAmount = true;
                 break;
