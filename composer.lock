@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d7c6d27782b47ef63cba39ffeb5941e1",
+    "content-hash": "622cecd98c9a4445cd6b9b7cdc493bf1",
     "packages": [],
     "packages-dev": [
         {
@@ -356,56 +356,6 @@
                 }
             ],
             "time": "2025-08-23T21:21:41+00:00"
-        },
-        {
-            "name": "josemmo/uxml",
-            "version": "v0.1.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/josemmo/uxml.git",
-                "reference": "bcd7d8e410285c642116294e01581374d6be696f"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/josemmo/uxml/zipball/bcd7d8e410285c642116294e01581374d6be696f",
-                "reference": "bcd7d8e410285c642116294e01581374d6be696f",
-                "shasum": ""
-            },
-            "require": {
-                "lib-libxml": "*",
-                "php": ">=7.1"
-            },
-            "require-dev": {
-                "phan/phan": "*",
-                "symfony/phpunit-bridge": "*"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "UXML\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "José Miguel Moreno",
-                    "email": "josemmo@pm.me",
-                    "homepage": "https://github.com/josemmo"
-                }
-            ],
-            "description": "Uncomplicated XML manipulation library with a clean and concise syntax",
-            "homepage": "https://github.com/josemmo/uxml",
-            "keywords": [
-                "xml"
-            ],
-            "support": {
-                "issues": "https://github.com/josemmo/uxml/issues",
-                "source": "https://github.com/josemmo/uxml/tree/v0.1.4"
-            },
-            "time": "2022-05-28T16:43:25+00:00"
         },
         {
             "name": "psr/http-client",

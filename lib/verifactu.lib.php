@@ -23,7 +23,6 @@
  */
 
 use GuzzleHttp\Client;
-use UXML\UXML;
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -91,7 +90,18 @@ function autoverifactuRegisterInvoice($invoice, $action)
     }
 
     $invoice->fetch_thirdparty();
+    $thirdparty = $invoice->thirdparty;
+    $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
+    if ($valid_id <= 0) {
+        dol_syslog('Skip invoice verifactu record registration due to thirdparty without a vaid idprof1');
+        return 0;
+    }
+
     $invoice->fetch_lines();
+    if (!count($invoice->lines)) {
+        dol_syslog('Skip invoice verifactu record registration to an invoice without lines');
+        return 0;
+    }
 
     $invoiceref = dol_sanitizeFileName($invoice->ref);
     $dir = $conf->facture->multidir_output[$invoice->entity ?? $conf->entity] . '/' . $invoiceref;
@@ -216,7 +226,7 @@ function autoverifactuSendInvoice($invoice, &$xml)
         throw new Exception('Inconsistent invoice data');
     }
 
-    $certPath = DOL_DATA_ROOT . '/' . (getDolGlobalString('AUTOVERIFACTU_CERT') ?: '');
+    $certPath = DOL_DATA_ROOT . '/' . getDolGlobalString('AUTOVERIFACTU_CERT');
     $certPass = getDolGlobalString('AUTOVERIFACTU_PASSWORD') ?: null;
 
     if ($certPass) {
@@ -229,7 +239,7 @@ function autoverifactuSendInvoice($invoice, &$xml)
         $record,
         array(
             'name' => $invoice->thirdparty->nom,
-            'id' => $invoice->thirdparty->idprof1,
+            'idprof1' => $invoice->thirdparty->idprof1,
         ),
     );
 
@@ -249,14 +259,12 @@ function autoverifactuSendInvoice($invoice, &$xml)
         ),
     );
 
-    $xml = $res->getBody()->getContents() . "\n";
-    $uxml = UXML::fromString($xml);
+    $xml = new DOMDocument();
+    $xml->loadXML($res->getBody()->getContents() . "\n");
+    $faults = $xml->getElementsByTagName('env:Fault');
 
-    $body = $uxml->get('env:Body');
-    $faults = $body ? $body->getAll('env:Fault') : [];
-
-    if (!$body || count($faults) > 0) {
-        throw new Exception($xml);
+    if ($faults->count() > 0) {
+        throw new Exception($xml->saveXML());
     }
 
     return $record;
@@ -273,34 +281,50 @@ function autoverifactuSendInvoice($invoice, &$xml)
  */
 function autoverifactuSoapEnvelope($record, $issuer, $representative = null)
 {
-    $envelope = UXML::newInstance(
-        'soapenv:Envelope',
-        null,
-        array(
-            'xmlns:sopaenv' => AUTOVERIFACTU_SOAPENV_NS,
-            'xmlns:sum' => AUTOVERIFACTU_SUM_NS,
-            'xmlns:sum1' => AUTOVERIFACTU_SUM1_NS,
-        ),
-    );
+    $xml = new DOMDocument();
 
-    $envelope->add('soapenv:Header');
-    $sifRec = $envelope->add('soapenv:Body')->add('sum:RegFactuSIstemaFacturacion');
+    $envelope = $xml->createElement('soapenv:Envelope');
+    $envelope->setAttribute('xmlns:soapenv', AUTOVERIFACTU_SOAPENV_NS);
+    $envelope->setAttribute('xmlns:sum', AUTOVERIFACTU_SUM_NS);
+    $envelope->setAttribute('xmlns:sum1', AUTOVERIFACTU_SUM1_NS);
 
-    $header = $sifRec->add('sum:Cabecera');
-    $issuerNode = $header->add('sum1:ObligadoEmision');
-    $issuerNode->add('sum1:NombreRazon', $issuer['name']);
-    $issuerNode->add('sum1:NIF', $issuer['idprof']);
+    $headerEl = $xml->createElement('soapenv:Header');
+    $envelope->appendChild($headerEl);
+
+    $body = $xml->createElement('soapenv:Body');
+    $envelope->appendChild($body);
+
+    $regFactuEl = $xml->createElement('sum:RegFactuSistemaFacturacion');
+    $body->appendChild($regFactuEl);
+
+    $regHeaderEl = $xml->createElement('sum:Cabecera');
+    $body->appendChild($regHeaderEl);
+
+    $issuerEl = $xml->createElement('sum1:ObligadoEmision');
+    $regHeaderEl->appendChild($issuerEl);
+
+    $issuerNameEl = $xml->createElement('sum1:NumberRazon', $issuer['name']);
+    $issuerEl->appendChild($issuerNameEl);
+
+    $issuerNifEl = $xml->createElement('sum1:NIF', $issuer['idprof1']);
+    $issuerEl->appendChild($issuerNifEl);
 
     if ($representative) {
-        $representativeNode = $header->add('sum1:Representante');
-        $representativeNode->add('sum1:NombreRazon', $representative['name']);
-        $representativeNode->add('sum1:NIF', $representative['idprof']);
+        $representativeEl = $xml->createElement('sum1:Representante');
+        $regHeaderEl->appendChild($representativeEl);
+
+        $reprNameEl = $xml->createElement('sum1:NombreRazon', $representative['name']);
+        $representativeEl->appendChild($reprNameEl);
+
+        $reprNifEl = $xml->createElement('sum1:NIF', $representative['idprof1']);
+        $representativeEl->appendChild($reprNifEl);
     }
 
-    $recordNode = autoverifactuRecordToUXML($record);
-    $sifRec->add($recordNode);
+    $recordEl = autoverifactuRecordToXML($record);
+    $regFactuEl->appendChild($recordEl);
 
-    return $envelope->asXML();
+    $xml->appendChild($envelope);
+    return $xml->saveXML();
 }
 
 /**
@@ -485,134 +509,158 @@ function autoverifactuInvoiceToRecord($invoice)
  *
  * @param  stdClass $record Invoice Veri*Factu record object.
  *
- * @return UXML             XML record representation.
+ * @return DOMElement               XML record representation.
  */
-function autoverifactuRecordToUXML($record)
+function autoverifactuRecordToXML($record)
 {
-    $uxml = UXML::newInstance(
-        'autoverifactu:Record',
-        null,
-        array(
-            'xmlns:sum' => AUTOVERIFACTU_SUM_NS,
-            'xmlns:sum1' => AUTOVERIFACTU_SUM1_NS
-        )
-    );
+    $xml = new DOMDocument();
 
     $recordElementName = $record->action === 'register'
         ? 'RegistroAlta'
         : 'RegistroAnulacion';
 
-    $recordElement = $uxml
-        ->add('sum:RegistroFactura')
-        ->add('sum1:' . $recordElementName);
+    $wrapper = $xml->createElement('sum:RegistroFactura');
 
-    $recordElement->add('sum1:IDVersion', '1.0');
+    $recordEl = $xml->createElement('sum:' . $recordElementName);
+    $wrapper->appendChild($recordEl);
 
+    $recordEl->appendChild($xml->createElement('sum1:IDVersion', '1.0'));
+
+    // TODO: Record action does not exits
     if ($record->action === 'register') {
-        $invoice_id = $recordElement->add('sum1:IDFactura');
-        $invoice_id->add('sum1:IDEmisorFactura', $record->invoiceId->issuerId);
-        $invoice_id->add('sum1:NumSerieFactura', $record->invoiceId->invoiceNumber);
-        $invoice_id->add('sum1:FechaExpedicionFactura', $record->invoiceId->issueDate->format('d-m-Y'));
+        $invoiceId = $xml->createElement('sum1:IDFactura');
+        $recordEl->appendChild($invoiceId);
 
-        $recordElement->add('sum1:NombreRazonEmisor', $record->issuerName);
-        $recordElement->add('sum1:TipoFactura', $record->invoiceType);
+        $invoiceId->appendChild($xml->createElement('sum1:IDEmisorFactura', $record->invoiceId->issuerId));
+        $invoiceId->appendChild($xml->createElement('sum1:NumSerieFactura', $record->invoiceId->invoiceNumber));
+        $invoiceId->appendChild($xml->createElement('sum1:FechaExpedicionFactura', $record->invoiceId->issueDate->format('d-m-Y')));
+
+        $recordEl->appendChild($xml->createElement('sum1:NombreRazonEmisor', $record->issuerName));
+        $recordEl->appendChild($xml->createElement('sum1:TipoFactura', $record->invoiceType));
 
         if ($record->correctiveType !== null) {
-            $recordElement->add('sum1:TipoRectificativa', $record->correctiveType);
+            $recordEl->appendChild($xml->createElement('sum1:TipoRectificativa', $record->correctiveType));
         }
 
         if (count($record->correctedInvoices)) {
-            $correctedElements = $recordElement->add('sum1:FacturasRectificadas');
+            $correctedInvoices = $xml->createElement('sum1:FacturasRectificadas');
+            $recordEl->appendChild($correctedInvoices);
+
             foreach ($record->correctedInvoices as $correctedInvoice) {
-                $correctedElement = $correctedElements->add('sum1:IDFacturaRectificada');
-                $correctedElement->add('sum1:IDEmisorFactura', $correctedInvoice->issuerId);
-                $correctedElement->add('sum1:NumSerieFactura', $correctedInvoice->invoiceNumber);
-                $correctedElement->add('sum1:FechaExpedicionFactura', $correctedInvoice->issueDate->format('d-m-Y'));
+                $fixId = $xml->createElement('sum1:IDFacturaRectificada');
+                $correctedInvoices->appendChild($fixId);
+
+                $fixId->appendChild($xml->createElement('sum1:IDEmisorFactura', $correctedInvoice->issuerId));
+                $fixId->appendChild($xml->createElement('sum1:NumSerieFactura', $correctedInvoice->invoiceNumber));
+                $fixId->appendChild($xml->createElement('sum1:FechaExpedicionFactura', $correctedInvoice->issueDate->format('d-m-Y')));
             }
         }
 
         if (count($record->replacedInvoices)) {
-            $replacedElements = $recordElement->add('sum1:FacturasSustituidas');
+            $replacedInvoices = $xml->createElement('sum1:FacturasSustituidas');
+            $recordEl->appendChild($replacedInvoices);
+
             foreach ($record->replacedInvoices as $replacedInvoice) {
-                $replacedElement = $replacedElements->add('sum1:IDFacturaSustituida');
-                $replacedElement->add('sum1:IDEmisorFactura', $replacedInvoice->issuerId);
-                $replacedElement->add('sum1:NumSerieFactura', $replacedInvoice->invoiceNumber);
-                $replacedElement->add('sum1:FechaExpedicionFactura', $replacedInvoice->issueDate->format('d-m-Y'));
+                $replId = $xml->createElement('sum1:IDFacturaSustituida');
+                $replacedInvoices->appendChild($replId);
+
+                $replId->appendChild($xml->createElement('sum1:IDEmisorFactura', $replacedInvoice->issuerId));
+                $replId->appendChild($xml->createElement('sum1:NumSerieFactura', $replacedInvoice->invoiceNumber));
+                $replId->appendChild($xml->createElement('sum1:FechaExpedicionFactura', $replacedInvoice->issueDate->format('d-m-Y')));
             }
         }
 
         if ($record->correctedBaseAmount !== null && $record->correctedTaxAmount !== null) {
-            $importElement = $recordElement->add('sum1:ImporteRectificacion');
-            $importElement->add('sum1:BaseRectificada', $record->correctedBaseAmount);
-            $importElement->add('sum1:CuotaRectificada', $record->correctedTaxAmount);
+            $importEl = $xml->createElement('sum1:ImporteRectificacion');
+            $recordEl->appendChild($importEl);
+
+            $recordEl->appendChild($xml->createElement('sum1:BaseRectificada', $record->correctedBaseAmount));
+            $recordEl->appendChild($xml->createElement('sum1:CuotaRectificada', $record->correctedTaxAmount));
         }
 
-        $recordElement->add('sum1:DescripcionOperacion', $record->description);
+        $recordEl->appendChild($xml->createElement('sum1:DescripcionOperacion', $record->description));
 
         if (count($record->recipients) > 0) {
-            $recipientsElement = $recordElement->add('sum1:Destinatarios');
+            $recipients = $xml->createElement('sum1:Destinatarios');
+            $recordEl->appendChild($recipients);
+
             foreach ($record->recipients as $recipient) {
-                $recipientElement = $recipientsElement->add('sum1:IDDestinatario');
-                $recipientElement->add('sum1:NombreRazon', $recipient->name);
+                $recipientEl = $xml->createElement('sum1:IDDestinatario');
+                $recipients->appendChild($recipientEl);
+
+                $recipientEl->appendChild($xml->createElement('sum1:NombreRazon', $recipient->name));
 
                 if (isset($recipient->country, $recipient->type)) {
-                    $foreignID = $recipientElement->add('sum1:IDOtro');
-                    $foreignID->add('sum1:CodigoPais', $recipient->country);
-                    $foreignID->add('sum1:IDType', $recipient->type);
-                    $foreignID->add('sum1:ID', $recipient->value);
+                    $foreignId = $xml->createElement('sum1:IDOtro');
+                    $recipientEl->appendChild($foreignId);
+
+                    $foreignId->appendChild($xml->createElement('sum1:CodigoPais', $recipient->country));
+                    $foreignId->appendChild($xml->createElement('sum1:IDType', $recipient->type));
+                    $foreignId->appendChild($xml->createElement('sum1:ID', $recipient->value));
                 } else {
-                    $recipientElement->add('sum1:NIF', $recipient->nif);
+                    $recipientEl->appendChild($xml->createElement('sum1:NIF', $recipient->nif));
                 }
             }
         }
 
-        $breakdownElements = $recordElement->add('sum1:Desglose');
-        foreach ($record->breakdown as $breakdownDetails) {
-            $breakdownElement = $breakdownElements->add('sum1:DetalleDesglose');
-            $breakdownElement->add('sum1:Impuesto', $breakdownDetails->taxType);
-            $breakdownElement->add('sum1:ClaveRegimen', $breakdownDetails->regimeType);
-            $breakdownElement->add('sum1:CalificacionOperacion', $breakdownDetails->operationType);
-            $breakdownElement->add('sum1:TipoImpositivo', $breakdownDetails->taxRate);
-            $breakdownElement->add('sum1:BaseImponibleOimporteNoSujeto', $breakdownDetails->baseAmount);
-            $breakdownElement->add('sum1:CuotaRepercutida', $breakdownDetails->taxAmount);
+        $breakdown = $xml->createElement('sum1:Desglose');
+        $recordEl->appendChild($breakdown);
+        foreach ($record->breakdown as $details) {
+            $dEl = $xml->createElement('sum1:DetalleDesglose');
+            $breakdown->appendChild($dEl);
+
+            $dEl->appendChild($xml->createElement('sum1:Impuesto', $details->taxType));
+            $dEl->appendChild($xml->createElement('sum1:CalveRegimen', $details->regimeType));
+            $dEl->appendChild($xml->createElement('sum1:CalificacionOperacion', $details->operationType));
+            $dEl->appendChild($xml->createElement('sum1:TipoImpositivo', $details->taxRate));
+            $dEl->appendChild($xml->createElement('sum1:BaseImponibleOimporteNoSujeto', $details->baseAmount));
+            $dEl->appendChild($xml->createElement('sum1:CuotaRepercutida', $details->taxAmount));
         }
 
-        $recordElement->add('sum1:CuotaTotal', $record->totalTaxAmount);
-        $recordElement->add('sum1:ImporteTotal', $record->totalAmount);
+        $recordEl->appendChild($xml->createElement('sum1:CuotaTotal', $record->totalTaxAmount));
+        $recordEl->appendChild($xml->createElement('sum1:ImporteTotal', $record->totalAmount));
     } else {
-        $invoice_id = $recordElement->add('sum1:IDFactura');
-        $invoice_id->add('sum1:IDEmisorFacturaAnulada', $record->invoiceId->issuerId);
-        $invoice_id->add('sum1:NumSerieFacturaAnulada', $record->invoiceId->invoiceNumber);
-        $invoice_id->add('sum1:FechaExpedicionFacturaAnulada', $record->invoiceId->issueDate->format('d-m-Y'));
+        $invoiceId = $xml->createElement('sum1:IDFactura');
+        $recordEl->appendChild($invoiceId);
+
+        $invoiceId->appendChild($xml->createElement('sum1:IDEmisorFacturaAnulada', $record->invoiceId->issuerId));
+        $invoiceId->appendChild($xml->createElement('sum1:NumSerieFactura', $record->invoiceId->invoiceNumber));
+        $invoiceId->appendChild($xml->createElement('sum1:FechaExpedicionFacturaAnulada', $record->invoiceId->issueDate->format('d-m-Y')));
     }
 
-    $encadenamientoElement = $recordElement->add('sum1:Encadenamiento');
+    $chainEl = $xml->createElement('sum1:Encadenamiento');
+    $recordEl->appendChild($chainEl);
+
     if ($record->previousInvoiceId === null) {
-        $encadenamientoElement->add('sum1:PrimerRegistro', 'S');
+        $chainEl->appendChild($xml->createElement('sum1:PrimerRegistro', 'S'));
     } else {
-        $registroAnteriorElement = $encadenamientoElement->add('sum1:RegistroAnterior');
-        $registroAnteriorElement->add('sum1:IDEmisorFactura', $record->previousInvoiceId->issuerId);
-        $registroAnteriorElement->add('sum1:NumSerieFactura', $record->previousInvoiceId->invoiceNumber);
-        $registroAnteriorElement->add('sum1:FechaExpedicionFactura', $record->previousInvoiceId->issueDate->format('d-m-Y'));
-        $registroAnteriorElement->add('sum1:Huella', $record->previousHash);
+        $prevEl = $xml->createElement('sum1:RegistroAnterior');
+        $chainEl->appendChild($prevEl);
+
+        $prevEl->appendChild($xml->createElement('sum1:IDEmisorFactura', $record->previousInvoiceId->issuerId));
+        $prevEl->appendChild($xml->createElement('sum1:NumSerieFactura', $record->previousInvoiceId->invoiceNumber));
+        $prevEl->appendChild($xml->createElement('sum1:FechaExpedicionFactura', $record->previousInvoiceId->issueDate->format('d-m-Y')));
+        $prevEl->appendChild($xml->createElement('sum1:Huella', $record->previousHash));
     }
 
-    $sistemaInformaticoElement = $recordElement->add('sum1:SistemaInformatico');
-    $sistemaInformaticoElement->add('sum1:NombreRazon', $record->system->vendorName);
-    $sistemaInformaticoElement->add('sum1:NIF', $record->system->vendorNif);
-    $sistemaInformaticoElement->add('sum1:NombreSistemaInformatico', $record->system->name);
-    $sistemaInformaticoElement->add('sum1:IdSistemaInformatico', $record->system->id);
-    $sistemaInformaticoElement->add('sum1:Version', $record->system->version);
-    $sistemaInformaticoElement->add('sum1:NumeroInstalacion', $record->system->installationNumber);
-    $sistemaInformaticoElement->add('sum1:TipoUsoPosibleSoloVerifactu', $record->system->onlySupportsVerifactu ? 'S' : 'N');
-    $sistemaInformaticoElement->add('sum1:TipoUsoPosibleMultiOT', $record->system->supportsMultipleTaxpayers ? 'S' : 'N');
-    $sistemaInformaticoElement->add('sum1:IndicadorMultiplesOT', $record->system->hasMultipleTaxpayers ? 'S' : 'N');
+    $systemEl = $xml->createElement('sum1:SistemaInformatico');
+    $recordEl->appendChild($systemEl);
 
-    $recordElement->add('sum1:FechaHoraHusoGenRegistro', $record->hashedAt->format('c'));
-    $recordElement->add('sum1:TipoHuella', '01'); // SHA-256
-    $recordElement->add('sum1:Huella', $record->hash);
+    $systemEl->appendChild($xml->createElement('sum1:NombreRazon', $record->system->vendorName));
+    $systemEl->appendChild($xml->createElement('sum1:NIF', $record->system->vendorNif));
+    $systemEl->appendChild($xml->createElement('sum1:NombreSistemaInformatico', $record->system->name));
+    $systemEl->appendChild($xml->createElement('sum1:IdSistemaInformatico', $record->system->id));
+    $systemEl->appendChild($xml->createElement('sum1:Version', $record->system->version));
+    $systemEl->appendChild($xml->createElement('sum1:NumeroInstalacion', $record->system->installationNumber));
+    $systemEl->appendChild($xml->createElement('sum1:TipoUsoPosibleSoloVerifactu', $record->system->onlySupportsVerifactu ? 'S' : 'N'));
+    $systemEl->appendChild($xml->createElement('sum1:TipoUsoPosibleMultiOT', $record->system->supportsMultipleTaxpayers ? 'S' : 'N'));
+    $systemEl->appendChild($xml->createElement('sum1:IndicadorMultiplesOT', $record->system->hasMultipleTaxpayers ? 'S' : 'N'));
 
-    return $uxml->get('sum:RegistroFactura');
+    $recordEl->appendChild($xml->createElement('sum1:FechaHoraHusoGenRegistro', $record->hashedAt->format('c')));
+    $recordEl->appendChild($xml->createElement('sum1:TipoHuella', '01')); // SHA-256
+    $recordEl->appendChild($xml->createElement('sum1:Huella', $record->hash));
+
+    return $wrapper;
 }
 
 /**
