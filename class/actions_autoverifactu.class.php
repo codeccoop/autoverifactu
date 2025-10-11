@@ -94,7 +94,7 @@ class ActionsAutoverifactu extends CommonHookActions
         if ($parameters['currentcontext'] === 'invoicecard') {
             switch ($action) {
                 case 'verifactu':
-                    $result = autoverifactuValidation($object);
+                    $result = autoverifactuIntegrityCheck($object);
 
                     if ($result > 0) {
                         $this->resprints = $langs->trans('Invoice validation succed');
@@ -130,7 +130,11 @@ class ActionsAutoverifactu extends CommonHookActions
     {
         global $conf;
 
-        if ($object->element === 'facture' && $object->status == 1) {
+        if (
+            $object->element === 'facture'
+            && $object->status > 0
+            && $object->type < 3
+        ) {
             $invoiceref = dol_sanitizeFileName($object->ref);
             $dir = $conf->facture->multidir_output[$object->entity ?? $conf->entity] . '/' . $invoiceref;
             $file = $dir . '/' . $invoiceref . '-verifactu.xml';
@@ -167,7 +171,11 @@ class ActionsAutoverifactu extends CommonHookActions
     {
         $object = $parameters['object'];
 
-        if ($object->element === 'facture' && $object->status == 1) {
+        if (
+            $object->element === 'facture'
+            && $object->status > 0
+            && $object->type < 3
+        ) {
             $pdf = &$parameters['pdf'];
 
             $uri = 'https://www.codeccoop.org';
@@ -227,9 +235,13 @@ class ActionsAutoverifactu extends CommonHookActions
     {
         global $langs;
 
-        if ($object->element === 'facture') {
+        if (
+            $object->element === 'facture'
+            && $object->status > 0
+            && $object->type < 3
+        ) {
             echo dolGetButtonAction(
-                $object->status == 0 ? $langs->trans('Please, verify the invoice in order to generate the Veri*Factu document') : $langs->trans('Check verifactu validity'),
+                $langs->trans('Check verifactu integrity'),
                 $langs->trans('Verifactu'),
                 'default',
                 $_SERVER['PHP_SELF'] . '?action=verifactu&token=' . newToken() . '&id=' . $object->id,
@@ -262,15 +274,18 @@ class ActionsAutoverifactu extends CommonHookActions
     {
         global $langs;
 
-        if ($object->element === 'facture') {
+        if (
+            $object->element === 'facture'
+            && $object->type < 3
+        ) {
             $url = parse_url($parameters['url']);
             parse_str($url['query'] ?? '', $query);
 
             $action = $query['action'] ?? null;
 
             if (
-            $object->status > 0
-            && in_array($action, array('modif', 'reopen', 'delete'), true)
+                $object->status > 0
+                && in_array($action, array('modif', 'reopen', 'delete'), true)
             ) {
                 $label = $langs->trans('Disabled by Veri*Factu');
 
