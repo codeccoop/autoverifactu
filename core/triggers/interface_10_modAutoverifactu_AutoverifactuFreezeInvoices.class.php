@@ -77,19 +77,9 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
         // As far as i know, theu have to be declared as invoices to the AEAT, it isn't?
         switch ($action) {
             case 'BILL_CANCEL':
-                if ($object->type > 2) {
-                    // NOTE: Deposit invoices (3) should be recorded?
-                    dol_syslog('Skip cancel invoice registration for non recordable invoice type ' . $object->type);
-                    return 0;
-                }
-
                 $result = autoverifactuRegisterInvoice($object, $action);
 
-                if ($result <= 0) {
-                    // Turn registration skips into errors as Veri*Factu record
-                    // registration after invoice validation is mandatory.
-                    $result = -1;
-
+                if ($result < 0) {
                     $this->errors[] = $langs->trans(
                         'Veri*Factu invoice record creation has failed'
                     );
@@ -101,11 +91,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
             // case 'CASHCONTROL_VALIDATE':
                 $result = autoverifactuRegisterInvoice($object, $action);
 
-                if ($result <= 0) {
-                    // Turn registration skips into errors as Veri*Factu record
-                    // registration after invoice validation is mandatory.
-                    $result = -1;
-
+                if ($result < 0) {
                     $this->errors[] = $langs->trans(
                         'Veri*Factu invoice record creation has failed'
                     );

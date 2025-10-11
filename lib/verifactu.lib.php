@@ -94,13 +94,13 @@ function autoverifactuRegisterInvoice($invoice, $action)
     $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
     if ($valid_id <= 0) {
         dol_syslog('Skip invoice verifactu record registration due to thirdparty without a vaid idprof1');
-        return 0;
+        return -1;
     }
 
     $invoice->fetch_lines();
     if (!count($invoice->lines)) {
         dol_syslog('Skip invoice verifactu record registration to an invoice without lines');
-        return 0;
+        return -1;
     }
 
     $invoiceref = dol_sanitizeFileName($invoice->ref);
@@ -397,6 +397,8 @@ function autoverifactuInvoiceToRecord($invoice)
 
     $record = new stdClass();
 
+    $record->action = $invoice->type == 1 ? 'cancel' : 'register';
+
     $record->issuerName = $mysoc->nom;
     $record->invoiceType = $invoiceType;
     $record->description = 'Factura ' . $invoice->ref;
@@ -532,6 +534,8 @@ function autoverifactuInvoiceToRecord($invoice)
  * @param  stdClass $record Invoice Veri*Factu record object.
  *
  * @return DOMElement               XML record representation.
+ *
+ * @throws Exception                If record action is not cancel or register.
  */
 function autoverifactuRecordToXML($record)
 {
@@ -548,7 +552,6 @@ function autoverifactuRecordToXML($record)
 
     $recordEl->appendChild($xml->createElement('sum1:IDVersion', '1.0'));
 
-    // TODO: Record action does not exits
     if ($record->action === 'register') {
         $invoiceId = $xml->createElement('sum1:IDFactura');
         $recordEl->appendChild($invoiceId);
@@ -564,7 +567,7 @@ function autoverifactuRecordToXML($record)
             $recordEl->appendChild($xml->createElement('sum1:TipoRectificativa', $record->correctiveType));
         }
 
-        if (count($record->correctedInvoices)) {
+        if (count($record->correctedInvoices ?? [])) {
             $correctedInvoices = $xml->createElement('sum1:FacturasRectificadas');
             $recordEl->appendChild($correctedInvoices);
 
@@ -578,7 +581,7 @@ function autoverifactuRecordToXML($record)
             }
         }
 
-        if (count($record->replacedInvoices)) {
+        if (count($record->replacedInvoices ?? [])) {
             $replacedInvoices = $xml->createElement('sum1:FacturasSustituidas');
             $recordEl->appendChild($replacedInvoices);
 
@@ -641,13 +644,15 @@ function autoverifactuRecordToXML($record)
 
         $recordEl->appendChild($xml->createElement('sum1:CuotaTotal', $record->totalTaxAmount));
         $recordEl->appendChild($xml->createElement('sum1:ImporteTotal', $record->totalAmount));
-    } else {
+    } elseif ($record->action === 'cancel') {
         $invoiceId = $xml->createElement('sum1:IDFactura');
         $recordEl->appendChild($invoiceId);
 
         $invoiceId->appendChild($xml->createElement('sum1:IDEmisorFacturaAnulada', $record->invoiceId->issuerId));
         $invoiceId->appendChild($xml->createElement('sum1:NumSerieFactura', $record->invoiceId->invoiceNumber));
         $invoiceId->appendChild($xml->createElement('sum1:FechaExpedicionFacturaAnulada', $record->invoiceId->issueDate->format('d-m-Y')));
+    } else {
+        throw new Exception('Invalid record action: ' . $record->action);
     }
 
     $chainEl = $xml->createElement('sum1:Encadenamiento');
