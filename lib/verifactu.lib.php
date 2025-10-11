@@ -142,21 +142,11 @@ function autoverifactuRegisterInvoice($invoice, $action)
     }
 
     try {
-        $result = autoverifactuSendInvoice($invoice, $xml);
+        $record = autoverifactuSendInvoice($invoice, $xml);
 
         // Skip document generation if send does not succed.
-        if ($result <= 0) {
-            return $result;
-        }
-
-        $uxml = UXML::fromString($xml);
-
-        $body = $uxml->get('env:Body');
-        $faults = $body ? $body->getAll('env:Fault') : [];
-
-        if (!$body || count($faults) > 0) {
-            dol_syslog('Invalid SOAP response with error ' . $fault, LOG_ERR);
-            return -1;
+        if (!$record) {
+            return 0;
         }
 
         $result = file_put_contents($file, $xml);
@@ -166,6 +156,11 @@ function autoverifactuRegisterInvoice($invoice, $action)
             dol_syslog('Error on verifactu request ' . print_r($e, true), LOG_ERR);
             return -1;
         } else {
+            $invoice->array_options['verifactu_hash'] = $record->hash;
+            $invoice->array_options['verifactu_tms'] = $record->hashedAt->getTimestamp();
+            $invoice->insertExtraFields();
+
+            $parameters['record'] = $record;
             $parameters['xml'] = $xml;
 
             $reshook = $hookmanager->executeHooks(
@@ -188,20 +183,22 @@ function autoverifactuRegisterInvoice($invoice, $action)
  * @param  Facture $invoice Target invoice. Invoice should not be published before
  * @param  string  &$xml    Response body as an XML string.
  *
- * @return int              Return <1 if KO, 0 if skip, 1 if OK.
+ * @return stdClass|null    Registered record, null if skipped.
+ *
+ * @throws Exception
  */
 function autoverifactuSendInvoice($invoice, &$xml)
 {
     if (!autoverifactuSystemCheck()) {
         dol_syslog('Veri*Factu bridge does not pass system checks');
-        return 0;
+        return;
     }
 
     $enabled = getDolGlobalString('AUTOVERIFACTU_ENABLED') == '1';
 
     if (!$enabled) {
         dol_syslog('Veri*Factu bridge is not enabled');
-        return 0;
+        return;
     }
 
     if (autoverifactuIsInvoiceRecorded($invoice)) {
@@ -211,18 +208,12 @@ function autoverifactuSendInvoice($invoice, &$xml)
             'is already registered',
         );
 
-        return 0;
+        return;
     }
 
-    try {
-        $record = autoverifactuInvoiceToRecord($invoice);
-
-        if (!$record) {
-            throw new Exception('Inconsistent invoice data');
-        }
-    } catch (Exception $e) {
-        dol_syslog('Invoice to record error: ' . $e->getMessage(), LOG_ERR);
-        return -1;
+    $record = autoverifactuInvoiceToRecord($invoice);
+    if (!$record) {
+        throw new Exception('Inconsistent invoice data');
     }
 
     $certPath = DOL_DATA_ROOT . '/' . (getDolGlobalString('AUTOVERIFACTU_CERT') ?: '');
@@ -242,6 +233,8 @@ function autoverifactuSendInvoice($invoice, &$xml)
         ),
     );
 
+    echo $envelope;
+
     $client = new Client(array('cert' => $cert));
 
     $res = $client->post(
@@ -257,8 +250,16 @@ function autoverifactuSendInvoice($invoice, &$xml)
     );
 
     $xml = $res->getBody()->getContents() . "\n";
+    $uxml = UXML::fromString($xml);
 
-    return 1;
+    $body = $uxml->get('env:Body');
+    $faults = $body ? $body->getAll('env:Fault') : [];
+
+    if (!$body || count($faults) > 0) {
+        throw new Exception($xml);
+    }
+
+    return $record;
 }
 
 /**
@@ -312,6 +313,8 @@ function autoverifactuSoapEnvelope($record, $issuer, $representative = null)
 function autoverifactuInvoiceToRecord($invoice)
 {
     global $mysoc;
+
+    $invoice->fetch_thirdparty();
     $thirdparty = $invoice->thirdparty;
 
     switch ($invoice->type) {
@@ -350,12 +353,7 @@ function autoverifactuInvoiceToRecord($invoice)
 
     $record->issuerName = $mysoc->nom;
     $record->invoiceType = $invoiceType;
-    $record->description = sprintf(
-        'Factura %s a %s (%s)',
-        $invoice->ref,
-        $thirdparty->idprof1,
-        $thirdparty->nom,
-    );
+    $record->description = 'Factura ' . $invoice->ref;
 
     $record->invoiceId = new stdClass();
     $record->invoiceId->issuerId = $mysoc->idprof1;
@@ -440,20 +438,20 @@ function autoverifactuInvoiceToRecord($invoice)
         '',
     );
 
-    $previous = autoverifactuGetLastValidInvoice();
+    $previous = autoverifactuGetPreviousValidInvoice($invoice);
     if ($previous) {
         $record->previousInvoiceId = new stdClass();
         $record->previousInvoiceId->issuerId = $mysoc->idprof1;
         $record->previousInvoiceId->invoiceNumber = $invoice->ref;
         $record->previousInvoiceId->issueDate = new DateTimeImmutable(date('Y-m-d', $previous->date));
 
-        $record->previousHash = substr($previous->hash, 0, 64);
+        $record->previousHash = substr($previous->array_options['verifactu_hash'], 0, 64);
     } else {
         $record->previousInvoiceId = null;
         $record->previousHash = null;
     }
 
-    $record->hashedAt = new DateTimeImmutable();
+    $record->hashedAt = new DateTimeImmutable(date('Y-m-d', time()));
     $record->hash = autoverifactuCalculateRecordHash($record);
 
     global $hookmanager;
@@ -636,7 +634,7 @@ function autoverifactuLinesToBreakdown($invoice)
         $details->regimeType = '01';
         // TODO: Handle operation types (S1, S2, S3, S4)
         $details->operationType = 'S1';
-        $details->taxRate = number_format((float) $line->tva_tax, 2, '.', '');
+        $details->taxRate = number_format((float) $line->tva_tx, 2, '.', '');
         $details->baseAmount = number_format((float) $line->total_ht, 2, '.', '');
         $details->taxAmount = number_format((float) $line->total_tva, 2, '.', '');
         $breakdown[] = $details;

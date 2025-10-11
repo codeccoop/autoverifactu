@@ -29,8 +29,19 @@
  */
 
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/blockedlog/class/blockedlog.class.php';
+require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
-function autoverifactuIntegrityValidation($invoice)
+require_once __DIR__ . '/verifactu.lib.php';
+
+/**
+ * Compare the invoice record hash with the hash of the record from the immutable log.
+ *
+ * @param  Facture $invoice Target invoice.
+ *
+ * @retur int               <0 if KO, 0 id not found, >0 on OK.
+ */
+function autoverifactuIntegrityCheck($invoice)
 {
     $blockedlog = autoverifactuFetchBlockedLog($invoice);
 
@@ -57,10 +68,10 @@ function autoverifactuFetchBlockedLog($invoice)
     global $db, $confg;
 
     $sql = 'SELECT rowid FROM ' . $db->prefix() . 'blockedlog';
-    $sql . ' WHERE element = \'facture\'';
-    $sql . ' AND entity = ' . $confg->entity;
-    $sql . ' AND action = \'BILL_VALIDATION\'';
-    $sql . ' AND fk_object = ' . $invoice->rowid;
+    $sql .= ' WHERE element = \'facture\'';
+    // $sql .= ' AND entity = ' . $confg->entity;
+    $sql .= ' AND action = \'BILL_VALIDATE\'';
+    $sql .= ' AND fk_object = ' . $invoice->id;
 
     $resql = $db->query($sql);
     if ($resql && $db->num_rows($resql)) {
@@ -78,18 +89,22 @@ function autoverifactuFetchBlockedLog($invoice)
  *
  * @return Facture|null
  */
-function autoverifactuGetLastValidInvoice()
+function autoverifactuGetPreviousValidInvoice($invoice)
 {
     global $db;
 
-    $sql = 'SELECT rowid FROM ' . $db->prefix() . 'facture';
-    $sql .= ' WHERE fk_statut > 0';
-    $sql .= ' ORDER BY date_valid DESC';
+    $sql = 'SELECT rowid FROM ' . $db->prefix() . 'facture f';
+    $sql .= ' LEFT JOIN ' . $db->prefix() . 'facture_extrafields fx';
+    $sql .= ' ON f.rowid = fx.fk_object';
+    $sql .= ' WHERE f.fk_statut > 0 AND f.type < 3';
+    $sql .= ' AND fx.verifactu_hash AND fx.verifactu_tms < ' . $invoice->date;
+    $sql .= ' ORDER BY fx.verifactu_tms DESC';
+
     $result = $db->query($sql);
 
     if ($result && $db->num_rows($result)) {
         $obj = $db->fetch_object($result);
-        $invoice = new Facutre($db);
+        $invoice = new Facture($db);
         $invoice->fetch($obj->rowid);
         return $invoice;
     }
@@ -120,9 +135,50 @@ function autoverifactuGetSourceInvoice($invoice)
     return $invoice;
 }
 
+/**
+ * Recreate the original Veri*Factu invoice record from a blockedlog entry.
+ *
+ * @param  BlockedLog $blocedlog  BlockedLog instance with the immutable data of the invoice validation.
+ *
+ * @return stdClass               Recreated invoice record.
+ */
 function autoverifactuRecordFromLog($blockedlog)
 {
-    // TODO: Implement this for validation
+    global $db;
+
+    $objectdata = $blockedlog->object_data;
+
+    $invoice = new Facture($db);
+    $invoice->fetch($blockedlog->fk_object);
+
+    $blocked = new Facture($db);
+    $blocked->type = $objectdata->type;
+    $blocked->ref = $objectdata->ref;
+    $blocked->date = $objectdata->date;
+
+    if (in_array($objectdata->type, array(1, 2))) {
+        $blocked->fk_facture_source = $invoice->fk_facture_source;
+    }
+
+    $lines = array();
+    foreach ($objectdata->invoiceline as $linedata) {
+        $line = new FactureLigne($db);
+        $line->tva_tx = $linedata->tva_tx;
+        $line->total_ht = $linedata->total_ht;
+        $line->total_tva = $linedata->total_tva;
+        $lines[] = $line;
+    }
+
+    $blocked->lines = $lines;
+
+    $invoice->fetch_thirdparty();
+    $blocked->thirdparty = $invoice->thirdparty;
+    $blocked->thirdparty->nom = $objectdata->thirdparty->name;
+    $blocked->thirdparty->idprof1 = $objectdata->thirdparty->idprof1;
+    $blocked->thirdparty->country_code = $objectdata->thirdparty->country_code;
+    $blocked->thirdparty->code_client = $objectdata->thirdparty->code_client;
+
+    return autoverifactuInvoiceToRecord($blocked);
 }
 
 /**
@@ -207,5 +263,5 @@ function autoverifactuValidateRecord($record)
 function autoverifactuIsInvoiceRecorded($invoice)
 {
     $invoice->fetch_optionals($invoice->id);
-    return !!($invoice->array_options['verifactued'] ?? false);
+    return !!($invoice->array_options['verifactu_hash'] ?? false);
 }

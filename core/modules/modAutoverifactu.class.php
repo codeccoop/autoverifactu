@@ -269,14 +269,14 @@ class modAutoverifactu extends DolibarrModules
         $extrafields = new ExtraFields($this->db);
 
         $extrafields->addExtraField(
-            'verifactued',
-            'Autoverifactu',
-            'boolean',
+            'verifactu_hash',
+            'VerifactuHash',
+            'varchar(1024)',
             1,
             0,
             'facture',
             0,
-            0,
+            1,
             '',
             '',
             0,
@@ -289,6 +289,26 @@ class modAutoverifactu extends DolibarrModules
             'isModEnabled("autoverifactu")'
         );
 
+        $extrafields->addExtraField(
+            'verifactu_tms',
+            'VerifactuDate',
+            'timestamp',
+            1,
+            0,
+            'facture',
+            0,
+            1,
+            'CURRENT_TIMESTAMP',
+            '',
+            0,
+            '',
+            0,
+            '',
+            '',
+            '',
+            'autoverifactu@autoverifactu',
+            'isModEnabled("autoverifactu")'
+        );
         // Permissions
         $this->remove($options);
 
