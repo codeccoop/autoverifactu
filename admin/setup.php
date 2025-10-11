@@ -169,6 +169,13 @@ if ($action === 'update' && !empty($user->admin)) {
     }
 }
 
+$certpath = getDolGlobalString('AUTOVERIFACTU_CERT');
+if (!is_file(DOL_DATA_ROOT . '/' . $certpath)) {
+    dolibarr_set_const($db, 'AUTOVERIFACTU_CERT', '');
+    $cert_field->fieldValue = '';
+    $cert_field->fieldAttr['error'] = true;
+}
+
 $action = 'edit';
 
 /*
