@@ -41,6 +41,12 @@ function autoverifactuAdminPrepareHead()
     $head[$h][2] = 'settings';
     $h++;
 
+    $head[$h][0] = DOL_URL_ROOT . '/custom/autoverifactu/admin/autodeclaration.php';
+    $head[$h][1] = $langs->trans('Autodeclaration');
+    $head[$h][2] = 'autodeclaration';
+    $h++;
+
+
     $head[$h][0] = DOL_URL_ROOT . '/custom/autoverifactu/admin/about.php';
     $head[$h][1] = $langs->trans('About');
     $head[$h][2] = 'about';

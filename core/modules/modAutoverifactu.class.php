@@ -139,10 +139,7 @@ class modAutoverifactu extends DolibarrModules
         $this->dirs = array('/autoverifactu/temp');
 
         // Config pages. Put here list of php page, stored into autoverifactu/admin directory, to use to setup module.
-        $this->config_page_url = array(
-            'setup.php@autoverifactu',
-            'about.php@autoverifactu'
-        );
+        $this->config_page_url = array('setup.php@autoverifactu');
 
         // Dependencies
         // A condition to hide module
