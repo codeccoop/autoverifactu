@@ -99,7 +99,7 @@ class ActionsAutoverifactu extends CommonHookActions
                     $result = autoverifactuIntegrityCheck($object);
 
                     if ($result > 0) {
-                        $this->resprints = $langs->trans('Invoice validation succed');
+                        $this->results[] = $langs->trans('Invoice integrity check succed');
                     } elseif (!$result) {
                         $this->errors[] = $langs->trans('Unable to find invoice entry on the immutable log');
                     } else {
@@ -121,14 +121,17 @@ class ActionsAutoverifactu extends CommonHookActions
                     $_POST['siren'] = $mysoc->idprof1;
 
                     $this->errors[] = $langs->trans('Update disabled by Auto*Verifacto');
-                    // dolibarr_set_const($db, 'AUTOVERIFACTU_RESPONSABILITY', 0);
+
+                    $action = 'skip';
                 }
             }
         }
 
         if (count($this->errors)) {
-            $action = 'skip';
             return -1;
+        } elseif (count($this->results)) {
+            setEventMessages($this->resprints ?? '', $this->results, 'mesgs');
+            return 1;
         }
     }
 

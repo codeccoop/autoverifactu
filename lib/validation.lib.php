@@ -65,6 +65,8 @@ function autoverifactuIntegrityCheck($invoice)
     if ($error) {
         return -1;
     }
+
+    return 1;
 }
 
 function autoverifactuFetchBlockedLog($invoice)
