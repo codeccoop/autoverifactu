@@ -271,7 +271,7 @@ class modAutoverifactu extends DolibarrModules
             'VerifactuHash',
             'varchar',
             1,
-            2048,
+            255,
             'facture',
             0,
             1,

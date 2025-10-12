@@ -171,9 +171,14 @@ function autoverifactuRegisterInvoice($invoice, $action)
             dol_syslog('Error on verifactu request ' . print_r($e, true), LOG_ERR);
             return -1;
         } else {
-            $invoice->array_options['verifactu_hash'] = $record->hash;
-            $invoice->array_options['verifactu_tms'] = $record->hashedAt->getTimestamp();
-            $invoice->insertExtraFields();
+            $invoice->array_options['options_verifactu_hash'] = $record->hash;
+            $invoice->array_options['options_verifactu_tms'] = $record->hashedAt->getTimestamp();
+            $result = $invoice->insertExtraFields();
+
+            if ($result <= 0) {
+                dol_syslog('Unable to update invoice extra fields', LOG_ERR);
+                return -1;
+            }
 
             $parameters['record'] = $record;
             $parameters['xml'] = $xml;
@@ -381,6 +386,8 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
 {
     global $mysoc;
 
+    $invoiceRef = $invoice->getNextNumRef($invoice);
+
     $invoice->fetch_thirdparty();
     $thirdparty = $invoice->thirdparty;
 
@@ -427,11 +434,11 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
 
     $record->issuerName = $mysoc->nom;
     $record->invoiceType = $invoiceType;
-    $record->description = 'Factura ' . $invoice->ref;
+    $record->description = 'Factura ' . $invoiceRef;
 
     $record->invoiceId = new stdClass();
     $record->invoiceId->issuerId = $mysoc->idprof1;
-    $record->invoiceId->invoiceNumber = $invoice->ref;
+    $record->invoiceId->invoiceNumber = $invoiceRef;
     $record->invoiceId->issueDate = new DateTimeImmutable(date('Y-m-d', $invoice->date));
 
     $record->recipients = array();
@@ -532,7 +539,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
     if ($previous) {
         $record->previousInvoiceId = new stdClass();
         $record->previousInvoiceId->issuerId = $mysoc->idprof1;
-        $record->previousInvoiceId->invoiceNumber = $invoice->ref;
+        $record->previousInvoiceId->invoiceNumber = $invoiceRef;
         $record->previousInvoiceId->issueDate = new DateTimeImmutable(date('Y-m-d', $previous->date));
 
         $record->previousHash = substr($previous->array_options['verifactu_hash'], 0, 64);
