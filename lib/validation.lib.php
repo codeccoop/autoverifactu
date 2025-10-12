@@ -192,7 +192,7 @@ function autoverifactuRecordFromLog($blockedlog)
 */
 function autoverifactuSystemCheck()
 {
-    global $mysoc;
+    global $conf, $mysoc;
 
     if (empty($mysoc->nom) || empty($mysoc->idprof1)) {
         return 0;
@@ -206,6 +206,14 @@ function autoverifactuSystemCheck()
 
     $certpath = getDolGlobalString('AUTOVERIFACTU_CERT');
     if (!($certpath && is_file(DOL_DATA_ROOT . '/' . $certpath))) {
+        return 0;
+    }
+
+    if (!dolGetGolbalInt('FAC_FORCE_DATE_VALIDATION')) {
+        return 0;
+    }
+
+    if (empty($conf->modules['blockedlog'])) {
         return 0;
     }
 

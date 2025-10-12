@@ -25,6 +25,8 @@
 
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonhookactions.class.php';
 require_once DOL_DOCUMENT_ROOT . '/blockedlog/class/blockedlog.class.php';
+require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
+
 require_once dirname(__DIR__) . '/lib/autoverifactu.lib.php';
 require_once dirname(__DIR__) . '/lib/validation.lib.php';
 
@@ -82,12 +84,11 @@ class ActionsAutoverifactu extends CommonHookActions
      * @param   CommonObject        $object         The object to process (an invoice if you are
      *                                              in invoice module, a propale in propale's module, etc...)
      * @param   ?string             $action         Current action (if set). Generally create or edit or null
-     * @param   HookManager         $hookmanager    Hook manager propagated to allow calling another hook
      *
      * @return  int                                 Return integer < 0 on error, 0 on success, 1 to replace
      *                                              standard code
      */
-    public function doActions($parameters, &$object, &$action, $hookmanager)
+    public function doActions($parameters, &$object, &$action)
     {
         global $langs;
 
@@ -132,8 +133,8 @@ class ActionsAutoverifactu extends CommonHookActions
 
         if (
             $object->element === 'facture'
-            && $object->status > 0
-            && $object->type < 3
+            && $object->status > Facture::STATUS_DRAFT
+            && $object->type <= Facture::TYPE_DEPOSIT
         ) {
             $invoiceref = dol_sanitizeFileName($object->ref);
             $dir = $conf->facture->multidir_output[$object->entity ?? $conf->entity] . '/' . $invoiceref;
@@ -188,8 +189,8 @@ class ActionsAutoverifactu extends CommonHookActions
 
         if (
             $object->element === 'facture'
-            && $object->status > 0
-            && $object->type < 3
+            && $object->status > Facture::STATUS_DRAFT
+            && $object->type <= Facture::TYPE_DEPOSIT
         ) {
             $pdf = &$parameters['pdf'];
 
@@ -252,8 +253,8 @@ class ActionsAutoverifactu extends CommonHookActions
 
         if (
             $object->element === 'facture'
-            && $object->status > 0
-            && $object->type < 3
+            && $object->status > Facture::STATUS_DRAFT
+            && $object->type <= Facture::TYPE_DEPOSIT
         ) {
             echo dolGetButtonAction(
                 $langs->trans('Check verifactu integrity'),
@@ -291,7 +292,7 @@ class ActionsAutoverifactu extends CommonHookActions
 
         if (
             $object->element === 'facture'
-            && $object->type < 3
+            && $object->type <= Facture::TYPE_DEPOSIT
         ) {
             $url = parse_url($parameters['url']);
             parse_str($url['query'] ?? '', $query);
@@ -299,7 +300,7 @@ class ActionsAutoverifactu extends CommonHookActions
             $action = $query['action'] ?? null;
 
             if (
-                $object->status > 0
+                $object->status > Facture::STATUS_DRAFT
                 && in_array($action, array('modif', 'reopen', 'delete'), true)
             ) {
                 $label = $langs->trans('Disabled by Veri*Factu');
@@ -316,7 +317,7 @@ class ActionsAutoverifactu extends CommonHookActions
 
                     $this->resprints = $button;
                     return 1;
-            } elseif ($object->status == 0 && $action === 'valid') {
+            } elseif ($object->status == Facture::STATUS_DRAFT && $action === 'valid') {
                 $object->fetch_thirdparty();
                 $thirdparty = $object->thirdparty;
                 $valid_id = $thirdparty->id_prof_check(1, $thirdparty);

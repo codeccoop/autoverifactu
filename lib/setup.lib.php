@@ -28,6 +28,8 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
+require_once __DIR__ . '/validation.lib.php';
+
 function autoverifactuGetPost($field)
 {
     return GETPOST($field) ?: getDolGlobalString($field);
@@ -35,22 +37,16 @@ function autoverifactuGetPost($field)
 
 function autoverifactuSetupPost()
 {
-    global $db, $mysoc, $conf;
+    global $db;
 
     $certpath = autoverifactuGetPost('AUTOVERIFACTU_CERT');
-    $fullcertpath = DOL_DATA_ROOT . '/' . $certpath;
     dolibarr_set_const($db, 'AUTOVERIFACTU_CERT', (string) $certpath);
 
     $password = autoverifactuGetPost('AUTOVERIFACTU_PASSWORD');
     dolibarr_set_const($db, 'AUTOVERIFACTU_PASSWORD', $password);
 
     $enabled = autoverifactuGetPost('AUTOVERIFACTU_ENABLED');
-
-    $enabled = $enabled && !empty($mysoc->idprof1) && !empty($mysoc->nom);
-    $enabled = $enabled && is_file($fullcertpath);
-    $enabled = $enabled && getDolGlobalString('FAC_FORCE_DATE_VALIDATION');
-    $enabled = $enabled && !empty($conf->modules['blockedlog']);
-
+    $enabled = $enabled && autoverifactuSystemCheck();
     dolibarr_set_const($db, 'AUTOVERIFACTU_ENABLED', (string) $enabled);
 }
 

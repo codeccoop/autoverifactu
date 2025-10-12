@@ -31,6 +31,8 @@
  */
 
 require_once DOL_DOCUMENT_ROOT . '/core/triggers/dolibarrtriggers.class.php';
+require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
+
 require_once dirname(__DIR__, 2) . '/lib/verifactu.lib.php';
 
 
@@ -70,8 +72,6 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
         if (!isModEnabled('autoverifactu')) {
             return 0;
         }
-
-        // print_r(['action' => $action, 'object' => $object->element, 'status' => $object->status]);
 
         /**
          * Tracked invoices types:
@@ -116,7 +116,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 return $result;
             case 'BILL_UNVALIDATE':
             case 'BILL_UNPAYED':
-                if ($object->type <= 3) {
+                if ($object->type <= Facture::TYPE_DEPOSIT) {
                     dol_syslog('Auto-Veri*Factu disables invoice unvalidations');
                     $this->errors[] = $langs->trans('Validated invoices are not editables');
                     return -1;
@@ -125,7 +125,10 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 break;
             case 'BILL_DELETE':
             // case 'DON_DELETE':
-                if ($object->status != 0 && $object->type <= 3) {
+                if (
+                    $object->status != Facture::STATUS_DRAFT
+                    && $object->type <= Facture::TYPE_DEPOSIT
+                ) {
                     dol_syslog('Auto-Veri*Factu disables validated invoices removals');
                     $this->errors[] = $langs->trans('Validated invoices can\'t be deleted');
                     return -1;
@@ -134,7 +137,10 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 break;
             case 'BILL_MODIFY':
             // case 'DON_MODIFY':
-                if ($object->status != 0 && $object->type <= 3) {
+                if (
+                    $object->status != Facture::STATUS_DRAFT
+                    && $object->type <= Facture::TYPE_DEPOSIT
+                ) {
                     dol_syslog('Auto-Veri*Factu disables validated invoices edits');
                     $this->errors[] = $langs->trans('Validated invoices can\'t be modified');
                     return -1;

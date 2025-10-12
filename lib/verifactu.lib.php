@@ -58,13 +58,13 @@ function autoverifactuRegisterInvoice($invoice, $action)
 {
     global $db, $conf,$hookmanager;
 
-    if ($invoice->type > 3) {
+    if ($invoice->type > Facture::TYPE_DEPOSIT) {
         // Skip non recordable invoice types.
         return 0;
     }
 
     if (
-        $invoice->status == 0 &&
+        $invoice->status == Facture::STATUS_DRAFT &&
         !in_array(
             $action,
             array(
@@ -77,7 +77,7 @@ function autoverifactuRegisterInvoice($invoice, $action)
     ) {
         return 0;
     } elseif (
-        $invoice->status == 1 &&
+        $invoice->status == Facture::STATUS_VALIDATED &&
         $action !== 'BILL_CANCEL'
     ) {
         return 0;
@@ -793,12 +793,7 @@ function autoverifactuGetRecordComputerSystem()
 */
 function autoverifactuCalculateRecordHash($record)
 {
-    if (!isset($record->status)) {
-        return '';
-    }
-
-    // It's a draft invoice in process to be validated
-    if ($record->status == 0) {
+    if ($record->type == 'register') {
         $payload  = 'IDEmisorFactura=' . $record->invoiceId->issuerId;
         $payload .= '&NumSerieFactura=' . $record->invoiceId->invoiceNumber;
         $payload .= '&FechaExpedicionFactura=' . $record->invoiceId->issueDate->format('d-m-Y');
@@ -808,12 +803,14 @@ function autoverifactuCalculateRecordHash($record)
         $payload .= '&Huella=' . ($record->previousHash ?? '');
         $payload .= '&FechaHoraHusoGenRegistro=' . $record->hashedAt->format('c');
     // Otherwise, it's a validated invoice in process to be canceled.
-    } else {
+    } elseif ($record->type === 'cancel') {
         $payload  = 'IDEmisorFacturaAnulada=' . $record->invoiceId->issuerId;
         $payload .= '&NumSerieFacturaAnulada=' . $record->invoiceId->invoiceNumber;
         $payload .= '&FechaExpedicionFacturaAnulada=' . $record->invoiceId->issueDate->format('d-m-Y');
         $payload .= '&Huella=' . ($record->previousHash ?? '');
         $payload .= '&FechaHoraHusoGenRegistro=' . $record->hashedAt->format('c');
+    } else {
+        $payload = '';
     }
 
     return strtoupper(hash('sha256', $payload));
