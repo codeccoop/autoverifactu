@@ -22,8 +22,6 @@
  * \brief   Library files with functions to interface with the Veri*Factu API
  */
 
-use GuzzleHttp\Client;
-
 // Libraries
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
