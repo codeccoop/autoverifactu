@@ -90,7 +90,7 @@ class ActionsAutoverifactu extends CommonHookActions
      */
     public function doActions($parameters, &$object, &$action)
     {
-        global $langs;
+        global $langs, $mysoc;
 
         if ($parameters['currentcontext'] === 'invoicecard') {
             switch ($action) {
@@ -105,10 +105,20 @@ class ActionsAutoverifactu extends CommonHookActions
                         $this->errors[] = $langs->trans('It seems your invoice data is not consistent');
                     }
             }
-        // } elseif ($parameters['currentcontext'] === 'pdfgeneration') }{
-        //  switch ($action) {
-        //
-        //  }
+        } elseif ($parameters['currentcontext'] === 'admincompany') {
+            if ($action === 'update') {
+                $invalidated = $mysoc->nom !== GETPOST('name')
+                    || $mysoc->idprof1 !== GETPOST('siren')
+                    || $mysoc->address !== GETPOST('MAIN_INFO_SOCIETE_ADDRESS')
+                    || $mysoc->zip !== GETPOST('MAIN_INFO_SOCIETE_ZIP')
+                    || $mysoc->town !== GETPOST('MAIN_INFO_SOCIETE_TOWN')
+                    || $mysoc->state_id !== GETPOST('state_id')
+                    || $mysoc->country_id !== GETPOST('country_id');
+
+                if ($invalidated) {
+                    dolibarr_set_const('AUTOVERIFACTU_RESPONSABILITY', 0);
+                }
+            }
         }
 
         if (count($this->errors)) {
@@ -135,6 +145,7 @@ class ActionsAutoverifactu extends CommonHookActions
             $object->element === 'facture'
             && $object->status > Facture::STATUS_DRAFT
             && $object->type <= Facture::TYPE_DEPOSIT
+            && autoverifactuEnabled()
         ) {
             $invoiceref = dol_sanitizeFileName($object->ref);
             $dir = $conf->facture->multidir_output[$object->entity ?? $conf->entity] . '/' . $invoiceref;
@@ -191,6 +202,7 @@ class ActionsAutoverifactu extends CommonHookActions
             $object->element === 'facture'
             && $object->status > Facture::STATUS_DRAFT
             && $object->type <= Facture::TYPE_DEPOSIT
+            && autoverifactuEnabled()
         ) {
             $pdf = &$parameters['pdf'];
 
@@ -255,6 +267,7 @@ class ActionsAutoverifactu extends CommonHookActions
             $object->element === 'facture'
             && $object->status > Facture::STATUS_DRAFT
             && $object->type <= Facture::TYPE_DEPOSIT
+            && autoverifactuEnabled()
         ) {
             echo dolGetButtonAction(
                 $langs->trans('Check verifactu integrity'),
@@ -293,6 +306,7 @@ class ActionsAutoverifactu extends CommonHookActions
         if (
             $object->element === 'facture'
             && $object->type <= Facture::TYPE_DEPOSIT
+            && autoverifactuEnabled()
         ) {
             $url = parse_url($parameters['url']);
             parse_str($url['query'] ?? '', $query);
