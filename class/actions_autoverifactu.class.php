@@ -280,7 +280,7 @@ class ActionsAutoverifactu extends CommonHookActions
         ) {
             echo dolGetButtonAction(
                 $langs->trans('Check verifactu integrity'),
-                $langs->trans('Verifactu'),
+                $langs->trans('Veri*Factu'),
                 'default',
                 $_SERVER['PHP_SELF'] . '?action=verifactu&token=' . newToken() . '&id=' . $object->id,
                 '',

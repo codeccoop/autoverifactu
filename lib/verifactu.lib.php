@@ -382,7 +382,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
 {
     global $mysoc;
 
-    $invoiceRef = $invoice->getNextNumRef($invoice);
+    $invoiceRef = $invoice->status > 0 ? $invoice->ref : $invoice->getNextNumRef($invoice);
 
     $invoice->fetch_thirdparty();
     $thirdparty = $invoice->thirdparty;
