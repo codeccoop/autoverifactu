@@ -97,7 +97,7 @@ function autoverifactuGetPreviousValidInvoice($invoice)
 {
     global $db;
 
-    $sql = 'SELECT rowid FROM ' . $db->prefix() . 'facture f';
+    $sql = 'SELECT f.rowid FROM ' . $db->prefix() . 'facture f';
     $sql .= ' LEFT JOIN ' . $db->prefix() . 'facture_extrafields fx';
     $sql .= ' ON f.rowid = fx.fk_object';
     $sql .= ' WHERE f.fk_statut > 0 AND f.type < 3';
@@ -209,7 +209,7 @@ function autoverifactuSystemCheck()
         return 0;
     }
 
-    if (!dolGetGolbalInt('FAC_FORCE_DATE_VALIDATION')) {
+    if (!getDolGlobalInt('FAC_FORCE_DATE_VALIDATION')) {
         return 0;
     }
 
