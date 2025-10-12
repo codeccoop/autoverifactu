@@ -223,6 +223,41 @@ function autoverifactuValidateRecord($record)
         return 0;
     }
 
+    if (
+        in_array($record->invoiceType, array('F2', 'R5'), true)
+        && count($record->recipients)
+    ) {
+        // If is simplified, it should not have recipients.
+        return 0;
+    }
+
+    $isCorrective = preg_match('/R[0-5]/', $record->invoiceType);
+    if ($isCorrective && !$record->correctiveType) {
+        return 0;
+    } elseif (!$isCorrective && $record->correctiveType) {
+        return 0;
+    } elseif (!$isCorrective && count($record->correctedInvoices)) {
+        return 0;
+    }
+
+    if ($record->correctiveType === 'S') {
+        // If its corrective by diferrence it should have base and tax amounts.
+        if (!$record->correctedBaseAmount || !$record->correctedTaxAmount) {
+            return 0;
+        }
+    } else {
+        // If is corrective by substitution, it shouldn't.
+        if ($record->correctedBaseAmount || $record->correctedTaxAmount) {
+            return 0;
+        }
+    }
+
+    if ($record->invoiceType === 'F3' && count($record->replacedInvoices)) {
+        return 0;
+    } elseif ($record->invoiceType !== 'F3' && count($record->replacedInvoices)) {
+        return 0;
+    }
+
     $expectedTax = 0;
     $expectedBase = 0;
     foreach ($record->breakdown as $details) {
