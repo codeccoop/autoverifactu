@@ -297,7 +297,14 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
     $faults = $doc->getElementsByTagName('Fault');
 
     if ($faults->count() > 0) {
-        file_put_contents('/var/www/html/custom/autoverifactu/fauls.soap.xml', $res);
+        $file = '/var/www/html/custom/autoverifactu/faults.soap.xml';
+
+        if (!is_file($file)) {
+            touch($file);
+            chmod($file, 0777);
+        }
+
+        file_put_contents($file, $res);
         dol_syslog($res);
         // throw new Exception($res, 400);
     }

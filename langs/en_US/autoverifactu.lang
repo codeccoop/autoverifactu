@@ -18,6 +18,7 @@ AutoVerifactuSetupPage = Auto-Veri*Factu setup page
 COMPANY_SECTION_TITLE = Company/Organization
 SYSTEM_SECTION_TITLE = System
 AUTOVERIFACTU_ENABLED = Veri*Factu enabled
+AUTOVERIFACTU_RESPONSABILITY = Responsable declaration
 AUTOVERIFACTU_COMPANY_NAME = Name
 AUTOVERIFACTU_COMPANY_NAMETooltip = Legal name of your company
 AUTOVERIFACTU_VAT = VAT ID
@@ -32,6 +33,11 @@ AUTOVERIFACTU_TAX = Tax type
 AUTOVERIFACTU_DATE_VALIDATION = Is invoice validation date mandatory?
 AUTOVERIFACTU_DATE_VALIDATIONTooltip = Invoice date has to be set to the date when it's validated
 AUTOVERIFACTU_BLOCKEDLOG_ENABLED = Is BlockedLog module enabled?
+
+#
+# Autodeclaration page
+#
+Draft = Borrador
 
 #
 # About page

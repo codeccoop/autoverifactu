@@ -23,6 +23,7 @@
  * \brief   Autoverifactu action hooks
  */
 
+require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonhookactions.class.php';
 require_once DOL_DOCUMENT_ROOT . '/blockedlog/class/blockedlog.class.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
@@ -90,7 +91,7 @@ class ActionsAutoverifactu extends CommonHookActions
      */
     public function doActions($parameters, &$object, &$action)
     {
-        global $langs, $mysoc;
+        global $langs, $mysoc, $db;
 
         if ($parameters['currentcontext'] === 'invoicecard') {
             switch ($action) {
@@ -106,22 +107,27 @@ class ActionsAutoverifactu extends CommonHookActions
                     }
             }
         } elseif ($parameters['currentcontext'] === 'admincompany') {
-            if ($action === 'update') {
-                $invalidated = $mysoc->nom !== GETPOST('name')
-                    || $mysoc->idprof1 !== GETPOST('siren')
-                    || $mysoc->address !== GETPOST('MAIN_INFO_SOCIETE_ADDRESS')
-                    || $mysoc->zip !== GETPOST('MAIN_INFO_SOCIETE_ZIP')
-                    || $mysoc->town !== GETPOST('MAIN_INFO_SOCIETE_TOWN')
-                    || $mysoc->state_id !== GETPOST('state_id')
-                    || $mysoc->country_id !== GETPOST('country_id');
+            if ($action === 'update' && autoverifactuEnabled()) {
+                $forbidden = $mysoc->nom !== GETPOST('name')
+                    || $mysoc->idprof1 !== GETPOST('siren');
+                    // || $mysoc->address !== GETPOST('MAIN_INFO_SOCIETE_ADDRESS')
+                    // || $mysoc->zip !== GETPOST('MAIN_INFO_SOCIETE_ZIP')
+                    // || $mysoc->town !== GETPOST('MAIN_INFO_SOCIETE_TOWN')
+                    // || $mysoc->state_id !== GETPOST('state_id')
+                    // || $mysoc->country_id !== GETPOST('country_id');
 
-                if ($invalidated) {
-                    dolibarr_set_const('AUTOVERIFACTU_RESPONSABILITY', 0);
+                if ($forbidden) {
+                    $_POST['name'] = $mysoc->nom;
+                    $_POST['siren'] = $mysoc->idprof1;
+
+                    $this->errors[] = $langs->trans('Update disabled by Auto*Verifacto');
+                    // dolibarr_set_const($db, 'AUTOVERIFACTU_RESPONSABILITY', 0);
                 }
             }
         }
 
         if (count($this->errors)) {
+            $action = 'skip';
             return -1;
         }
     }

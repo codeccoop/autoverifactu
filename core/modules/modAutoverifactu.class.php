@@ -113,7 +113,7 @@ class modAutoverifactu extends DolibarrModules
             'theme' => 0,
             // Set this to relative path of css file if module has its own css file
             'css' => array(
-                '/autoverifactu/css/setup.css.php',
+                '/autoverifactu/css/admin.css.php',
             ),
             // Set this to relative path of js file if module must load a js on all pages
             'js' => array(

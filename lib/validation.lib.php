@@ -198,12 +198,14 @@ function autoverifactuSystemCheck()
         require_once DOL_DOCUMENT_ROOT . '/core/lib/profid.lib.php';
     }
 
-    return (int) $mysoc->nom && $mysoc->idprof1
+    return intval(
+        $mysoc->nom && $mysoc->idprof1
         && isValidTinForES($mysoc->idprof1)
         && is_file(DOL_DATA_ROOT . '/' . (getDolGlobalString('AUTOVERIFACTU_CERT') ?: 'nofile'))
-        && empty($conf->modules['blockedlog'])
+        && !empty($conf->modules['blockedlog'])
         && getDolGlobalInt('FAC_FORCE_DATE_VALIDATION')
-        && getDolGlobalInt('AUTOVERIFACTU_REPONSABILITY');
+        && getDolGlobalString('AUTOVERIFACTU_RESPONSABILITY')
+    );
 }
 
 function autoverifactuEnabled()

@@ -27,8 +27,11 @@ require_once dirname(__DIR__) . '/env.php';
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/profid.lib.php';
+
 require_once dirname(__DIR__) . '/lib/autoverifactu.lib.php';
 require_once dirname(__DIR__) . '/lib/setup.lib.php';
+require_once dirname(__DIR__) . '/lib/validation.lib.php';
 
 /**
  * @var Conf $conf
@@ -77,6 +80,40 @@ $invalid = false;
 $toggle = $formSetup->newItem('AUTOVERIFACTU_ENABLED')->setAsYesNo();
 $toggle->fieldValue = '1';
 
+$responsability = $formSetup->newItem('AUTOVERIFACTU_RESPONSABILITY')->setAsYesNo();
+$is_responsible = !!getDolGlobalString('AUTOVERIFACTU_RESPONSABILITY');
+
+ob_start();
+?>
+<div style="opacity:0.4">
+    <div
+        id="confirm_AUTOVERIFACTU_ENABLED"
+        title=""
+        style="display: none"
+        aria-hidden="true"
+    ></div>
+    <span
+        id="set_AUTOVERIFACTU_ENABLED"
+        class="valignmiddle inline-block linkobject"
+        style="cursor: default; display: <?php echo ($is_responsible ? 'none' : 'inline') ?>"
+        aria-hidden="<?php echo ($is_responsible ? 'false' : 'true') ?>"
+    >
+        <span class="fas fa-toggle-off" style=" color: #999;" title="Disabled"></span>
+    </span>
+    <span
+        id="del_AUTOVERIFACTU_ENABLED"
+        class="valignmiddle inline-block linkobject hideobject"
+        style="cursor: default; display: <?php echo ($is_responsible ? 'inline' : 'none') ?>"
+        aria-hidden="<?php echo ($is_responsible ? 'true' : 'false') ?>"
+    >
+        <span class="fas fa-toggle-on font-status4" style="" title="Enabled"></span>
+    </span>
+</div>
+<?php
+
+$responsability->fieldOverride = ob_get_clean();
+$invalid = $invalid || !$is_responsible;
+
 $formSetup->newItem('COMPANY_SECTION_TITLE')->setAsTitle();
 
 $name_field = $formSetup->newItem('AUTOVERIFACTU_COMPANY_NAME');
@@ -92,18 +129,20 @@ $vat_field->fieldValue = autoverifactuGetPost('AUTOVERIFACTU_VAT') ?: $mysoc->id
 $vat_field->fieldParams['isMandatory'] = 1;
 $vat_field->fieldAttr['placeholder'] = $langs->trans('Your company VAT number');
 $vat_field->fieldAttr['disabled'] = true;
-$vat_field->fieldAttr['error'] = empty($vat_field->fieldValue);
+$vat_field->fieldAttr['error'] = !isValidTinForES($vat_field->fieldValue);
 $invalid = $invalid || $vat_field->fieldAttr['error'];
 
 $cert_field = $formSetup->newItem('AUTOVERIFACTU_CERT');
 $cert_field->fieldParams['isMandatory'] = 1;
 $cert_field->fieldAttr['placeholder'] = $langs->trans('path/to/your/certificate.pem');
 $cert_field->fieldAttr['disabled'] = true;
-$cert_field->fieldAttr['error'] = empty($cert_field->fieldValue);
+$cert_field->fieldAttr['error'] = !is_file($cert_field->fieldValue);
 $invalid = $invalid || $cert_field->fieldAttr['error'];
 
 $pass_field = $formSetup->newItem('AUTOVERIFACTU_PASSWORD')->setAsGenericPassword();
-$pass_field->fieldParams['isMandatory'] = 0;
+$pass_field->fieldParams['isMandatory'] = 1;
+$pass_field->fieldAttr['error'] = empty(getDolGlobalString('AUTOVERIFACTU_PASSWORD'));
+$invalid = $invalid || $pass_field->fieldAttr['error'];
 
 $formSetup->newItem('FISCAL_SECTION_TITLE')->setAsTitle();
 

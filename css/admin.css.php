@@ -58,3 +58,37 @@ if (empty($dolibarr_nocache)) {
  color: indianred;
 }
 
+.autodeclaration-preview {
+    position: relative;
+    max-width: 65rem;
+    padding: 6rem 4.5rem 4.5rem;
+    border: 1px solid;
+    box-sizing: border-box;
+}
+
+.autodeclaration-preview h1,
+.autodeclaration-preview h2 {
+    line-height: 1.2;
+}
+
+.autodeclaration-preview h1 {
+    margin-bottom: 1.5em;
+}
+
+.autodeclaration-preview ol,
+.autodeclaration-preview ul {
+    padding-left: 1rem;
+}
+
+.autodeclaration-watermark {
+    position: absolute;
+    z-index: 10;
+    font-weight: 800;
+    font-size: 8rem;
+    color: red;
+    top: 15%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    opacity: 0.3;
+    text-transform: uppercase;
+}
