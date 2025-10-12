@@ -44,6 +44,7 @@ define(
     'AUTOVERIFACTU_SUM1_NS',
     'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd',
 );
+define('AUTOVERIFACTU_XD_NS', 'xmlns:xd="http://www.w3.org/2000/09/xmldsig"');
 
 /**
  * Verifactu invoice record registration.
@@ -330,6 +331,7 @@ function autoverifactuSoapEnvelope($record, $issuer, $representative = null)
     $envelope->setAttribute('xmlns:soapenv', AUTOVERIFACTU_SOAPENV_NS);
     $envelope->setAttribute('xmlns:sum', AUTOVERIFACTU_SUM_NS);
     $envelope->setAttribute('xmlns:sum1', AUTOVERIFACTU_SUM1_NS);
+    $envelope->setAttribute('xmlns:xd', AUTOVERIFACTU_XD_NS);
 
     $headerEl = $xml->createElement('soapenv:Header');
     $envelope->appendChild($headerEl);

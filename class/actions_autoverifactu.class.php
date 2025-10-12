@@ -205,6 +205,8 @@ class ActionsAutoverifactu extends CommonHookActions
      */
     public function printUnderHeaderPDFline($parameters, &$pdfhandler)
     {
+        global $mysoc;
+
         $object = $parameters['object'];
 
         if (
@@ -215,27 +217,37 @@ class ActionsAutoverifactu extends CommonHookActions
         ) {
             $pdf = &$parameters['pdf'];
 
-            $uri = 'https://www.codeccoop.org';
+            $base_url = VERIFACTU_BASE_URL;
+            $endpoint = '/wlpl/TIKE-CONT/ValidarQR';
+            $query = http_build_query(array(
+                'nif' => $mysoc->idprof1,
+                'numserie' => $object->ref,
+                'fecha' => date('d-m-Y', $object->date),
+                'importe' => number_format($object->total_ttc, 2, '.', ''),
+            ));
 
             $pdf->write2DBarcode(
-                $uri,
+                $base_url . $endpoint . '?' . $query,
                 'QRCODE,M',
                 $pdfhandler->marge_gauche,
                 $pdfhandler->tab_top - 5,
                 25,
                 25,
                 array(
-                'border' => false,
-                'padding' => 0,
-                'fgcolor' => array(25, 25, 25),
-                'bgcolor' => false,
-                'module_width' => 1,
-                'module_height' => 1,
+                    'border' => false,
+                    'padding' => 0,
+                    'fgcolor' => array(25, 25, 25),
+                    'bgcolor' => false,
+                    'module_width' => 1,
+                    'module_height' => 1,
                 ),
                 25,
             );
 
-            $this->results = array('extra_under_address_shift' => 25);
+            $pdf->setTopMargin($pdfhandler->tab_top + 21);
+            $pdf->MultiCell(25, 5, 'Veri*Factu', 0, 'C', 0, 1);
+
+            $this->results = array('extra_under_address_shift' => 27);
         }
 
         return 0;
