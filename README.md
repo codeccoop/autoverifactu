@@ -28,7 +28,7 @@ Ante esta situación, lo que propone este módulo es la generación de una _auto
 
 ## Instalación y activación
 
-Puedes descargarte la última versión del código desde el [listado de versiones disponibles](https://gitlab.com/codeccoop/dolibarr/auto-verifactu/-/releases).
+Puedes descargarte la última versión del código desde el [listado de versiones disponibles](https://gitlab.com/codeccoop/dolibarr/autoverifactu/-/releases).
 
 Una vez obtenido el packete zip con el código, deberás subirlo a tu instancia de Dolibarr desde el menú `Inicio > Configuración > Módulos > Instalación de módulos externos`.
 
