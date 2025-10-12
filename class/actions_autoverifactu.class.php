@@ -158,7 +158,7 @@ class ActionsAutoverifactu extends CommonHookActions
             if ($object->status == 3 && !is_file($cancel_hidden)) {
                 dol_syslog('Immutable xml copy not found for invoice #' . $object->id, LOG_ERR);
                 return -1;
-            } elseif (!is_file($cancel_file)) {
+            } elseif ($object->status == 3 && !is_file($cancel_file)) {
                 $result = file_put_contents($cancel_file, file_get_contents($cancel_hidden));
 
                 if (!$result) {

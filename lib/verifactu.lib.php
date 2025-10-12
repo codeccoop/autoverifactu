@@ -677,7 +677,7 @@ function autoverifactuRecordToXML($record, $xml = null)
             $breakdown->appendChild($dEl);
 
             $dEl->appendChild($xml->createElement('sum1:Impuesto', $details->taxType));
-            $dEl->appendChild($xml->createElement('sum1:CalveRegimen', $details->regimeType));
+            $dEl->appendChild($xml->createElement('sum1:ClaveRegimen', $details->regimeType));
             $dEl->appendChild($xml->createElement('sum1:CalificacionOperacion', $details->operationType));
             $dEl->appendChild($xml->createElement('sum1:TipoImpositivo', $details->taxRate));
             $dEl->appendChild($xml->createElement('sum1:BaseImponibleOimporteNoSujeto', $details->baseAmount));
@@ -748,9 +748,9 @@ function autoverifactuLinesToBreakdown($invoice)
     foreach ($invoice->lines as $line) {
         $details = new stdClass();
         // TODO: Handle tax types (01 IVA, 02 IPSI, 03 IGIC, 05 Otros)
-        $details->taxType = '01';
+        $details->taxType = getDolGlobalString('AUTOVERIFACTU_TAX');
         // TODO: Handle regime types (01..20)
-        $details->regimeType = '01';
+        $details->regimeType = getDolGlobalString('AUTOVERIFACTU_REGIME');
         // TODO: Handle operation types (S1, S2, S3, S4)
         $details->operationType = 'S1';
         $details->taxRate = number_format((float) $line->tva_tx, 2, '.', '');
