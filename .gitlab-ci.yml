@@ -24,7 +24,7 @@ package:
   stage: package
   script:
     - mkdir autoverifactu
-    - md admin class core css env.php img langs lib LICENSE README autoverifactu
+    - mv admin class core css env.php img langs lib LICENSE README autoverifactu
     - zip -r $ZIP autoverifactu
   artifacts:
     paths:
