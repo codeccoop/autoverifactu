@@ -167,6 +167,8 @@ function autoverifactuRecordFromLog($blockedlog)
     $invoice->fetch($blockedlog->fk_object);
 
     $blocked = new Facture($db);
+
+    $blocked->status = $invoice->status;
     $blocked->type = $objectdata->type;
     $blocked->ref = $objectdata->ref;
     $blocked->date = $objectdata->date;

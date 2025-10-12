@@ -538,7 +538,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
         $record->previousInvoiceId->invoiceNumber = $invoiceRef;
         $record->previousInvoiceId->issueDate = new DateTimeImmutable(date('Y-m-d', $previous->date));
 
-        $record->previousHash = substr($previous->array_options['verifactu_hash'], 0, 64);
+        $record->previousHash = substr($previous->array_options['options_verifactu_hash'], 0, 64);
     } else {
         $record->previousInvoiceId = null;
         $record->previousHash = null;
