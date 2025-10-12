@@ -46,8 +46,6 @@ $backtopage = GETPOST('backtopage', 'alpha');
  * Actions
  */
 
-// TODO: Declaración responsable
-
 /*
  * View
  */

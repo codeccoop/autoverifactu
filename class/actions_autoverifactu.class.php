@@ -99,7 +99,7 @@ class ActionsAutoverifactu extends CommonHookActions
                     $result = autoverifactuIntegrityCheck($object);
 
                     if ($result > 0) {
-                        $this->results[] = $langs->trans('Invoice integrity check succed');
+                        $this->results[] = $langs->trans('Invoice integrity check succeed');
                     } elseif (!$result) {
                         $this->errors[] = $langs->trans('Unable to find invoice entry on the immutable log');
                     } else {

@@ -221,11 +221,23 @@ function autoverifactuSystemCheck()
     );
 }
 
+/**
+ * Check if autoverifactu is enabled.
+ *
+ * @return bool
+ */
 function autoverifactuEnabled()
 {
     return autoverifactuSystemCheck() && getDolGlobalInt('AUTOVERIFACTU_ENABLED');
 }
 
+/**
+ * Performs record data validation.
+ *
+ * @param  stdClass $record Target record.
+ *
+ * @return int              0 if validatio fail, 1 if succeed
+ */
 function autoverifactuValidateRecord($record)
 {
     if (!isset($record->breakdown, $record->totalTaxAmount, $record->totalAmount)) {

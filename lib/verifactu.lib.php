@@ -159,7 +159,7 @@ function autoverifactuRegisterInvoice($invoice, $action)
     try {
         $record = autoverifactuSendInvoice($invoice, $action, $xml);
 
-        // Skip document generation if send does not succed.
+        // Skip document generation if send does not succeed.
         if (!$record) {
             return 0;
         }
@@ -440,7 +440,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
     $record->recipients = array();
 
     // If is not simplified, add third party data to the record
-    if ($record->invoiceType !== 'F2') {
+    if (!in_array($record->invoiceType, array('F2', 'R5'), true)) {
         $recipient = new stdClass();
 
         if ($thirdparty->country_code && $thirdparty->country_code !== 'ES') {
