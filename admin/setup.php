@@ -136,7 +136,7 @@ $cert_field = $formSetup->newItem('AUTOVERIFACTU_CERT');
 $cert_field->fieldParams['isMandatory'] = 1;
 $cert_field->fieldAttr['placeholder'] = $langs->trans('path/to/your/certificate.pem');
 $cert_field->fieldAttr['disabled'] = true;
-$cert_field->fieldAttr['error'] = !is_file($cert_field->fieldValue);
+$cert_field->fieldAttr['error'] = !is_file(DOL_DATA_ROOT . '/' . $cert_field->fieldValue);
 $invalid = $invalid || $cert_field->fieldAttr['error'];
 
 $pass_field = $formSetup->newItem('AUTOVERIFACTU_PASSWORD')->setAsGenericPassword();
