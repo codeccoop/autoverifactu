@@ -44,7 +44,7 @@ define(
     'AUTOVERIFACTU_SUM1_NS',
     'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd',
 );
-define('AUTOVERIFACTU_XD_NS', 'xmlns:xd="http://www.w3.org/2000/09/xmldsig"');
+define('AUTOVERIFACTU_XD_NS', 'http://www.w3.org/2000/09/xmldsig');
 
 /**
  * Verifactu invoice record registration.
@@ -174,6 +174,11 @@ function autoverifactuRegisterInvoice($invoice, $action)
         } else {
             $invoice->array_options['options_verifactu_hash'] = $record->hash;
             $invoice->array_options['options_verifactu_tms'] = $record->hashedAt->getTimestamp();
+
+            if ($error = $record->error ?? null) {
+                $invoice->array_options['options_verifactu_error'] = $error->message;
+            }
+
             $result = $invoice->insertExtraFields();
 
             if ($result <= 0) {
@@ -191,6 +196,10 @@ function autoverifactuRegisterInvoice($invoice, $action)
             );
         }
     } catch (Error | Exception $e) {
+        if (isset($xml) && $xml) {
+            file_put_contents($file, $xml);
+        }
+
         dol_syslog('Error on verifactu request ' . print_r($e, true), LOG_ERR);
         return -1;
     }
@@ -225,7 +234,7 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
 
     $recordType = $action === 'BILL_VALIDATE' ? 'register' : 'cancel';
 
-    if (autoverifactuIsInvoiceRecorded($invoice) && $recordType !== 'cancel') {
+    if ('cancel' !== $recordType && autoverifactuIsInvoiceRecorded($invoice)) {
         dol_syslog(
             'Skip verifactu invoice registration because invoice #'
             . $invoice->id .
@@ -273,6 +282,8 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
 
     curl_setopt($ch, CURLOPT_POSTFIELDS, $envelope);
     $res = curl_exec($ch);
+    error_log('# RESPUESTA ALTA REGISTRO');
+    error_log($res);
 
     if ($res === false) {
         $error = curl_error($ch);
@@ -291,16 +302,27 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
     $faults = $doc->getElementsByTagName('Fault');
 
     if ($faults->count() > 0) {
-        $file = '/var/www/html/custom/autoverifactu/faults.soap.xml';
+        error_log($envelope);
+        throw new Exception($res, 400);
+    }
 
-        if (!is_file($file)) {
-            touch($file);
-            chmod($file, 0777);
+    $status = $doc->getElementsByTagName('EstadoRegistro')[0];
+
+    if ($status->nodeValue === 'Incorrecto') {
+        error_log($envelope);
+        throw new Exception($res, 400);
+    } elseif ($status->nodeValue === 'AceptadoConErrores') {
+        $errCode = $doc->getElementsByTagName('CodigoErrorRegistro')[0] ?? null;
+        $errMessage = $doc->getElementsByTagName('DescripcionErrorRegistro')[0] ?? null;
+
+        if (!$errMessage || !$errCode) {
+            error_log($envelope);
+            throw new Exception($res, 500);
         }
 
-        file_put_contents($file, $res);
-        dol_syslog($res);
-        // throw new Exception($res, 400);
+        $record->error = new stdClass();
+        $record->error->code = $errCode->nodeValue;
+        $record->error->message = $errMessage->nodeValue;
     }
 
     return $record;
@@ -376,7 +398,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
 {
     global $mysoc;
 
-    $invoiceRef = $invoice->status > 0 ? $invoice->ref : $invoice->getNextNumRef($invoice);
+    $invoiceRef = $invoice->status > 0 ? $invoice->ref : $invoice->newref;
 
     $invoice->fetch_thirdparty();
     $thirdparty = $invoice->thirdparty;
@@ -384,6 +406,8 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
     switch ($invoice->type) {
         /* Standard invoice */
         case 0:
+        /* Downpayment invoice */
+        case 3:
             if ($invoice->module_source === 'takepos') {
                 // Factura simplificada y facturas sin identificación del destinatario (Art. 6.1.D del R.D. 1619/2012).
                 $invoiceType = 'F2';
@@ -414,7 +438,6 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
             }
 
             break;
-        /* POS simplified invoices */
         default:
             $invoiceType = 'F1';
     }
@@ -429,7 +452,10 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
     $record->invoiceId = new stdClass();
     $record->invoiceId->issuerId = $mysoc->idprof1;
     $record->invoiceId->invoiceNumber = $invoiceRef;
-    $record->invoiceId->issueDate = new DateTimeImmutable(date('Y-m-d', $invoice->date));
+    $record->invoiceId->issueDate = new DateTimeImmutable(
+        date('Y-m-d H:j:s', $invoice->date),
+        new DateTimeZone('Europe/Madrid'),
+    );
 
     $record->recipients = array();
 
@@ -495,7 +521,10 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
         $sourceId = new stdClass();
         $sourceId->issuerId = $sourceInvoice->thirdparty->idprof1;
         $sourceId->invoiceNumber = $sourceInvoice->ref;
-        $sourceId->issueDate = new DateTimeImmutable(date('Y-m-d', $sourceInvoice->date));
+        $sourceId->issueDate = new DateTimeImmutable(
+            date('Y-m-d H:j:s', $sourceInvoice->date),
+            new DateTimeZone('Europe/Madrid'),
+        );
 
         $record->correctedInvoices[0] = $sourceId;
 
@@ -529,8 +558,12 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
         $record->previousInvoiceId = new stdClass();
         $record->previousInvoiceId->issuerId = $mysoc->idprof1;
         $record->previousInvoiceId->invoiceNumber = $invoiceRef;
-        $record->previousInvoiceId->issueDate = new DateTimeImmutable(date('Y-m-d', $previous->date));
+        $record->previousInvoiceId->issueDate = new DateTimeImmutable(
+            date('Y-m-d H:j:s', $previous->date),
+            new DateTimeZone('Europe/Madrid'),
+        );
 
+        $previous->fetch_optionals();
         $record->previousHash = substr($previous->array_options['options_verifactu_hash'], 0, 64);
     } else {
         $record->previousInvoiceId = null;
@@ -539,7 +572,10 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
 
     $record->system = autoverifactuGetRecordComputerSystem();
 
-    $record->hashedAt = new DateTimeImmutable(date('Y-m-d', time()));
+    $record->hashedAt = new DateTimeImmutable(
+        date('Y-m-d H:j:s', time()),
+        new DateTimeZone('Europe/Madrid'),
+    );
     $record->hash = autoverifactuCalculateRecordHash($record);
 
     global $hookmanager;
@@ -589,7 +625,7 @@ function autoverifactuRecordToXML($record, $xml = null)
 
     $root = $xml->createElement('sum:RegistroFactura');
 
-    $recordEl = $xml->createElement('sum:' . $recordElementName);
+    $recordEl = $xml->createElement('sum1:' . $recordElementName);
     $root->appendChild($recordEl);
 
     $recordEl->appendChild($xml->createElement('sum1:IDVersion', '1.0'));
@@ -600,7 +636,10 @@ function autoverifactuRecordToXML($record, $xml = null)
 
         $invoiceId->appendChild($xml->createElement('sum1:IDEmisorFactura', $record->invoiceId->issuerId));
         $invoiceId->appendChild($xml->createElement('sum1:NumSerieFactura', $record->invoiceId->invoiceNumber));
-        $invoiceId->appendChild($xml->createElement('sum1:FechaExpedicionFactura', $record->invoiceId->issueDate->format('d-m-Y')));
+        $invoiceId->appendChild($xml->createElement(
+            'sum1:FechaExpedicionFactura',
+            $record->invoiceId->issueDate->format('d-m-Y')
+        ));
 
         $recordEl->appendChild($xml->createElement('sum1:NombreRazonEmisor', $record->issuerName));
         $recordEl->appendChild($xml->createElement('sum1:TipoFactura', $record->invoiceType));
@@ -619,7 +658,10 @@ function autoverifactuRecordToXML($record, $xml = null)
 
                 $fixId->appendChild($xml->createElement('sum1:IDEmisorFactura', $correctedInvoice->issuerId));
                 $fixId->appendChild($xml->createElement('sum1:NumSerieFactura', $correctedInvoice->invoiceNumber));
-                $fixId->appendChild($xml->createElement('sum1:FechaExpedicionFactura', $correctedInvoice->issueDate->format('d-m-Y')));
+                $fixId->appendChild($xml->createElement(
+                    'sum1:FechaExpedicionFactura',
+                    $correctedInvoice->issueDate->format('d-m-Y')
+                ));
             }
         }
 
@@ -633,7 +675,10 @@ function autoverifactuRecordToXML($record, $xml = null)
 
                 $replId->appendChild($xml->createElement('sum1:IDEmisorFactura', $replacedInvoice->issuerId));
                 $replId->appendChild($xml->createElement('sum1:NumSerieFactura', $replacedInvoice->invoiceNumber));
-                $replId->appendChild($xml->createElement('sum1:FechaExpedicionFactura', $replacedInvoice->issueDate->format('d-m-Y')));
+                $replId->appendChild($xml->createElement(
+                    'sum1:FechaExpedicionFactura',
+                    $replacedInvoice->issueDate->format('d-m-Y')
+                ));
             }
         }
 
@@ -694,7 +739,7 @@ function autoverifactuRecordToXML($record, $xml = null)
         $recordEl->appendChild($invoiceId);
 
         $invoiceId->appendChild($xml->createElement('sum1:IDEmisorFacturaAnulada', $record->invoiceId->issuerId));
-        $invoiceId->appendChild($xml->createElement('sum1:NumSerieFactura', $record->invoiceId->invoiceNumber));
+        $invoiceId->appendChild($xml->createElement('sum1:NumSerieFacturaAnulada', $record->invoiceId->invoiceNumber));
         $invoiceId->appendChild(
             $xml->createElement('sum1:FechaExpedicionFacturaAnulada', $record->invoiceId->issueDate->format('d-m-Y'))
         );
@@ -713,7 +758,10 @@ function autoverifactuRecordToXML($record, $xml = null)
 
         $prevEl->appendChild($xml->createElement('sum1:IDEmisorFactura', $record->previousInvoiceId->issuerId));
         $prevEl->appendChild($xml->createElement('sum1:NumSerieFactura', $record->previousInvoiceId->invoiceNumber));
-        $prevEl->appendChild($xml->createElement('sum1:FechaExpedicionFactura', $record->previousInvoiceId->issueDate->format('d-m-Y')));
+        $prevEl->appendChild($xml->createElement(
+            'sum1:FechaExpedicionFactura',
+            $record->previousInvoiceId->issueDate->format('d-m-Y')
+        ));
         $prevEl->appendChild($xml->createElement('sum1:Huella', $record->previousHash));
     }
 
@@ -726,11 +774,23 @@ function autoverifactuRecordToXML($record, $xml = null)
     $systemEl->appendChild($xml->createElement('sum1:IdSistemaInformatico', $record->system->id));
     $systemEl->appendChild($xml->createElement('sum1:Version', $record->system->version));
     $systemEl->appendChild($xml->createElement('sum1:NumeroInstalacion', $record->system->installationNumber));
-    $systemEl->appendChild($xml->createElement('sum1:TipoUsoPosibleSoloVerifactu', $record->system->onlySupportsVerifactu ? 'S' : 'N'));
-    $systemEl->appendChild($xml->createElement('sum1:TipoUsoPosibleMultiOT', $record->system->supportsMultipleTaxpayers ? 'S' : 'N'));
-    $systemEl->appendChild($xml->createElement('sum1:IndicadorMultiplesOT', $record->system->hasMultipleTaxpayers ? 'S' : 'N'));
+    $systemEl->appendChild($xml->createElement(
+        'sum1:TipoUsoPosibleSoloVerifactu',
+        $record->system->onlySupportsVerifactu ? 'S' : 'N'
+    ));
+    $systemEl->appendChild($xml->createElement(
+        'sum1:TipoUsoPosibleMultiOT',
+        $record->system->supportsMultipleTaxpayers ? 'S' : 'N'
+    ));
+    $systemEl->appendChild($xml->createElement(
+        'sum1:IndicadorMultiplesOT',
+        $record->system->hasMultipleTaxpayers ? 'S' : 'N'
+    ));
 
-    $recordEl->appendChild($xml->createElement('sum1:FechaHoraHusoGenRegistro', $record->hashedAt->format('c')));
+    $recordEl->appendChild($xml->createElement(
+        'sum1:FechaHoraHusoGenRegistro',
+        $record->hashedAt->format('c'),
+    ));
     $recordEl->appendChild($xml->createElement('sum1:TipoHuella', '01')); // SHA-256
     $recordEl->appendChild($xml->createElement('sum1:Huella', $record->hash));
 
@@ -751,9 +811,9 @@ function autoverifactuLinesToBreakdown($invoice)
     foreach ($invoice->lines as $line) {
         $details = new stdClass();
         // TODO: Handle tax types (01 IVA, 02 IPSI, 03 IGIC, 05 Otros)
-        $details->taxType = getDolGlobalString('AUTOVERIFACTU_TAX');
+        $details->taxType = getDolGlobalString('AUTOVERIFACTU_TAX') ?: '01';
         // TODO: Handle regime types (01..20)
-        $details->regimeType = getDolGlobalString('AUTOVERIFACTU_REGIME');
+        $details->regimeType = getDolGlobalString('AUTOVERIFACTU_REGIME') ?: '01';
         // TODO: Handle operation types (S1, S2, S3, S4)
         $details->operationType = 'S1';
         $details->taxRate = number_format((float) $line->tva_tx, 2, '.', '');
@@ -776,11 +836,12 @@ function autoverifactuGetRecordComputerSystem()
     $system = new stdClass();
     $system->vendorName = $mysoc->nom;
     $system->vendorNif = $mysoc->idprof1;
-    $system->name = 'Módulo Auto-Veri*Factu de Dolibarr';
+    $system->name = 'Auto-Veri*Factu Dolibarr';
     $system->id = 'AV';
     $system->version = '0.0.1';
     $system->installationNumber = '001';
     $system->onlySupportsVerifactu = true;
+    // TODO: Handle muti company
     $system->supportsMultipleTaxpayers = false;
     $system->hasMultipleTaxpayers = false;
 

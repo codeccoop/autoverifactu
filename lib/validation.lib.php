@@ -99,30 +99,35 @@ function autoverifactuGetPreviousValidInvoice($invoice)
 {
     global $db;
 
-    $prevRef = $invoice->getNextNumRef($invoice, 'last');
-    $previous = new Facture($db);
-    $found = $previous->fetch(null, $prevRef);
-
-    if ($found) {
-        return $previous;
-    }
-
-    // $sql = 'SELECT f.rowid FROM ' . $db->prefix() . 'facture f';
-    // $sql .= ' LEFT JOIN ' . $db->prefix() . 'facture_extrafields fx';
-    // $sql .= ' ON f.rowid = fx.fk_object';
-    // $sql .= ' WHERE f.fk_statut > 0 AND f.type <= 3';
-    // $sql .= ' AND fx.verifactu_hash IS NOT null';
-    // $sql .= ' AND fx.verifactu_tms < ' . date('Ymdhjs', $invoice->date);
-    // $sql .= ' ORDER BY fx.verifactu_tms DESC';
+    // $prevRef = $invoice->getNextNumRef($invoice, 'last');
+    // $previous = new Facture($db);
+    // $found = $previous->fetch(null, $prevRef);
     //
-    // $result = $db->query($sql);
-    //
-    // if ($result && $db->num_rows($result)) {
-    //     $obj = $db->fetch_object($result);
-    //     $invoice = new Facture($db);
-    //     $invoice->fetch($obj->rowid);
-    //     return $invoice;
+    // if ($found) {
+    //     return $previous;
     // }
+
+    $dt = new DateTime(
+        date('Y-m-d H:j:s', $invoice->date),
+        new DateTimeZone('Europe/Madrid')
+    );
+
+    $sql = 'SELECT f.rowid FROM ' . $db->prefix() . 'facture f';
+    $sql .= ' LEFT JOIN ' . $db->prefix() . 'facture_extrafields fx';
+    $sql .= ' ON f.rowid = fx.fk_object';
+    $sql .= ' WHERE f.fk_statut > 0 AND f.type <= 3';
+    $sql .= ' AND fx.verifactu_hash IS NOT null';
+    $sql .= ' AND fx.verifactu_tms < ' . $dt->format('YmdHjs');
+    $sql .= ' ORDER BY fx.verifactu_tms DESC';
+
+    $result = $db->query($sql);
+
+    if ($result && $db->num_rows($result)) {
+        $obj = $db->fetch_object($result);
+        $invoice = new Facture($db);
+        $invoice->fetch($obj->rowid);
+        return $invoice;
+    }
 }
 
 /**
@@ -322,6 +327,6 @@ function autoverifactuValidateRecord($record)
 
 function autoverifactuIsInvoiceRecorded($invoice)
 {
-    $invoice->fetch_optionals($invoice->id);
+    $invoice->fetch_optionals();
     return !!($invoice->array_options['options_verifactu_hash'] ?? false);
 }

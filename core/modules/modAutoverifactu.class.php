@@ -288,6 +288,27 @@ class modAutoverifactu extends DolibarrModules
         );
 
         $extrafields->addExtraField(
+            'verifactu_error',
+            'VerifactuError',
+            'text',
+            1,
+            510,
+            'facture',
+            0,
+            0,
+            '',
+            '',
+            0,
+            '',
+            0,
+            '',
+            '',
+            '',
+            'autoverifactu@autoverifactu',
+            'isModEnabled("autoverifactu")'
+        );
+
+        $extrafields->addExtraField(
             'verifactu_tms',
             'VerifactuDate',
             'timestamp',
@@ -307,24 +328,11 @@ class modAutoverifactu extends DolibarrModules
             'autoverifactu@autoverifactu',
             'isModEnabled("autoverifactu")'
         );
+
         // Permissions
         $this->remove($options);
 
         $sql = array();
-
-        // $where = 'rd.module = \'facture\' AND rd.perms = \'invoice_advance\'';
-        // $where .= ' AND rd.subperms IN (\'unvalidate\', \'reopen\')';
-
-        // $i = 0;
-        // $sql[$i] = 'UPDATE ' . $this->db->prefix() . 'rights_def rd';
-        // $sql[$i] .= ' SET enabled = 0';
-        // $sql[$i] .= ' WHERE ' . $where;
-        // ++$i;
-        //
-        // $sql[$i] = 'DELETE FROM ' . $this->db->prefix() . 'user_rights';
-        // $sql[$i] .= ' WHERE fk_id IN (SELECT id FROM ' . $this->db->prefix() . 'rights_def rd WHERE ' . $where . ')';
-        // ++$i;
-
         return $this->_init($sql, $options);
     }
 
@@ -340,25 +348,6 @@ class modAutoverifactu extends DolibarrModules
     public function remove($options = '')
     {
         $sql = array();
-
-        // $where = 'rd.module = \'facture\' AND rd.perms = \'invoice_advance\'';
-        // $where .= ' AND rd.subperms IN (\'unvalidate\', \'reopen\')';
-
-        // $i = 0;
-        // $sql[$i] = 'UPDATE ' . $this->db->prefix() . 'rights_def rd';
-        // $sql[$i] .= ' SET enabled = 1';
-        // $sql[$i] .= ' WHERE ' . $where;
-        // ++$i;
-        //
-        // $sql[$i] = 'INSERT INTO ' . $this->db->prefix() . 'user_rights';
-        // $sql[$i] .= ' (entity, fk_user, fk_id)';
-        // $sql[$i] .= ' SELECT DISTINCT u.entity, u.rowid fk_user, rd.id fk_id';
-        // $sql[$i] .= ' FROM ' . $this->db->prefix() . 'user u';
-        // $sql[$i] .= ' LEFT JOIN ' . $this->db->prefix() . 'rights_def rd';
-        // $sql[$i] .= ' ON true';
-        // $sql[$i] .= ' WHERE ' . $where;
-        // ++$i;
-
         return $this->_remove($sql, $options);
     }
 }

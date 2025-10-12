@@ -90,7 +90,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
          */
 
         // TODO: Handle donations.
-        // As far as i know, theu have to be declared as invoices to the AEAT, it isn't?
+        // As far as i know, they have to be declared as invoices to the AEAT, it isn't?
         switch ($action) {
             case 'BILL_CANCEL':
                 $result = autoverifactuRegisterInvoice($object, $action);
@@ -135,6 +135,9 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 }
 
                 break;
+            // TODO: Handle subsanaciones
+            // NOTE: El protocolo contempla la subsanación de facturas en los casos en los que no
+            // sea necesaria una emisión rectificativa.
             case 'BILL_MODIFY':
             // case 'DON_MODIFY':
                 if (
