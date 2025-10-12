@@ -194,35 +194,21 @@ function autoverifactuSystemCheck()
 {
     global $conf, $mysoc;
 
-    if (empty($mysoc->nom) || empty($mysoc->idprof1)) {
-        return 0;
+    if (!function_exists('isValidTinForES')) {
+        require_once DOL_DOCUMENT_ROOT . '/core/lib/profid.lib.php';
     }
 
-    require_once DOL_DOCUMENT_ROOT . '/core/lib/profid.lib.php';
-    $check = isValidTinForES($mysoc->idprof1);
-    if ($check < 0) {
-        return 0;
-    }
+    return (int) $mysoc->nom && $mysoc->idprof1
+        && isValidTinForES($mysoc->idprof1)
+        && is_file(DOL_DATA_ROOT . '/' . (getDolGlobalString('AUTOVERIFACTU_CERT') ?: 'nofile'))
+        && empty($conf->modules['blockedlog'])
+        && getDolGlobalInt('FAC_FORCE_DATE_VALIDATION')
+        && getDolGlobalInt('AUTOVERIFACTU_REPONSABILITY');
+}
 
-    $certpath = getDolGlobalString('AUTOVERIFACTU_CERT');
-    if (!($certpath && is_file(DOL_DATA_ROOT . '/' . $certpath))) {
-        return 0;
-    }
-
-    if (!getDolGlobalInt('FAC_FORCE_DATE_VALIDATION')) {
-        return 0;
-    }
-
-    if (empty($conf->modules['blockedlog'])) {
-        return 0;
-    }
-
-    // $docpath = getDolGlobalString('AUTOVERIFACTU_REPONSABILITY_DOC');
-    // if (!($docpath && is_file($docpath))) {
-    //     return 0;
-    // }
-
-    return 1;
+function autoverifactuEnabled()
+{
+    return autoverifactuSystemCheck() && getDolGlobalInt('AUTOVERIFACTU_ENABLED');
 }
 
 function autoverifactuValidateRecord($record)
