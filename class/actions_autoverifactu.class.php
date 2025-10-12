@@ -91,30 +91,67 @@ class ActionsAutoverifactu extends CommonHookActions
      */
     public function doActions($parameters, &$object, &$action)
     {
-        global $langs, $mysoc, $db;
+        global $langs, $mysoc;
 
         if ($parameters['currentcontext'] === 'invoicecard') {
             switch ($action) {
                 case 'verifactu':
                     $result = autoverifactuIntegrityCheck($object);
 
-                    if ($result > 0) {
-                        $this->results[] = $langs->trans('Invoice integrity check succeed');
-                    } elseif (!$result) {
+                    if (!$result) {
                         $this->errors[] = $langs->trans('Unable to find invoice entry on the immutable log');
-                    } else {
+                    } elseif ($result < 0) {
                         $this->errors[] = $langs->trans('It seems your invoice data is not consistent');
+                    }
+
+                    $base_url = VERIFACTU_BASE_URL;
+                    $endpoint = '/wlpl/TIKE-CONT/ValidarQR';
+                    $query = http_build_query(array(
+                        'nif' => $mysoc->idprof1,
+                        'numserie' => $object->ref,
+                        'fecha' => date('d-m-Y', $object->date),
+                        'importe' => number_format($object->total_ttc, 2, '.', ''),
+                        'formato' => 'json',
+                    ));
+
+                    $ch = curl_init();
+                    curl_setopt($ch, CURLOPT_URL, $base_url . $endpoint . '?' . $query);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+                    curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+
+                    curl_setopt($ch, CURLOPT_SSLCERTTYPE, 'P12');
+                    $certPath = DOL_DATA_ROOT . '/' . getDolGlobalString('AUTOVERIFACTU_CERT');
+                    curl_setopt($ch, CURLOPT_SSLCERT, $certPath);
+                    $certPass = getDolGlobalString('AUTOVERIFACTU_PASSWORD');
+                    curl_setopt($ch, CURLOPT_SSLCERTPASSWD, $certPass);
+
+                    $res = curl_exec($ch);
+
+                    if ($res === false) {
+                        $this->errors[] = $langs->trans('Invoice collation API request error');
+                    } else {
+                        $data = json_decode($res);
+
+                        if ($data->status !== 'OK') {
+                            $this->errors[] = $langs->trans('Invoice collaction API response error');
+
+                            if ($data->mensaje) {
+                                $this->errors[] = $data->mensaje;
+                            }
+                        } elseif ($data->visible === 'N') {
+                            $this->errors[] = $langs->trans('The invoice is not publicly registered');
+                        }
+                    }
+
+                    if (empty($this->errors)) {
+                        $this->results[] = $langs->trans('Invoice integrity check and validation succeed');
                     }
             }
         } elseif ($parameters['currentcontext'] === 'admincompany') {
             if ($action === 'update' && autoverifactuEnabled()) {
                 $forbidden = $mysoc->nom !== GETPOST('name')
                     || $mysoc->idprof1 !== GETPOST('siren');
-                    // || $mysoc->address !== GETPOST('MAIN_INFO_SOCIETE_ADDRESS')
-                    // || $mysoc->zip !== GETPOST('MAIN_INFO_SOCIETE_ZIP')
-                    // || $mysoc->town !== GETPOST('MAIN_INFO_SOCIETE_TOWN')
-                    // || $mysoc->state_id !== GETPOST('state_id')
-                    // || $mysoc->country_id !== GETPOST('country_id');
 
                 if ($forbidden) {
                     $_POST['name'] = $mysoc->nom;

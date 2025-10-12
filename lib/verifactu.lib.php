@@ -252,23 +252,15 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, VERIFACTU_BASE_URL . '/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP');
     curl_setopt($ch, CURLOPT_POST, 1);
-
-    // curl_setopt($ch, CURLOPT_VERBOSE, 1);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
     curl_setopt($ch, CURLOPT_FAILONERROR, 1);
 
+    curl_setopt($ch, CURLOPT_SSLCERTTYPE, 'P12');
     $certPath = DOL_DATA_ROOT . '/' . getDolGlobalString('AUTOVERIFACTU_CERT');
     curl_setopt($ch, CURLOPT_SSLCERT, $certPath);
-
-    // curl_setopt($ch, CURLOPT_SSLKEY, $keyfile);
-
-    curl_setopt($ch, CURLOPT_SSLCERTTYPE, 'P12');
-
-    if ($certPass = getDolGlobalString('AUTOVERIFACTU_PASSWORD')) {
-        curl_setopt($ch, CURLOPT_SSLCERTPASSWD, $certPass);
-    }
+    $certPass = getDolGlobalString('AUTOVERIFACTU_PASSWORD');
+    curl_setopt($ch, CURLOPT_SSLCERTPASSWD, $certPass);
 
     curl_setopt(
         $ch,
