@@ -139,7 +139,7 @@ class ActionsAutoverifactu extends CommonHookActions
                             if ($data->mensaje) {
                                 $this->errors[] = $data->mensaje;
                             }
-                        } elseif ($data->visible === 'N') {
+                        } elseif ($data->mensaje !== 'Factura encontrada') {
                             $this->errors[] = $langs->trans('The invoice is not publicly registered');
                         }
                     }
