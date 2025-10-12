@@ -263,11 +263,7 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
 
     // curl_setopt($ch, CURLOPT_SSLKEY, $keyfile);
 
-    if (str_ends_with($certPath, '.pem')) {
-        curl_setopt($ch, CURLOPT_SSLCERTTYPE, 'PEM');
-    } else {
-        curl_setopt($ch, CURLOPT_SSLCERTTYPE, 'P12');
-    }
+    curl_setopt($ch, CURLOPT_SSLCERTTYPE, 'P12');
 
     if ($certPass = getDolGlobalString('AUTOVERIFACTU_PASSWORD')) {
         curl_setopt($ch, CURLOPT_SSLCERTPASSWD, $certPass);

@@ -307,7 +307,7 @@ $formfile->form_attach_new_file(
     '',
     0,
     'autoverifactu-certupload',
-    '.pem,.p12',
+    '.p12',
     '',
     0,
     0,
