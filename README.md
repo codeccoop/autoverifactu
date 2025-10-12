@@ -35,7 +35,7 @@ Una vez obtenido el packete zip con el código, deberás subirlo a tu instancia 
 Una vez instalado, falta su activación. Para activar el Auto-Veri*Factu deberás cumplir los siguientes requisitos:
 
 1. Tener informado una **Razón Social** y un **NIF** válido en la configuración de tu compañía.
-2. Haber subido el fichero PKCS#12 con el certificato eletrónico de la compañía y su contraseña.
-3. Haber generado una versión auto firmada de la declaración responsable.
+2. Haber subido el fichero PKCS#12 con el certificato eletrónico de la compañía y su contraseña a través del formulario de configuración de módulo.
+3. Haber generado una versión auto firmada de la declaración responsable usando la plantill que se ofrece en el panel de adminsitración del módulo.
 
 Una vez cumplidos los requisitos, podrás activar el Auto-Veri*Factu. **Ten en cuenta que una vez activado, ciertas funciones de Dolibarr quedaran bloqueadas, como son la  edición de facturas validadas o la actualización de tus datos societarios**.
