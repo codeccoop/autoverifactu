@@ -500,9 +500,8 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
         $record->correctedInvoices[0] = $sourceId;
 
         if ($record->correctiveType === 'S') {
-            // TODO: Como se calculan estas cantidades?
-            $record->correctedBaseAmount = null;
-            $record->correctedTaxAmount = null;
+            $record->correctedBaseAmount = number_format($sourceInvoice->total_ht, 2, '.', '');
+            $record->correctedTaxAmount = number_format($sourceInvoice->total_tva, 2, '.', '');
         }
     }
 
