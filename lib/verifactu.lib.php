@@ -24,8 +24,6 @@
 
 use GuzzleHttp\Client;
 
-require_once dirname(__DIR__) . '/vendor/autoload.php';
-
 // Libraries
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
