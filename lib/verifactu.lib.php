@@ -105,8 +105,14 @@ function autoverifactuRegisterInvoice($invoice, $action)
 
     $invoiceref = dol_sanitizeFileName($invoice->ref);
     $dir = $conf->facture->multidir_output[$invoice->entity ?? $conf->entity] . '/' . $invoiceref;
-    $file = $dir . '/' . $invoiceref . '-verifactu.xml';
-    $hidden = $dir . '/.verifactu.xml';
+
+    if ($action === 'BILL_VALIDATE') {
+        $file = $dir . '/' . $invoiceref . '-alta.xml';
+        $hidden = $dir . '/.verifactu-alta.xml';
+    } else {
+        $file = $dir . '/' . $invoiceref . '-anulacion.xml';
+        $hidden = $dir . '/.verifactu-anulacion.xml';
+    }
 
     if (!file_exists($dir)) {
         if (dol_mkdir($dir) < 0) {
