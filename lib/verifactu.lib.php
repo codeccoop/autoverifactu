@@ -58,9 +58,8 @@ function autoverifactuRegisterInvoice($invoice, $action)
 {
     global $db, $conf,$hookmanager;
 
-    if ($invoice->type > 2) {
+    if ($invoice->type > 3) {
         // Skip non recordable invoice types.
-        // NOTE: Deposit invoices (3) should be recorded?
         return 0;
     }
 
@@ -298,6 +297,7 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
     $faults = $doc->getElementsByTagName('Fault');
 
     if ($faults->count() > 0) {
+        file_put_contents('/var/www/html/custom/autoverifactu/fauls.soap.xml', $res);
         dol_syslog($res);
         // throw new Exception($res, 400);
     }

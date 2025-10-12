@@ -73,6 +73,22 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
 
         // print_r(['action' => $action, 'object' => $object->element, 'status' => $object->status]);
 
+        /**
+         * Tracked invoices types:
+         *   0: Default ✓
+         *   1: Replacement ✓
+         *   2: Credit note ✓
+         *   3: Down payment ✓
+         *   4: Progorma ✕
+         *   5: Situation ✕
+         *
+         * Invoice status:
+         *   0: Draft
+         *   1: Validated
+         *   2: Closed
+         *   3: Abandoned
+         */
+
         // TODO: Handle donations.
         // As far as i know, theu have to be declared as invoices to the AEAT, it isn't?
         switch ($action) {
@@ -100,8 +116,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 return $result;
             case 'BILL_UNVALIDATE':
             case 'BILL_UNPAYED':
-                if ($object->type <= 2) {
-                    // NOTE: Deposit invoices (3) should be recorded?
+                if ($object->type <= 3) {
                     dol_syslog('Auto-Veri*Factu disables invoice unvalidations');
                     $this->errors[] = $langs->trans('Validated invoices are not editables');
                     return -1;
@@ -110,8 +125,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 break;
             case 'BILL_DELETE':
             // case 'DON_DELETE':
-                if ($object->status != 0 && $object->type <= 2) {
-                    // NOTE: Deposit invoices (3) should be recorded?
+                if ($object->status != 0 && $object->type <= 3) {
                     dol_syslog('Auto-Veri*Factu disables validated invoices removals');
                     $this->errors[] = $langs->trans('Validated invoices can\'t be deleted');
                     return -1;
@@ -120,8 +134,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 break;
             case 'BILL_MODIFY':
             // case 'DON_MODIFY':
-                if ($object->status != 0 && $object->type <= 2) {
-                    // NOTE: Deposit invoices (3) should be recorded?
+                if ($object->status != 0 && $object->type <= 3) {
                     dol_syslog('Auto-Veri*Factu disables validated invoices edits');
                     $this->errors[] = $langs->trans('Validated invoices can\'t be modified');
                     return -1;
