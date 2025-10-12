@@ -152,7 +152,7 @@ function autoverifactuRegisterInvoice($invoice, $action)
     }
 
     try {
-        $record = autoverifactuSendInvoice($invoice, $xml);
+        $record = autoverifactuSendInvoice($invoice, $action, $xml);
 
         // Skip document generation if send does not succed.
         if (!$record) {
@@ -191,13 +191,14 @@ function autoverifactuRegisterInvoice($invoice, $action)
  * Send an invoice as a record to the Veri*Factu SOAP endpoints.
  *
  * @param  Facture $invoice Target invoice. Invoice should not be published before
+ * @param  string  $action  Triggered action. Can be BILL_VALIDATE or BILL_CANCEL.
  * @param  string  &$xml    Response body as an XML string.
  *
  * @return stdClass|null    Registered record, null if skipped.
  *
  * @throws Exception
  */
-function autoverifactuSendInvoice($invoice, &$xml)
+function autoverifactuSendInvoice($invoice, $action, &$xml)
 {
     if (!autoverifactuSystemCheck()) {
         dol_syslog('Veri*Factu bridge does not pass system checks');
@@ -211,7 +212,9 @@ function autoverifactuSendInvoice($invoice, &$xml)
         return;
     }
 
-    if (autoverifactuIsInvoiceRecorded($invoice)) {
+    $recordType = $action === 'BILL_VALIDATE' ? 'register' : 'cancel';
+
+    if (autoverifactuIsInvoiceRecorded($invoice) && $recordType !== 'cancel') {
         dol_syslog(
             'Skip verifactu invoice registration because invoice #'
             . $invoice->id .
@@ -221,16 +224,17 @@ function autoverifactuSendInvoice($invoice, &$xml)
         return;
     }
 
-    $record = autoverifactuInvoiceToRecord($invoice);
+    $record = autoverifactuInvoiceToRecord($invoice, $recordType);
     if (!$record) {
         throw new Exception('Inconsistent invoice data');
     }
 
+    global $mysoc;
     $envelope = autoverifactuSoapEnvelope(
         $record,
         array(
-            'name' => $invoice->thirdparty->nom,
-            'idprof1' => $invoice->thirdparty->idprof1,
+            'name' => $mysoc->nom,
+            'idprof1' => $mysoc->idprof1,
         ),
     );
 
@@ -238,7 +242,7 @@ function autoverifactuSendInvoice($invoice, &$xml)
     curl_setopt($ch, CURLOPT_URL, VERIFACTU_BASE_URL . '/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP');
     curl_setopt($ch, CURLOPT_POST, 1);
 
-    curl_setopt($ch, CURLOPT_VERBOSE, 1);
+    // curl_setopt($ch, CURLOPT_VERBOSE, 1);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
@@ -252,7 +256,7 @@ function autoverifactuSendInvoice($invoice, &$xml)
     if (str_ends_with($certPath, '.pem')) {
         curl_setopt($ch, CURLOPT_SSLCERTTYPE, 'PEM');
     } else {
-        curl_setopt($ch, CURLOPT_SSLCERTTYPE, '_P12_');
+        curl_setopt($ch, CURLOPT_SSLCERTTYPE, 'P12');
     }
 
     if ($certPass = getDolGlobalString('AUTOVERIFACTU_PASSWORD')) {
@@ -277,16 +281,19 @@ function autoverifactuSendInvoice($invoice, &$xml)
         curl_close($ch);
 
         throw new Exception('cURL error: ' . $error, $code);
+    } else {
+        $xml = $envelope;
     }
 
     curl_close($ch);
 
-    $xml = new DOMDocument();
-    $xml->loadXML($res . "\n");
-    $faults = $xml->getElementsByTagName('env:Fault');
+    $doc = new DOMDocument();
+    $doc->loadXML($res . "\n");
+    $faults = $doc->getElementsByTagName('Fault');
 
     if ($faults->count() > 0) {
-        throw new Exception($xml->saveXML(), 400);
+        dol_syslog($res);
+        // throw new Exception($res, 400);
     }
 
     return $record;
@@ -316,16 +323,16 @@ function autoverifactuSoapEnvelope($record, $issuer, $representative = null)
     $body = $xml->createElement('soapenv:Body');
     $envelope->appendChild($body);
 
-    $regFactuEl = $xml->createElement('sum:RegFactuSistemaFacturacion');
-    $body->appendChild($regFactuEl);
+    $root = $xml->createElement('sum:RegFactuSistemaFacturacion');
+    $body->appendChild($root);
 
     $regHeaderEl = $xml->createElement('sum:Cabecera');
-    $body->appendChild($regHeaderEl);
+    $root->appendChild($regHeaderEl);
 
     $issuerEl = $xml->createElement('sum1:ObligadoEmision');
     $regHeaderEl->appendChild($issuerEl);
 
-    $issuerNameEl = $xml->createElement('sum1:NumberRazon', $issuer['name']);
+    $issuerNameEl = $xml->createElement('sum1:NombreRazon', $issuer['name']);
     $issuerEl->appendChild($issuerNameEl);
 
     $issuerNifEl = $xml->createElement('sum1:NIF', $issuer['idprof1']);
@@ -342,21 +349,22 @@ function autoverifactuSoapEnvelope($record, $issuer, $representative = null)
         $representativeEl->appendChild($reprNifEl);
     }
 
-    $recordEl = autoverifactuRecordToXML($record);
-    $regFactuEl->appendChild($recordEl);
+    $recordEl = autoverifactuRecordToXML($record, $xml);
+    $root->appendChild($recordEl);
 
     $xml->appendChild($envelope);
-    return $xml->saveXML();
+    return $xml->saveXML($envelope);
 }
 
 /**
 * Return the invoice as a Veri*Factu record object.
 *
 * @param  Facture$invoice Target invoice.
+* @param  streing         Record type. Can be 'register' or 'cancel'.
 *
-* @return stdClass|null        Record representation.
+* @return stdClass|null   Record representation.
 */
-function autoverifactuInvoiceToRecord($invoice)
+function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
 {
     global $mysoc;
 
@@ -374,21 +382,27 @@ function autoverifactuInvoiceToRecord($invoice)
                 $invoiceType = 'F1';
             }
 
+            // Factura emitida en sustitución de facturas simplificadas facturadas y declaradas.
+            // $invoiceType = 'F3';
             break;
         /* Replacement invoice */
         case 1:
         /* Credit notes */
         case 2:
             // Factura rectificativa (Art 80.1 y 80.2 de la Ley 37/1992)
-            // $invoice_type = 'R1';
+            // $invoiceType = 'R1';
             // Factura rectificativa por impago (Art 80.3 de la Ley 37/1992)
-            // $invoice_type = 'R2';
+            // $invoiceType = 'R2';
             // Factura rectificativa (Art 80.4 de la Ley 37/1992)
-            // $invoice_type = 'R3';
-            // Factura rectificativa corriente.
-            $invoiceType = 'R4';
-            // Factura rectificativa simplificada
-            // $invoice_type = 'R5';
+            // $invoiceType = 'R3';
+            if ($invoice->module_source === 'takepos') {
+                // Factura rectificativa simplificada
+                $invoiceType = 'R5';
+            } else {
+                // Factura rectificativa corriente.
+                $invoiceType = 'R4';
+            }
+
             break;
         /* POS simplified invoices */
         default:
@@ -396,8 +410,7 @@ function autoverifactuInvoiceToRecord($invoice)
     }
 
     $record = new stdClass();
-
-    $record->action = $invoice->type == 1 ? 'cancel' : 'register';
+    $record->type = $recordType;
 
     $record->issuerName = $mysoc->nom;
     $record->invoiceType = $invoiceType;
@@ -407,6 +420,8 @@ function autoverifactuInvoiceToRecord($invoice)
     $record->invoiceId->issuerId = $mysoc->idprof1;
     $record->invoiceId->invoiceNumber = $invoice->ref;
     $record->invoiceId->issueDate = new DateTimeImmutable(date('Y-m-d', $invoice->date));
+
+    $record->recipients = array();
 
     // If is not simplified, add third party data to the record
     if ($record->invoiceType !== 'F2') {
@@ -436,7 +451,7 @@ function autoverifactuInvoiceToRecord($invoice)
 
     if (
         in_array(
-            $record->correctiveType,
+            $record->invoiceType,
             array('R1', 'R2', 'R3', 'R4', 'R5'),
             true
         )
@@ -448,26 +463,40 @@ function autoverifactuInvoiceToRecord($invoice)
             // Fix by differences
             $record->correctiveType = 'I';
         }
+    } else {
+        $record->correctiveType = null;
     }
+
+    $record->correctedInvoices = array();
+    $record->correctedBaseAmount = null;
+    $record->correctedTaxAmount = null;
 
     // If is corrective, then add correctiveInvoices data to the record.
     if ($record->correctiveType !== null) {
-        $source_invoice = autoverifactuGetSourceInvoice($invoice);
+        $sourceInvoice = autoverifactuGetSourceInvoice($invoice);
 
-        if (!$source_invoice) {
+        if (!$sourceInvoice) {
             dol_syslog('Can not find the source invoice of the corrective invoice #' . $invoice->id, LOG_ERR);
             return -1;
         } else {
-            $source_invoice->fetch_thirdparty();
+            $sourceInvoice->fetch_thirdparty();
         }
 
-        $source_id = new stdClass();
-        $source_id->issuerId = $source_invoice->thirdparty->idprof1;
-        $source_id->invoiceNumber = $source_invoice->ref;
-        $source_id->issueDate = new DateTimeImmutable(date('Y-m-d', $source_invoice->date));
+        $sourceId = new stdClass();
+        $sourceId->issuerId = $sourceInvoice->thirdparty->idprof1;
+        $sourceId->invoiceNumber = $sourceInvoice->ref;
+        $sourceId->issueDate = new DateTimeImmutable(date('Y-m-d', $sourceInvoice->date));
 
-        $record->correctedInvoices[0] = $source_id;
+        $record->correctedInvoices[0] = $sourceId;
+
+        if ($record->correctiveType === 'S') {
+            // TODO: Como se calculan estas cantidades?
+            $record->correctedBaseAmount = null;
+            $record->correctedTaxAmount = null;
+        }
     }
+
+    $record->replacedInvoices = array();
 
     $record->breakdown = autoverifactuLinesToBreakdown($invoice);
 
@@ -498,6 +527,8 @@ function autoverifactuInvoiceToRecord($invoice)
         $record->previousInvoiceId = null;
         $record->previousHash = null;
     }
+
+    $record->system = autoverifactuGetRecordComputerSystem();
 
     $record->hashedAt = new DateTimeImmutable(date('Y-m-d', time()));
     $record->hash = autoverifactuCalculateRecordHash($record);
@@ -531,28 +562,30 @@ function autoverifactuInvoiceToRecord($invoice)
 /**
  * Serializes a record as a valid Vri*Factu XML record.
  *
- * @param  stdClass $record Invoice Veri*Factu record object.
+ * @param  stdClass          $record  Invoice Veri*Factu record object.
+ * @param  DOMDocument|null  $xml     Inherited document. If null, node will be created
+ *                                    on a new DOMDocument instance.
  *
- * @return DOMElement               XML record representation.
+ * @return DOMElement                 XML record representation.
  *
- * @throws Exception                If record action is not cancel or register.
+ * @throws Exception                  If record type is not cancel or register.
  */
-function autoverifactuRecordToXML($record)
+function autoverifactuRecordToXML($record, $xml = null)
 {
-    $xml = new DOMDocument();
+    $xml = $xml ?: new DOMDocument();
 
-    $recordElementName = $record->action === 'register'
+    $recordElementName = $record->type === 'register'
         ? 'RegistroAlta'
         : 'RegistroAnulacion';
 
-    $wrapper = $xml->createElement('sum:RegistroFactura');
+    $root = $xml->createElement('sum:RegistroFactura');
 
     $recordEl = $xml->createElement('sum:' . $recordElementName);
-    $wrapper->appendChild($recordEl);
+    $root->appendChild($recordEl);
 
     $recordEl->appendChild($xml->createElement('sum1:IDVersion', '1.0'));
 
-    if ($record->action === 'register') {
+    if ($record->type === 'register') {
         $invoiceId = $xml->createElement('sum1:IDFactura');
         $recordEl->appendChild($invoiceId);
 
@@ -563,7 +596,7 @@ function autoverifactuRecordToXML($record)
         $recordEl->appendChild($xml->createElement('sum1:NombreRazonEmisor', $record->issuerName));
         $recordEl->appendChild($xml->createElement('sum1:TipoFactura', $record->invoiceType));
 
-        if ($record->correctiveType !== null) {
+        if (($record->correctiveType ?? null) !== null) {
             $recordEl->appendChild($xml->createElement('sum1:TipoRectificativa', $record->correctiveType));
         }
 
@@ -595,7 +628,10 @@ function autoverifactuRecordToXML($record)
             }
         }
 
-        if ($record->correctedBaseAmount !== null && $record->correctedTaxAmount !== null) {
+        if (
+            ($record->correctedBaseAmount ?? null) !== null
+            && ($record->correctedTaxAmount ?? null) !== null
+        ) {
             $importEl = $xml->createElement('sum1:ImporteRectificacion');
             $recordEl->appendChild($importEl);
 
@@ -605,7 +641,7 @@ function autoverifactuRecordToXML($record)
 
         $recordEl->appendChild($xml->createElement('sum1:DescripcionOperacion', $record->description));
 
-        if (count($record->recipients) > 0) {
+        if (count($record->recipients ?? [])) {
             $recipients = $xml->createElement('sum1:Destinatarios');
             $recordEl->appendChild($recipients);
 
@@ -630,7 +666,7 @@ function autoverifactuRecordToXML($record)
 
         $breakdown = $xml->createElement('sum1:Desglose');
         $recordEl->appendChild($breakdown);
-        foreach ($record->breakdown as $details) {
+        foreach ($record->breakdown ?? [] as $details) {
             $dEl = $xml->createElement('sum1:DetalleDesglose');
             $breakdown->appendChild($dEl);
 
@@ -644,15 +680,17 @@ function autoverifactuRecordToXML($record)
 
         $recordEl->appendChild($xml->createElement('sum1:CuotaTotal', $record->totalTaxAmount));
         $recordEl->appendChild($xml->createElement('sum1:ImporteTotal', $record->totalAmount));
-    } elseif ($record->action === 'cancel') {
+    } elseif ($record->type === 'cancel') {
         $invoiceId = $xml->createElement('sum1:IDFactura');
         $recordEl->appendChild($invoiceId);
 
         $invoiceId->appendChild($xml->createElement('sum1:IDEmisorFacturaAnulada', $record->invoiceId->issuerId));
         $invoiceId->appendChild($xml->createElement('sum1:NumSerieFactura', $record->invoiceId->invoiceNumber));
-        $invoiceId->appendChild($xml->createElement('sum1:FechaExpedicionFacturaAnulada', $record->invoiceId->issueDate->format('d-m-Y')));
+        $invoiceId->appendChild(
+            $xml->createElement('sum1:FechaExpedicionFacturaAnulada', $record->invoiceId->issueDate->format('d-m-Y'))
+        );
     } else {
-        throw new Exception('Invalid record action: ' . $record->action);
+        throw new Exception('Invalid record type: ' . $record->type);
     }
 
     $chainEl = $xml->createElement('sum1:Encadenamiento');
@@ -687,7 +725,7 @@ function autoverifactuRecordToXML($record)
     $recordEl->appendChild($xml->createElement('sum1:TipoHuella', '01')); // SHA-256
     $recordEl->appendChild($xml->createElement('sum1:Huella', $record->hash));
 
-    return $wrapper;
+    return $root;
 }
 
 /**

@@ -268,9 +268,9 @@ class modAutoverifactu extends DolibarrModules
         $extrafields->addExtraField(
             'verifactu_hash',
             'VerifactuHash',
-            'varchar(1024)',
+            'varchar',
             1,
-            0,
+            2048,
             'facture',
             0,
             1,
