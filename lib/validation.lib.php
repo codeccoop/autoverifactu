@@ -89,6 +89,79 @@ function autoverifactuFetchBlockedLog($invoice)
 }
 
 /**
+ * Check and regenerate invoice XML record files.
+ * 
+ * @param Facture $invoice Target invoice.
+ * @param string  $type    Record type, could be 'alta' or 'anulacion'.
+ * 
+ * @return int             <0 if KO, 0 if noop, 1 if OK.
+ */
+function autoverifactuCheckInvoiceImmutableXML($invoice, $type = 'alta')
+{
+    $result = 0;
+
+    if (!in_array($type, array('alta', 'anulacion'), true)) {
+        return $result;
+    }
+
+    list($file, $hidden) = autoverifactuInvoiceImmutableXMLPath($invoice);
+
+    if (!$hidden) {
+        $blockedlog = autoverifactuFetchBlockedLog($invoice);
+
+        if (!$blockedlog) {
+            dol_syslog('Immutable log not found for invoice #' . $invoice->id, LOG_ERR);
+            return -1;
+        } 
+
+        $record = autoverifactuRecordFromLog($blockedlog);
+
+        $xml = autoverifactuSoapEnvelope(
+            $record,
+            array(
+                'name' => $mysoc->nom,
+                'idprof1' => $mysoc->idprof1,
+            ),
+        );
+
+        $bytes = file_put_contents($hidden, $xml);
+
+        $result = intval($bytes > 0);
+
+        if (!$result) {
+            dol_syslog('Empty XML regeneration for invoice #' . $invoice->id, LOG_ERR);
+            return -1;
+        }
+    }
+    
+    if (!$file) {
+        $bytes = file_put_contents($file, file_get_contents($hidden));
+        
+        $result = $result + intval($bytes > 0);
+
+        if ($!$result) {
+            dol_syslog('Empty XML regeneration for for invoice #' . $invoice->id, LOG_ERR);
+            return -1;
+        }
+    }
+
+    return $result;
+}
+
+function autoverifactuInvoiceImmutableXMLPath($invoice, $type = 'alta')
+{
+    global $conf;
+
+    $invoiceref = dol_sanitizeFileName($invoice->ref);
+    $dir = $conf->facture->multidir_output[$invoice->entity ?? $conf->entity] . '/' . $invoiceref;
+
+    $file = $dir . '/' . $invoiceref . '-' . $type . '.xml';
+    $hidden = $dir . '/.verifactu-' . $type . '.xml';
+
+    return [$file, $hidden];
+}
+
+/**
  * Gets the source invoice from the fk_facture_source value.
  *
  * @param Facture Invoice object.
@@ -158,11 +231,12 @@ function autoverifactuGetSourceInvoice($invoice)
 /**
  * Recreate the original Veri*Factu invoice record from a blockedlog entry.
  *
- * @param  BlockedLog $blocedlog  BlockedLog instance with the immutable data of the invoice validation.
- *
- * @return stdClass               Recreated invoice record.
+ * @param  BlockedLog $blocedlog   BlockedLog instance with the immutable data of the invoice validation.
+ * @param  string     $recorddType Record type. Can be 'alta' or 'anulacion'.
+ * 
+ * @return stdClass                Recreated invoice record.
  */
-function autoverifactuRecordFromLog($blockedlog)
+function autoverifactuRecordFromLog($blockedlog, $recordType = 'alta')
 {
     global $db;
 
@@ -200,7 +274,7 @@ function autoverifactuRecordFromLog($blockedlog)
     $blocked->thirdparty->country_code = $objectdata->thirdparty->country_code;
     $blocked->thirdparty->code_client = $objectdata->thirdparty->code_client;
 
-    return autoverifactuInvoiceToRecord($blocked);
+    return autoverifactuInvoiceToRecord($blocked, $recordType);
 }
 
 /**

@@ -228,9 +228,9 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
         return;
     }
 
-    $recordType = $action === 'BILL_VALIDATE' ? 'register' : 'cancel';
+    $recordType = $action === 'BILL_VALIDATE' ? 'alta' : 'anulacion';
 
-    if ('cancel' !== $recordType && autoverifactuIsInvoiceRecorded($invoice)) {
+    if ('anulacion' !== $recordType && autoverifactuIsInvoiceRecorded($invoice)) {
         dol_syslog(
             'Skip verifactu invoice registration because invoice #'
             . $invoice->id .
@@ -386,11 +386,11 @@ function autoverifactuSoapEnvelope($record, $issuer, $representative = null)
 * Return the invoice as a Veri*Factu record object.
 *
 * @param  Facture$invoice Target invoice.
-* @param  streing         Record type. Can be 'register' or 'cancel'.
+* @param  streing         Record type. Can be 'alta' or 'anulacion'.
 *
 * @return stdClass|null   Record representation.
 */
-function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
+function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 {
     global $mysoc;
 
@@ -609,13 +609,13 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'register')
  *
  * @return DOMElement                 XML record representation.
  *
- * @throws Exception                  If record type is not cancel or register.
+ * @throws Exception                  If record type is not anulacion or alta.
  */
 function autoverifactuRecordToXML($record, $xml = null)
 {
     $xml = $xml ?: new DOMDocument();
 
-    $recordElementName = $record->type === 'register'
+    $recordElementName = $record->type === 'alta'
         ? 'RegistroAlta'
         : 'RegistroAnulacion';
 
@@ -626,7 +626,7 @@ function autoverifactuRecordToXML($record, $xml = null)
 
     $recordEl->appendChild($xml->createElement('sum1:IDVersion', '1.0'));
 
-    if ($record->type === 'register') {
+    if ($record->type === 'alta') {
         $invoiceId = $xml->createElement('sum1:IDFactura');
         $recordEl->appendChild($invoiceId);
 
@@ -730,7 +730,7 @@ function autoverifactuRecordToXML($record, $xml = null)
 
         $recordEl->appendChild($xml->createElement('sum1:CuotaTotal', $record->totalTaxAmount));
         $recordEl->appendChild($xml->createElement('sum1:ImporteTotal', $record->totalAmount));
-    } elseif ($record->type === 'cancel') {
+    } elseif ($record->type === 'anulacion') {
         $invoiceId = $xml->createElement('sum1:IDFactura');
         $recordEl->appendChild($invoiceId);
 
@@ -853,7 +853,7 @@ function autoverifactuGetRecordComputerSystem()
 */
 function autoverifactuCalculateRecordHash($record)
 {
-    if ($record->type == 'register') {
+    if ($record->type == 'alta') {
         $payload  = 'IDEmisorFactura=' . $record->invoiceId->issuerId;
         $payload .= '&NumSerieFactura=' . $record->invoiceId->invoiceNumber;
         $payload .= '&FechaExpedicionFactura=' . $record->invoiceId->issueDate->format('d-m-Y');
@@ -863,7 +863,7 @@ function autoverifactuCalculateRecordHash($record)
         $payload .= '&Huella=' . ($record->previousHash ?? '');
         $payload .= '&FechaHoraHusoGenRegistro=' . $record->hashedAt->format('c');
     // Otherwise, it's a validated invoice in process to be canceled.
-    } elseif ($record->type === 'cancel') {
+    } elseif ($record->type === 'anulacion') {
         $payload  = 'IDEmisorFacturaAnulada=' . $record->invoiceId->issuerId;
         $payload .= '&NumSerieFacturaAnulada=' . $record->invoiceId->invoiceNumber;
         $payload .= '&FechaExpedicionFacturaAnulada=' . $record->invoiceId->issueDate->format('d-m-Y');

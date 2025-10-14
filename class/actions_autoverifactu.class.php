@@ -193,35 +193,17 @@ class ActionsAutoverifactu extends CommonHookActions
             && $object->type <= Facture::TYPE_DEPOSIT
             && autoverifactuEnabled()
         ) {
-            $invoiceref = dol_sanitizeFileName($object->ref);
-            $dir = $conf->facture->multidir_output[$object->entity ?? $conf->entity] . '/' . $invoiceref;
+            $result = autoverifactuCheckInvoiceImmutableXML($object, 'alta');
 
-            $alta_file = $dir . '/' . $invoiceref . '-alta.xml';
-            $alta_hidden = $dir . '/.verifactu-alta.xml';
-
-            if (!is_file($alta_hidden)) {
-                dol_syslog('Immutable xml copy not found for invoice #' . $object->id, LOG_ERR);
-                return -1;
-            } elseif (!is_file($alta_file)) {
-                $result = file_put_contents($alta_file, file_get_contents($alta_hidden));
-
-                if (!$result) {
-                    dol_syslog('Unable to recreate verifactu xml from immutable copy for invoice #' . $object->id, LOG_ERR);
-                    return -1;
-                }
+            if ($result < 0) {
+                return $result;
             }
 
-            $cancel_file = $dir . '/' . $invoiceref . '-anulacion.xml';
-            $cancel_hidden = $dir . '/.verifactu-anulacion.xml';
-            if ($object->status == 3 && !is_file($cancel_hidden)) {
-                dol_syslog('Immutable xml copy not found for invoice #' . $object->id, LOG_ERR);
-                return -1;
-            } elseif ($object->status == 3 && !is_file($cancel_file)) {
-                $result = file_put_contents($cancel_file, file_get_contents($cancel_hidden));
+            if ($object->status >= Facture::STATUS_CLOSED) {
+                $result = autoverifactuCheckInvoiceImmutableXML($object, 'anulacion');
 
-                if (!$result) {
-                    dol_syslog('Unable to recreate verifactu xml from immutable copy for invoice #' . $object->id, LOG_ERR);
-                    return -1;
+                if (!$result < 0) {
+                    return $resutl;
                 }
             }
         }
@@ -333,7 +315,7 @@ class ActionsAutoverifactu extends CommonHookActions
                 'default',
                 $_SERVER['PHP_SELF'] . '?action=verifactu&token=' . newToken() . '&id=' . $object->id,
                 '',
-                $object->status > 0,
+                1,
                 array(
                 'attr' => array(
                 'class' => 'classfortooltip',
