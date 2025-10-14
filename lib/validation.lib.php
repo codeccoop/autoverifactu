@@ -31,6 +31,7 @@
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/blockedlog/class/blockedlog.class.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
+require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
 
 require_once __DIR__ . '/verifactu.lib.php';
 
@@ -71,7 +72,7 @@ function autoverifactuIntegrityCheck($invoice)
 
 function autoverifactuFetchBlockedLog($invoice)
 {
-    global $db, $confg;
+    global $db;
 
     $sql = 'SELECT rowid FROM ' . $db->prefix() . 'blockedlog';
     $sql .= ' WHERE element = \'facture\'';
@@ -98,6 +99,8 @@ function autoverifactuFetchBlockedLog($invoice)
  */
 function autoverifactuCheckInvoiceImmutableXML($invoice, $type = 'alta')
 {
+    global $mysoc;
+
     $result = 0;
 
     if (!in_array($type, array('alta', 'anulacion'), true)) {
@@ -242,17 +245,16 @@ function autoverifactuRecordFromLog($blockedlog, $recordType = 'alta')
 
     $objectdata = $blockedlog->object_data;
 
-    $invoice = new Facture($db);
-    $invoice->fetch($blockedlog->fk_object);
-
     $blocked = new Facture($db);
 
-    $blocked->status = $invoice->status;
+    $blocked->status = 1;
     $blocked->type = $objectdata->type;
     $blocked->ref = $objectdata->ref;
     $blocked->date = $objectdata->date;
 
     if (in_array($objectdata->type, array(1, 2))) {
+        $invoice = new Facture($db);
+        $invoice->fetch($blockedlog->fk_object);
         $blocked->fk_facture_source = $invoice->fk_facture_source;
     }
 
@@ -267,8 +269,7 @@ function autoverifactuRecordFromLog($blockedlog, $recordType = 'alta')
 
     $blocked->lines = $lines;
 
-    $invoice->fetch_thirdparty();
-    $blocked->thirdparty = $invoice->thirdparty;
+    $blocked->thirdparty = new Societe($db);
     $blocked->thirdparty->nom = $objectdata->thirdparty->name;
     $blocked->thirdparty->idprof1 = $objectdata->thirdparty->idprof1;
     $blocked->thirdparty->country_code = $objectdata->thirdparty->country_code;
