@@ -93,8 +93,15 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
         // As far as i know, they have to be declared as invoices to the AEAT, it isn't?
         switch ($action) {
             case 'BILL_CANCEL':
-                $result = autoverifactuRegisterInvoice($object, $action);
+                $trigger = $_GET['action'] ?? '';
+                $facid = $_GET['facid'] ?? INF;
 
+                // If it's triggered by a replacment invoice, skip the cancel record registration.
+                if ($trigger === 'confirm_valid' && $facid > $object->id) {
+                    return 0;
+                }
+
+                $result = autoverifactuRegisterInvoice($object, $action);
                 if ($result < 0) {
                     $this->errors[] = $langs->trans(
                         'Veri*Factu invoice record creation has failed'
@@ -117,7 +124,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
             case 'BILL_UNVALIDATE':
             case 'BILL_UNPAYED':
                 if ($object->type <= Facture::TYPE_DEPOSIT) {
-                    dol_syslog('Auto-Veri*Factu disables invoice unvalidations');
+                    dol_syslog('Veri*Factu disables invoice unvalidations');
                     $this->errors[] = $langs->trans('Validated invoices are not editables');
                     return -1;
                 }
@@ -129,7 +136,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                     $object->status != Facture::STATUS_DRAFT
                     && $object->type <= Facture::TYPE_DEPOSIT
                 ) {
-                    dol_syslog('Auto-Veri*Factu disables validated invoices removals');
+                    dol_syslog('Veri*Factu disables validated invoices removals');
                     $this->errors[] = $langs->trans('Validated invoices can\'t be deleted');
                     return -1;
                 }

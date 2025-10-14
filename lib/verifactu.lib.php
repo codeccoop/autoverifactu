@@ -168,6 +168,7 @@ function autoverifactuRegisterInvoice($invoice, $action)
             dol_syslog('Error on verifactu request ' . print_r($e, true), LOG_ERR);
             return -1;
         } else {
+            // Store invoice verifactu extrafields after record registration
             $invoice->array_options['options_verifactu_hash'] = $record->hash;
             $invoice->array_options['options_verifactu_tms'] = $record->hashedAt->getTimestamp();
 
