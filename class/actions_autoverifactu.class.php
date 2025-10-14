@@ -157,7 +157,7 @@ class ActionsAutoverifactu extends CommonHookActions
                     $_POST['name'] = $mysoc->nom;
                     $_POST['siren'] = $mysoc->idprof1;
 
-                    $this->errors[] = $langs->trans('Update disabled by Auto*Verifacto');
+                    $this->errors[] = $langs->trans('Update disabled by Veri*Factu');
 
                     $action = 'skip';
                 }
@@ -185,8 +185,6 @@ class ActionsAutoverifactu extends CommonHookActions
      */
     public function beforePDFCreation($parameters, &$object, &$action)
     {
-        global $conf;
-
         if (
             $object->element === 'facture'
             && $object->status > Facture::STATUS_DRAFT

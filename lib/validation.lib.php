@@ -90,10 +90,10 @@ function autoverifactuFetchBlockedLog($invoice)
 
 /**
  * Check and regenerate invoice XML record files.
- * 
+ *
  * @param Facture $invoice Target invoice.
  * @param string  $type    Record type, could be 'alta' or 'anulacion'.
- * 
+ *
  * @return int             <0 if KO, 0 if noop, 1 if OK.
  */
 function autoverifactuCheckInvoiceImmutableXML($invoice, $type = 'alta')
@@ -106,13 +106,13 @@ function autoverifactuCheckInvoiceImmutableXML($invoice, $type = 'alta')
 
     list($file, $hidden) = autoverifactuInvoiceImmutableXMLPath($invoice);
 
-    if (!$hidden) {
+    if (!is_file($hidden)) {
         $blockedlog = autoverifactuFetchBlockedLog($invoice);
 
         if (!$blockedlog) {
             dol_syslog('Immutable log not found for invoice #' . $invoice->id, LOG_ERR);
             return -1;
-        } 
+        }
 
         $record = autoverifactuRecordFromLog($blockedlog);
 
@@ -133,13 +133,13 @@ function autoverifactuCheckInvoiceImmutableXML($invoice, $type = 'alta')
             return -1;
         }
     }
-    
-    if (!$file) {
+
+    if (!is_file($file)) {
         $bytes = file_put_contents($file, file_get_contents($hidden));
-        
+
         $result = $result + intval($bytes > 0);
 
-        if ($!$result) {
+        if (!$result) {
             dol_syslog('Empty XML regeneration for for invoice #' . $invoice->id, LOG_ERR);
             return -1;
         }
@@ -233,7 +233,7 @@ function autoverifactuGetSourceInvoice($invoice)
  *
  * @param  BlockedLog $blocedlog   BlockedLog instance with the immutable data of the invoice validation.
  * @param  string     $recorddType Record type. Can be 'alta' or 'anulacion'.
- * 
+ *
  * @return stdClass                Recreated invoice record.
  */
 function autoverifactuRecordFromLog($blockedlog, $recordType = 'alta')
