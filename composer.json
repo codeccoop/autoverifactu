@@ -1,5 +1,9 @@
 {
   "name": "codeccoop/auto-verifactu-dolibarr",
+  "version": "1.0.0",
+  "require": {
+    "php": ">=8.2"
+  },
   "require-dev": {
     "caprel/dolibarr-stubs": "^18.0"
   }
