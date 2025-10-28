@@ -246,6 +246,26 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
         throw new Exception('Inconsistent invoice data');
     }
 
+    global $hookmanager;
+    $parameters = array('record' => &$record, 'invoice' => $invoice, 'action' => $action);
+    $reshook = $hookmanager->executeHooks(
+        'autoverifactuRecord',
+        $parameters,
+        $record,
+    );
+
+    if ($reshook < 0) {
+        dol_syslog('Skip verifactu record registry for invoice #' . $invoice->id);
+        return $reshook;
+    } elseif ($reshook) {
+        dol_syslog(
+            'Verifactu record registry interception on "autoverifactuRecord" for invoice #'
+            . $invoice->id,
+        );
+
+        return $reshook;
+    }
+
     global $mysoc;
     $envelope = autoverifactuSoapEnvelope(
         $record,
@@ -471,6 +491,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
                 $recipient->type = '04';
                 $recipient->value = $thirdparty->idprof1;
             } else {
+                // NOTE: Autoverifactu requires thirdparty to has the idprof1 setted
                 // TODO: Where Dolibarr store passports or residence card?
                 // 03 Passport, 05 Residence, 06 Others, 07 Unregistered
             }
@@ -722,7 +743,9 @@ function autoverifactuRecordToXML($record, $xml = null)
             $breakdown->appendChild($dEl);
 
             $dEl->appendChild($xml->createElement('sum1:Impuesto', $details->taxType));
-            $dEl->appendChild($xml->createElement('sum1:ClaveRegimen', $details->regimeType));
+            if (in_array($details->taxType, array('01', '03'), true)) {
+                $dEl->appendChild($xml->createElement('sum1:ClaveRegimen', $details->regimeType));
+            }
             $dEl->appendChild($xml->createElement('sum1:CalificacionOperacion', $details->operationType));
             $dEl->appendChild($xml->createElement('sum1:TipoImpositivo', $details->taxRate));
             $dEl->appendChild($xml->createElement('sum1:BaseImponibleOimporteNoSujeto', $details->baseAmount));
@@ -807,11 +830,11 @@ function autoverifactuLinesToBreakdown($invoice)
 
     foreach ($invoice->lines as $line) {
         $details = new stdClass();
-        // TODO: Handle tax types (01 IVA, 02 IPSI, 03 IGIC, 05 Otros)
         $details->taxType = getDolGlobalString('AUTOVERIFACTU_TAX') ?: '01';
-        // TODO: Handle regime types (01..20)
         $details->regimeType = getDolGlobalString('AUTOVERIFACTU_REGIME') ?: '01';
         // TODO: Handle operation types (S1, S2, S3, S4)
+        // NOTE: At this moment, autoverifactu only supports S1 operations (Operaciones sujetas y no exentas)
+        // NOTE: To modify this constant autoverifactu offers the `autoverifactu` hook.
         $details->operationType = 'S1';
         $details->taxRate = number_format((float) $line->tva_tx, 2, '.', '');
         $details->baseAmount = number_format((float) $line->total_ht, 2, '.', '');
