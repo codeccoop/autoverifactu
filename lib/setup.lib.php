@@ -45,6 +45,12 @@ function autoverifactuSetupPost()
     $password = autoverifactuGetPost('AUTOVERIFACTU_PASSWORD');
     dolibarr_set_const($db, 'AUTOVERIFACTU_PASSWORD', $password);
 
+    $tax = autoverifactuGetPost('AUTOVERIFACTU_TAX') ?: '01';
+    dolibarr_set_const($db, 'AUTOVERIFACTU_TAX', $tax);
+
+    $regime = autoverifactuGetPost('AUTOVERIFACTU_REGIME') ?: '01';
+    dolibarr_set_const($db, 'AUTOVERIFACTU_REGIME', $regime);
+
     $enabled = autoverifactuGetPost('AUTOVERIFACTU_ENABLED');
     $enabled = $enabled && autoverifactuSystemCheck();
     dolibarr_set_const($db, 'AUTOVERIFACTU_ENABLED', (string) $enabled);

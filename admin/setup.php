@@ -146,6 +146,17 @@ $invalid = $invalid || $pass_field->fieldAttr['error'];
 
 $formSetup->newItem('FISCAL_SECTION_TITLE')->setAsTitle();
 
+$taxes = array(
+    '01' => 'IVA',
+    '02' => 'IPSI',
+    '03' => 'IGIC',
+    '05' => 'Otros',
+);
+
+$taxField = $formSetup->newItem('AUTOVERIFACTU_TAX')->setAsSelect($taxes);
+$taxField->fieldParams['isMandatory'] = 1;
+$taxField->defaultFieldValue = '01';
+
 $regimes = array(
     '01' => 'Operación de régimen general',
     '02' => 'Exportación',
@@ -156,7 +167,7 @@ $regimes = array(
     '07' => 'Régimen especial del criterio de caja',
     '08' => 'Operaciones sujetas al IPSI / IGIC',
     '09' => 'Facturación de las prestaciones de servicios de agencias de viaje que actúan como mediadoras',
-    '10' => 'Cobros por cuenta de terceros de honorarios profesionales o de derechos derivados de la propiedad industrial, de autor u otros por cuenta',
+    '10' => 'Cobros por cuenta de terceros de honorarios profesionales o de derechos derivados de la propiedad industrial, de autor u otros',
     '11' => 'Operaciones de arrendamiento de local de negocio',
     '14' => 'Factura con IVA pendiente de devengo en certificaciones de obra cuyo destinatario sea una Administración Pública',
     '15' => 'Factura con IVA pendiente de devengo en operaciones de tracto sucesivo',
@@ -169,17 +180,7 @@ $regimes = array(
 $regimeField = $formSetup->newItem('AUTOVERIFACTU_REGIME')->setAsSelect($regimes);
 $regimeField->fieldParams['isMandatory'] = 1;
 $regimeField->defaultFieldValue = '01';
-
-$taxes = array(
-    '01' => 'IVA',
-    '02' => 'IPSI',
-    '03' => 'IGIC',
-    '05' => 'Otros',
-);
-
-$regimeField = $formSetup->newItem('AUTOVERIFACTU_TAX')->setAsSelect($taxes);
-$regimeField->fieldParams['isMandatory'] = 1;
-$regimeField->defaultFieldValue = '01';
+$regimeField->fieldAttr['disabled'] = !in_array(getDolGlobalString('AUTOVERIFACTU_REGIME') ?: '01', array('01', '03'), true);
 
 $formSetup->newItem('SYSTEM_SECTION_TITLE')->setAsTitle();
 
