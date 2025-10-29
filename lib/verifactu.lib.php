@@ -27,8 +27,8 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
 /* Veri*Factu API URLs */
-// define('VERIFACTU_BASE_URL', 'https://www1.agenciatributaria.gob.es'); // Production environment
-define('VERIFACTU_BASE_URL', 'https://prewww1.aeat.es'); // Test environment
+define('VERIFACTU_BASE_URL', 'https://www1.agenciatributaria.gob.es'); // Production environment
+define('VERIFACTU_TEST_BASE_URL', 'https://prewww1.aeat.es'); // Test environment
 
 /* XML namespaces */
 define('AUTOVERIFACTU_SOAPENV_NS', 'http://schemas.xmlsoap.org/soap/envelope/');
@@ -275,8 +275,11 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
         ),
     );
 
+    $testMode = getDolGlobalBool('AUTOVERIFACTU_TEST_MODE');
+    $base_url = $testMode ? VERIFACTU_TEST_BASE_URL : VERIFACTU_BASE_URL;
+
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, VERIFACTU_BASE_URL . '/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP');
+    curl_setopt($ch, CURLOPT_URL, $base_url . '/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP');
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);

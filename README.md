@@ -40,3 +40,7 @@ Una vez instalado, falta su activación. Para activar el Auto-Veri\*Factu deber�
 3. Haber generado una versión auto firmada de la declaración responsable usando la plantill que se ofrece en el panel de adminsitración del módulo.
 
 Una vez cumplidos los requisitos, podrás activar el Auto-Veri\*Factu. **Ten en cuenta que una vez activado, ciertas funciones de Dolibarr quedaran bloqueadas, como son la edición de facturas validadas o la actualización de tus datos societarios**.
+
+## Hoja de ruta
+
+1. Soporte para el módulo _Multi Company_. Por ahora, **Auto Veri\*Factu no permite su uso en entornos multi compañía**.

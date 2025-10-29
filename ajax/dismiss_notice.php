@@ -34,9 +34,9 @@ if (!defined('NOREQUIREHTML')) {
 if (!defined('NOREQUIREAJAX')) {
     define('NOREQUIREAJAX', '1');
 }
-if (!defined('NOREQUIRESOC')) {
-    define('NOREQUIRESOC', '1');
-}
+// if (!defined('NOREQUIRESOC')) {
+//     define('NOREQUIRESOC', '1');
+// }
 if (!defined('NOCSRFCHECK')) {
     define('NOCSRFCHECK', '1');
 }
@@ -46,7 +46,7 @@ if (!defined('NOREQUIREHTML')) {
 
 
 require_once dirname(__DIR__) . '/env.php';
-require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 
 /**
  * @var Conf $conf
@@ -56,9 +56,8 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
  * @var User $user
  */
 
-global $db;
-
-$tag = trim(GETPOST('tag', 'aZ09') ?: '');
+$tag = trim(GETPOST('tag', 'alpha') ?: '');
+$entity = GETPOSTINT('entity') ?: 1;
 
 // Security check
 if (!$user->admin) {
@@ -69,7 +68,7 @@ if (!$user->admin) {
  * View
  */
 
-dol_syslog("Call ajax mymodule/ajax/myobject.php");
+dol_syslog("Call ajax autoverifactu/ajax/dismiss_notice.php");
 
 top_httphead();
 
@@ -80,7 +79,7 @@ $dismissed = array_filter(array_map('trim', explode(',', $dismissed)), function 
 
 if (!in_array($tag, $dismissed, true)) {
     $dismissed[] = $tag;
-    dolibarr_set_const($db, 'AUTOVERIFACTU_DISMISSED_NOTICES', implode(',', $dismissed));
+    autoverifactu_set_const('AUTOVERIFACTU_DISMISSED_NOTICES', implode(',', $dismissed), $entity);
 }
 
 $db->close();

@@ -24,7 +24,7 @@
  */
 
 /* Libraries */
-require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
@@ -37,23 +37,21 @@ function autoverifactuGetPost($field)
 
 function autoverifactuSetupPost()
 {
-    global $db;
-
     $certpath = autoverifactuGetPost('AUTOVERIFACTU_CERT');
-    dolibarr_set_const($db, 'AUTOVERIFACTU_CERT', (string) $certpath);
+    autoverifactu_set_const('AUTOVERIFACTU_CERT', (string) $certpath);
 
     $password = autoverifactuGetPost('AUTOVERIFACTU_PASSWORD');
-    dolibarr_set_const($db, 'AUTOVERIFACTU_PASSWORD', $password);
+    autoverifactu_set_const('AUTOVERIFACTU_PASSWORD', $password);
 
     $tax = autoverifactuGetPost('AUTOVERIFACTU_TAX') ?: '01';
-    dolibarr_set_const($db, 'AUTOVERIFACTU_TAX', $tax);
+    autoverifactu_set_const('AUTOVERIFACTU_TAX', $tax);
 
     $regime = autoverifactuGetPost('AUTOVERIFACTU_REGIME') ?: '01';
-    dolibarr_set_const($db, 'AUTOVERIFACTU_REGIME', $regime);
+    autoverifactu_set_const('AUTOVERIFACTU_REGIME', $regime);
 
     $enabled = autoverifactuGetPost('AUTOVERIFACTU_ENABLED');
     $enabled = $enabled && autoverifactuSystemCheck();
-    dolibarr_set_const($db, 'AUTOVERIFACTU_ENABLED', (string) $enabled);
+    autoverifactu_set_const('AUTOVERIFACTU_ENABLED', (string) $enabled);
 }
 
 function autoverifactuUploadCert()

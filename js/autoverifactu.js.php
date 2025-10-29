@@ -23,9 +23,9 @@
 // if (!defined('NOREQUIREDB')) {
 //     define('NOREQUIREDB', 0);
 // }
-if (!defined('NOREQUIRESOC')) {
-    define('NOREQUIRESOC', 1);
-}
+// if (!defined('NOREQUIRESOC')) {
+//     define('NOREQUIRESOC', 1);
+// }
 // if (!defined('NOREQUIRETRAN')) {
 //     define('NOREQUIRETRAN', 0);
 // }
@@ -69,13 +69,31 @@ if (empty($dolibarr_nocache)) {
 
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 
-global $langs, $user;
+global $langs, $user, $mysoc;
 
 $langs->loadLangs(array('admin', 'autoverifactu@autoverifactu'));
 
 $enabled = (bool) getDolGlobalString('AUTOVERIFACTU_ENABLED');
 $testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
 $dismissed = array_filter(array_map('trim', explode(',', getDolGlobalString('AUTOVERIFACTU_DISMISSED_NOTICES', ''))));
+
+$drop = [];
+
+if ($enabled && ($index = array_search('DISABLED', $dismissed, true)) !== false) {
+    $drop = array_merge($drop, array_splice($dismissed, $index, 1));
+}
+
+if (!$testMode && ($index = array_search('TESTMODE', $dismissed, true)) !== false) {
+    $drop = array_merge($drop, array_splice($dismissed, $index, 1));
+}
+
+if (count($drop)) {
+    autoverifactu_set_const(
+        'AUTOVERIFACTU_DISMISSED_NOTICES',
+        implode(',', array_filter(array_map('trim', $dismissed))),
+        $mysoc->entity,
+    );
+}
 
 $messages = array();
 
@@ -103,6 +121,7 @@ if ($is_admin && $testMode && !in_array('TESTMODE', $dismissed, true)) {
 
 /* Javascript library of module Auto-Veri*Factu */
 document.addEventListener("DOMContentLoaded", function () {
+    const entity = <?php echo $mysoc->entity ?: 1 ?>;
     const messages = <?php echo json_encode($messages); ?>;
     messages.forEach(function (msg) {
         const [type, message, sticky, tag] = msg;
@@ -113,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 fetch("<?php echo DOL_URL_ROOT ?>/custom/autoverifactu/ajax/dismiss_notice.php", {
                     method: "POST",
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: `tag=${tag}`,
+                    body: `tag=${tag}&entity=${+entity}`,
                 });
             }
         });

@@ -252,7 +252,7 @@ class modAutoverifactu extends DolibarrModules
     {
         global $db, $conf, $langs;
 
-        dolibarr_set_const($db, 'FAC_FORCE_DATE_VALIDATION', '1');
+        dolibarr_set_const($db, 'FAC_FORCE_DATE_VALIDATION', '1', 'chaine', 0, '', 0);
 
         // Create tables of module at module activation
         // $result = $this->_load_tables('/autoverifactu/sql/');

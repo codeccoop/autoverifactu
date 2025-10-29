@@ -41,6 +41,12 @@ if (!defined('NOREQUIREAJAX')) {
     define('NOREQUIREAJAX', '1');
 }
 
+/**
+ * \file    htdocs/autoverifactu/css/autoverifactu.css.php
+ * \ingroup autoverifactu
+ * \brief   Cascading Style Sheet file for module Auto-Veri*Factu.
+ */
+
 require_once dirname(__DIR__) . '/env.php';
 
 header('Content-type: text/css');

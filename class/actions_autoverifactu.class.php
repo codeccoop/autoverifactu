@@ -104,7 +104,8 @@ class ActionsAutoverifactu extends CommonHookActions
                         $this->errors[] = $langs->trans('It seems your invoice data is not consistent');
                     }
 
-                    $base_url = VERIFACTU_BASE_URL;
+                    $testMode = getDolGlobalBool('AUTOVERIFACTU_TEST_MODE');
+                    $base_url = $testMode ? VERIFACTU_TEST_BASE_URL : VERIFACTU_BASE_URL;
                     $endpoint = '/wlpl/TIKE-CONT/ValidarQR';
                     $query = http_build_query(array(
                         'nif' => $mysoc->idprof1,

@@ -57,3 +57,11 @@ function autoverifactuAdminPrepareHead()
 
     return $head;
 }
+
+function autoverifactu_set_const($name, $value, $entity_id = null)
+{
+    require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
+
+    global $db, $mysoc;
+    dolibarr_set_const($db, $name, $value, 'chaine', 0, '', is_int($entity_id) ? $entity_id : $mysoc->entity);
+}

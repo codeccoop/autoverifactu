@@ -111,7 +111,6 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 return $result;
             case 'BILL_VALIDATE':
             // case 'DON_VALIDATE':
-            // case 'CASHCONTROL_VALIDATE':
                 $result = autoverifactuRegisterInvoice($object, $action);
 
                 if ($result < 0) {
@@ -151,7 +150,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                     $object->status != Facture::STATUS_DRAFT
                     && $object->type <= Facture::TYPE_DEPOSIT
                 ) {
-                    dol_syslog('Auto-Veri*Factu disables validated invoices edits');
+                    dol_syslog('Veri*Factu disables validated invoices edits');
                     $this->errors[] = $langs->trans('Validated invoices can\'t be modified');
                     return -1;
                 }

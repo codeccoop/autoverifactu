@@ -78,7 +78,6 @@ $formfile = new FormFile($db);
 // Enter here all parameters in your setup page
 $invalid = false;
 $toggle = $formSetup->newItem('AUTOVERIFACTU_ENABLED')->setAsYesNo();
-$toggle->fieldValue = '1';
 
 $responsability = $formSetup->newItem('AUTOVERIFACTU_RESPONSABILITY')->setAsYesNo();
 $is_responsible = !!getDolGlobalString('AUTOVERIFACTU_RESPONSABILITY');
@@ -113,6 +112,8 @@ ob_start();
 
 $responsability->fieldOverride = ob_get_clean();
 $invalid = $invalid || !$is_responsible;
+
+$testMode = $formSetup->newItem('AUTOVERIFACTU_TEST_MODE')->setAsYesNo();
 
 $formSetup->newItem('COMPANY_SECTION_TITLE')->setAsTitle();
 
@@ -234,12 +235,12 @@ if ($action === 'update' && !empty($user->admin)) {
 
     if ($filepath) {
         $filepath = str_replace(DOL_DATA_ROOT . '/', '', $filepath);
-        dolibarr_set_const($db, 'AUTOVERIFACTU_CERT', $filepath);
+        autoverifactu_set_const('AUTOVERIFACTU_CERT', $filepath);
         $cert_field->fieldValue = $filepath;
         header('Location: ' . $_SERVER['PHP_SELF']);
     } else {
         dol_syslog('Unable to upload the user cert file', LOG_ERR);
-        dolibarr_set_const($db, 'AUTOVERIFACTU_CERT', null);
+        autoverifactu_set_const('AUTOVERIFACTU_CERT', null);
 
         http_response_code(400);
         header('Location: ' . $_SERVER['PHP_SELF'] . '?uploaderror=1');
@@ -248,7 +249,7 @@ if ($action === 'update' && !empty($user->admin)) {
 
 $certpath = getDolGlobalString('AUTOVERIFACTU_CERT');
 if (!is_file(DOL_DATA_ROOT . '/' . $certpath)) {
-    dolibarr_set_const($db, 'AUTOVERIFACTU_CERT', '');
+    autoverifactu_set_const('AUTOVERIFACTU_CERT', '');
     $cert_field->fieldValue = '';
     $cert_field->fieldAttr['error'] = true;
 }

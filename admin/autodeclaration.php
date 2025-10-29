@@ -49,10 +49,10 @@ $autodeclaration = GETPOST('autodeclaration', 'restricthtml');
  * Actions
  */
 if ($action === 'create') {
-    dolibarr_set_const($db, 'AUTOVERIFACTU_RESPONSABILITY', $autodeclaration);
+    autoverifactu_set_const('AUTOVERIFACTU_RESPONSABILITY', $autodeclaration);
     header('Location: ' . $_SERVER['PHP_SELF']);
 } elseif ($action === 'delete') {
-    dolibarr_set_const($db, 'AUTOVERIFACTU_RESPONSABILITY', '');
+    autoverifactu_set_const('AUTOVERIFACTU_RESPONSABILITY', '');
     header('Location: ' . $_SERVER['PHP_SELF']);
 } elseif ($action === 'download') {
     ob_clean();
