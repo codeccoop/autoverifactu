@@ -117,7 +117,7 @@ class modAutoverifactu extends DolibarrModules
             ),
             // Set this to relative path of js file if module must load a js on all pages
             'js' => array(
-                //   '/autoverifactu/js/autoverifactu.js.php',
+                '/autoverifactu/js/autoverifactu.js.php',
             ),
             // Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context to 'all'
             /* BEGIN MODULEBUILDER HOOKSCONTEXTS */
@@ -160,34 +160,34 @@ class modAutoverifactu extends DolibarrModules
         // $this->phpmax = array(8, 0); // Maximum version of PHP required by module
         $this->need_dolibarr_version = array(20, -3); // Minimum version of Dolibarr required by module
         // $this->max_dolibarr_version = array(19, -3); // Maximum version of Dolibarr required by module
-        $this->need_javascript_ajax = 0;
+        $this->need_javascript_ajax = 1;
 
         // Messages at activation
         $this->warnings_activation = array();       // Warning to show when we activate module. array('always'='text') or array('FR'='textfr','MX'='textmx'...)
         $this->warnings_activation_ext = array();   // Warning to show when we activate an external module. array('always'='text') or array('FR'='textfr','MX'='textmx'...)
-        $this->warnings_unactivation = array('ES' => 'BlockedLogAreRequiredByYourCountryLegislation');
+        $this->warnings_unactivation = array();     // array('ES' => 'BlockedLogAreRequiredByYourCountryLegislation');
 
         // $this->automatic_activation = array('ES'=>'AutoverifactuWasAutomaticallyActivatedBecauseOfYourCountryChoice');
 
-        $this->always_enabled = (isModEnabled('autoverifactu')
-            && getDolGlobalString('AUTOVERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY')
-            && in_array((empty($mysoc->country_code) ? '' : $mysoc->country_code), explode(',', getDolGlobalString('AUTOVERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY')))
-            && $this->alreadyUsed());
+        // $this->always_enabled = (isModEnabled('autoverifactu')
+        //     && getDolGlobalString('AUTOVERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY')
+        //     && in_array((empty($mysoc->country_code) ? '' : $mysoc->country_code), explode(',', getDolGlobalString('AUTOVERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY')))
+        //     && $this->alreadyUsed());
 
         /* Constants */
         // List of particular constants to add when module is enabled (key, 'chaine',
         // value, desc, visible, 'current' or 'allentities', deleteonunactive).
-        $this->const = array(
-            1 => array(
-                'AUTOVERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY',
-                'chaine',
-                'ES',
-                'This is list of country code where the module may be mandatory',
-                0,
-                'current',
-                0,
-            )
-        );
+        // $this->const = array(
+        //     1 => array(
+        //         'AUTOVERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY',
+        //         'chaine',
+        //         'ES',
+        //         'This is list of country code where the module may be mandatory',
+        //         0,
+        //         'current',
+        //         0,
+        //     )
+        // );
 
         // Some keys to add into the overwriting translation tables
         /*$this->overwrite_translation = array(
