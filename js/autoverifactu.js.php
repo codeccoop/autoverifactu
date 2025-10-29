@@ -68,6 +68,7 @@ if (empty($dolibarr_nocache)) {
 }
 
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
+require_once dirname(__DIR__) . '/lib/autoverifactu.lib.php';
 
 global $langs, $user, $mysoc;
 
