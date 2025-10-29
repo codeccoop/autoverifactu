@@ -393,4 +393,23 @@ class ActionsAutoverifactu extends CommonHookActions
             }
         }
     }
+
+    public function formObjectOptions($parameters, $object, $action)
+    {
+        global $extrafields;
+        if (
+            $parameters['currentcontext'] === 'invoicecard'
+            && $object->element === 'facture'
+            && $action === 'edit_extras'
+            && !in_array(
+                $object->type,
+                array(
+                    Facture::TYPE_REPLACEMENT,
+                    Facture::TYPE_CREDIT_NOTE
+                ),
+            )
+        ) {
+            $extrafields->attributes['facture']['list']['verifactu_rectification_type'] = '0';
+        }
+    }
 }

@@ -267,6 +267,35 @@ class modAutoverifactu extends DolibarrModules
         $extrafields = new ExtraFields($this->db);
 
         $extrafields->addExtraField(
+            'verifactu_rectification_type',
+            'VerifactuRectificationType',
+            'select',
+            1,
+            2,
+            'facture',
+            0,
+            0,
+            '',
+            array(
+                'options' => array(
+                    'R1' => 'Factura Rectificativa (Error fundado en derecho y Art. 80 Uno Dos y Seis LIVA)',
+                    'R2' => 'Factura Rectificativa (Art. 80.3)',
+                    'R3' => 'Factura Rectificativa (Art. 80.4)',
+                    'R4' => 'Factura Rectificativa (Resto)',
+                    // 'R5' => 'Factura Rectificativa en facturas simplificadas',
+                ),
+            ),
+            0,
+            '',
+            '3',
+            'En caso de ser esta una factura recificativa, indica de que tipo es',
+            '',
+            '',
+            'autoverifactu@autoverifactu',
+            'isModEnabled("autoverifactu")',
+        );
+
+        $extrafields->addExtraField(
             'verifactu_hash',
             'VerifactuHash',
             'varchar',
@@ -274,7 +303,7 @@ class modAutoverifactu extends DolibarrModules
             255,
             'facture',
             0,
-            1,
+            0,
             '',
             '',
             0,
@@ -316,7 +345,7 @@ class modAutoverifactu extends DolibarrModules
             0,
             'facture',
             0,
-            1,
+            0,
             'CURRENT_TIMESTAMP',
             '',
             0,
