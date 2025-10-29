@@ -88,7 +88,7 @@ function autoverifactuRegisterInvoice($invoice, $action)
     $invoice->fetch_thirdparty();
     $thirdparty = $invoice->thirdparty;
     $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
-    if ($valid_id <= 0) {
+    if ($valid_id <= 0 && !$thirdparty->tva_intra) {
         dol_syslog('Skip invoice verifactu record registration due to thirdparty without a vaid idprof1');
         return -1;
     }
@@ -275,7 +275,7 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
         ),
     );
 
-    $testMode = getDolGlobalBool('AUTOVERIFACTU_TEST_MODE');
+    $testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
     $base_url = $testMode ? VERIFACTU_TEST_BASE_URL : VERIFACTU_BASE_URL;
 
     $ch = curl_init();
@@ -473,7 +473,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
     $record->invoiceId->issuerId = $mysoc->idprof1;
     $record->invoiceId->invoiceNumber = $invoiceRef;
     $record->invoiceId->issueDate = new DateTimeImmutable(
-        date('Y-m-d H:j:s', $invoice->date),
+        date('Y-m-d H:i:s', $invoice->date),
         new DateTimeZone('Europe/Madrid'),
     );
 
@@ -543,7 +543,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
         $sourceId->issuerId = $sourceInvoice->thirdparty->idprof1;
         $sourceId->invoiceNumber = $sourceInvoice->ref;
         $sourceId->issueDate = new DateTimeImmutable(
-            date('Y-m-d H:j:s', $sourceInvoice->date),
+            date('Y-m-d H:i:s', $sourceInvoice->date),
             new DateTimeZone('Europe/Madrid'),
         );
 
@@ -580,7 +580,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
         $record->previousInvoiceId->issuerId = $mysoc->idprof1;
         $record->previousInvoiceId->invoiceNumber = $invoiceRef;
         $record->previousInvoiceId->issueDate = new DateTimeImmutable(
-            date('Y-m-d H:j:s', $previous->date),
+            date('Y-m-d H:i:s', $previous->date),
             new DateTimeZone('Europe/Madrid'),
         );
 
@@ -594,7 +594,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
     $record->system = autoverifactuGetRecordComputerSystem();
 
     $record->hashedAt = new DateTimeImmutable(
-        date('Y-m-d H:j:s', time()),
+        date('Y-m-d H:i:s', time()),
         new DateTimeZone('Europe/Madrid'),
     );
     $record->hash = autoverifactuCalculateRecordHash($record);

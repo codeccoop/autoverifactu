@@ -104,7 +104,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 $result = autoverifactuRegisterInvoice($object, $action);
                 if ($result < 0) {
                     $this->errors[] = $langs->trans(
-                        'Veri*Factu invoice record creation has failed'
+                        'Veri*Factu invoice cancel record creation has failed'
                     );
                 }
 
