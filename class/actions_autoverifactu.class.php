@@ -316,10 +316,10 @@ class ActionsAutoverifactu extends CommonHookActions
                 '',
                 1,
                 array(
-                'attr' => array(
-                'class' => 'classfortooltip',
-                'title' => ''
-                ),
+                    'attr' => array(
+                        'class' => 'classfortooltip',
+                        'title' => ''
+                    ),
                 )
             );
         }
@@ -373,7 +373,7 @@ class ActionsAutoverifactu extends CommonHookActions
             } elseif ($object->status == Facture::STATUS_DRAFT && $action === 'valid') {
                 $object->fetch_thirdparty();
                 $thirdparty = $object->thirdparty;
-                $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
+                $valid_id = $thirdparty->idprof1 && $thirdparty->id_prof_check(1, $thirdparty);
 
                 if (!$valid_id && !$thirdparty->tva_intra) {
                     $label = $langs->trans('Veri*Factu requires invoice third parties to have a valid professional ID');
