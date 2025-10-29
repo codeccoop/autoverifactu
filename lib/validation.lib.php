@@ -184,7 +184,7 @@ function autoverifactuGetPreviousValidInvoice($invoice)
     // }
 
     $dt = new DateTime(
-        date('Y-m-d H:j:s', $invoice->date),
+        date('Y-m-d H:i:s', $invoice->date),
         new DateTimeZone('Europe/Madrid')
     );
 
@@ -193,7 +193,7 @@ function autoverifactuGetPreviousValidInvoice($invoice)
     $sql .= ' ON f.rowid = fx.fk_object';
     $sql .= ' WHERE f.fk_statut > 0 AND f.type <= 3';
     $sql .= ' AND fx.verifactu_hash IS NOT null';
-    $sql .= ' AND fx.verifactu_tms < ' . $dt->format('YmdHjs');
+    $sql .= ' AND fx.verifactu_tms < ' . $dt->format('YmdHis');
     $sql .= ' ORDER BY fx.verifactu_tms DESC';
 
     $result = $db->query($sql);
