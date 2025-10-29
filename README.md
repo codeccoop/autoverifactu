@@ -1,4 +1,5 @@
 # Auto Verifactu
+
 [![Package Versión](https://img.shields.io/badge/version-v1.0.0-f68243)](composer.json)
 [![Versión de PHP](https://img.shields.io/badge/php-%3E%3D8.2-8892BF)](composer.json)
 
@@ -18,26 +19,24 @@ Por último, el módulo se encara de añadir el código QR correspondiente a las
 
 ## Declaración de responsabilidad
 
-Este módulo se proporciona sin una declaración responsable firmada por Còdec. El código, sujeto a una licencia GPL está abierto a reutilización, cópia y modificación por parte del público, por lo que Códec no puede hacerse responsable del uso que otros hagan del mismo.
+Este módulo se proporciona sin una declaración responsable firmada por Còdec. El código, sujeto a una licencia GPL, por lo que está abierto a reutilización, cópia y modificación por parte del público, por lo que Códec no puede hacerse responsable del uso que otros hagan del mismo.
 
-El requerimiento de la declaración de responsabilidad que emana del [Real Decreto 1007/2023](https://www.boe.es/buscar/act.php?id=BOE-A-2023-24840) atenta contra los principios del código libre y abierto:
+El requerimiento de la declaración de responsabilidad que emana del [Real Decreto 1007/2023](https://www.boe.es/buscar/act.php?id=BOE-A-2023-24840) atenta contra los principios del código libre y abierto: El principio de descargo de responsabilidad del autor es imprescindible para la libre circulación del código bajo licencias libres.
 
-- Desincentiva el desarollo de soluciones abiertas para la integración con el sistema Veri\*Factu debido a la responsabilidad legal por uso que se hace descansar en el propietario intelectual.
-- Imposibilita la adopción de soluciones abiertas por parte de las empresas y autónomos ya que sólo podrán hacer uso de programarios respaldados por un proveedor a través de un vínculo comercial.
-- Desincentiva a los desarrolladores a abrir su código por el riesgo que supone emitir una declaración de responsabilidad sobre un código que puede ser modificado por terceros.
+La no observación del principio de descargo de responsabilidad promueve medidas que limiten los derechos y libertades fundamentales del movimiento del codigo abierto, la libertad de use, de distribución, de copia y de modificación.
 
-Ante esta situación, lo que propone este módulo es la generación de una _auto declaración de responsabilidad_ en la que el propio titular de la instancia Dolibarr en la que se instale el módulo, y haciendo uso de su certificado electrónico, firme su propia declaración de responsabilidad.
+Ante esta situación, lo que propone este módulo es la _auto declaración responsable_, un mecanismo incluido en el propio módulo a través del cual el titular de la instancia Dolibarr en la que este se instale pueda firmar su propia declaración responsable. La libertad de copias y modificar conlleva la responsabilidad derivada del uso del programa.
 
 ## Instalación y activación
 
 Puedes descargarte la última versión del código desde el [listado de versiones disponibles](https://gitlab.com/codeccoop/dolibarr/autoverifactu/-/releases).
 
-Una vez obtenido el packete zip con el código, deberás subirlo a tu instancia de Dolibarr desde el menú `Inicio > Configuración > Módulos > Instalación de módulos externos`.
+Una vez obtenido el paquete zip con el código, deberás subirlo a tu instancia de Dolibarr desde el menú `Inicio > Configuración > Módulos > Instalación de módulos externos`.
 
-Una vez instalado, falta su activación. Para activar el Auto-Veri*Factu deberás cumplir los siguientes requisitos:
+Una vez instalado, falta su activación. Para activar el Auto-Veri\*Factu deberás cumplir los siguientes requisitos:
 
 1. Tener informado una **Razón Social** y un **NIF** válido en la configuración de tu compañía.
-2. Haber subido el fichero PKCS#12 con el certificato eletrónico de la compañía y su contraseña a través del formulario de configuración de módulo.
+2. Haber subido el fichero PKCS#12 con el certificato eletrónico de la compañía/persona física y su contraseña a través del formulario de configuración del módulo.
 3. Haber generado una versión auto firmada de la declaración responsable usando la plantill que se ofrece en el panel de adminsitración del módulo.
 
-Una vez cumplidos los requisitos, podrás activar el Auto-Veri*Factu. **Ten en cuenta que una vez activado, ciertas funciones de Dolibarr quedaran bloqueadas, como son la  edición de facturas validadas o la actualización de tus datos societarios**.
+Una vez cumplidos los requisitos, podrás activar el Auto-Veri\*Factu. **Ten en cuenta que una vez activado, ciertas funciones de Dolibarr quedaran bloqueadas, como son la edición de facturas validadas o la actualización de tus datos societarios**.
