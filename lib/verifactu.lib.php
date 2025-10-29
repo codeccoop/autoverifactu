@@ -420,6 +420,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 
     $invoiceRef = $invoice->status > 0 ? $invoice->ref : $invoice->newref;
 
+    $invoice->fetch_optionals();
     $invoice->fetch_thirdparty();
     $thirdparty = $invoice->thirdparty;
 
@@ -454,7 +455,8 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
                 $invoiceType = 'R5';
             } else {
                 // Factura rectificativa corriente.
-                $invoiceType = 'R4';
+                // $invoiceType = 'R4';
+                $invoiceType = $invoice->array_options['options_verifactu_rectification_type'] ?: 'R4';
             }
 
             break;
@@ -584,7 +586,6 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
             new DateTimeZone('Europe/Madrid'),
         );
 
-        $previous->fetch_optionals();
         $record->previousHash = substr($previous->array_options['options_verifactu_hash'], 0, 64);
     } else {
         $record->previousInvoiceId = null;
