@@ -25,7 +25,7 @@ El requerimiento de la declaración de responsabilidad que emana del [Real Decre
 
 La no observación del principio de descargo de responsabilidad promueve medidas que limiten los derechos y libertades fundamentales del movimiento del codigo abierto, la libertad de use, de distribución, de copia y de modificación.
 
-Ante esta situación, lo que propone este módulo es la _auto declaración responsable_, un mecanismo incluido en el propio módulo a través del cual el titular de la instancia Dolibarr en la que este se instale pueda firmar su propia declaración responsable. La libertad de copias y modificar conlleva la responsabilidad derivada del uso del programa.
+Ante esta situación, lo que propone este módulo es la _auto declaración responsable_, un mecanismo incluido en el propio módulo a través del cual el titular de la instancia Dolibarr en la que este se instale puede firmar su propia declaración responsable. La libertad de copiar y modificar el programa conlleva la responsabilidad sobre el uso que de él se haga.
 
 ## Instalación y activación
 
