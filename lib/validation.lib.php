@@ -1,5 +1,4 @@
 <?php
-
 /* Copyright (C) 2025       Lucas García            <lucas@codeccoop.org>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -279,6 +278,34 @@ function autoverifactuRecordFromLog($blockedlog, $recordType = 'alta')
 }
 
 /**
+* Checks if the PKCS12 certificate is present and try to decrypt it with the password.
+*
+* @param string $certpath Path to the cert file. Should end with .(p12|pfx).
+* @param string $password Certificate password.
+*
+* @return int 1 if OK, 0 if KO.
+*/
+function autoverifactuPkcs12Check($certpath, $password)
+{
+    if (!is_file($certpath)) {
+        return 0;
+    }
+
+    $ext = strtolower(pathinfo($certpath)['extension'] ?? '');
+    if (!in_array($ext, array('p12', 'pfx'), true)) {
+        return 0;
+    }
+
+    $password = getDolGlobalString('AUTOVERIFACTU_PASSWORD');
+    if (!$password) {
+        return 0;
+    }
+
+    $content = file_get_contents($certpath);
+    return (int) openssl_pkcs12_read($content, $_, $password);
+}
+
+/**
 * Performs a verifactu system requirements check.
 *
 * @return int 1 if OK, 0 if KO.
@@ -291,13 +318,18 @@ function autoverifactuSystemCheck()
         require_once DOL_DOCUMENT_ROOT . '/core/lib/profid.lib.php';
     }
 
+    $certpath = DOL_DATA_ROOT . '/' . (getDolGlobalString('AUTOVERIFACTU_CERT') ?: 'nofile');
+    if (!is_file($certpath)) {
+        return 0;
+    }
+
     return intval(
         $mysoc->nom && $mysoc->idprof1
         && isValidTinForES($mysoc->idprof1)
-        && is_file(DOL_DATA_ROOT . '/' . (getDolGlobalString('AUTOVERIFACTU_CERT') ?: 'nofile'))
         && !empty($conf->modules['blockedlog'])
         && getDolGlobalInt('FAC_FORCE_DATE_VALIDATION')
         && getDolGlobalString('AUTOVERIFACTU_RESPONSABILITY')
+        && autoverifactuPkcs12Check($certpath, getDolGlobalString('AUTOVERIFACTU_PASSWORD'))
     );
 }
 

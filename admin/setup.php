@@ -140,9 +140,14 @@ $cert_field->fieldAttr['disabled'] = true;
 $cert_field->fieldAttr['error'] = !is_file(DOL_DATA_ROOT . '/' . $cert_field->fieldValue);
 $invalid = $invalid || $cert_field->fieldAttr['error'];
 
-$pass_field = $formSetup->newItem('AUTOVERIFACTU_PASSWORD')->setAsGenericPassword();
+$pass_field = $formSetup->newItem('AUTOVERIFACTU_PASSWORD');
 $pass_field->fieldParams['isMandatory'] = 1;
-$pass_field->fieldAttr['error'] = empty(getDolGlobalString('AUTOVERIFACTU_PASSWORD'));
+$pass_field->fieldAttr['type'] = 'password';
+$pass_field->fieldAttr['required'] = 1;
+$pass_field->fieldAttr['error'] = !autoverifactuPkcs12Check(
+    DOL_DATA_ROOT . '/' . $cert_field->fieldValue,
+    getDolGlobalString('AUTOVERIFACTU_PASSWORD')
+);
 $invalid = $invalid || $pass_field->fieldAttr['error'];
 
 $formSetup->newItem('FISCAL_SECTION_TITLE')->setAsTitle();
