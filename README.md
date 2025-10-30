@@ -19,13 +19,15 @@ Por último, el módulo se encara de añadir el código QR correspondiente a las
 
 ## Declaración de responsabilidad
 
-Este módulo se proporciona sin una declaración responsable firmada por Còdec. El código, sujeto a una licencia GPL, por lo que está abierto a reutilización, cópia y modificación por parte del público, por lo que Códec no puede hacerse responsable del uso que otros hagan del mismo.
+Este módulo se proporciona sin una declaración responsable firmada por Còdec. El código, sujeto a una licencia GPL, está abierto a reutilización, cópia y modificación por parte del público, por lo que Códec no puede hacerse responsable del uso que otros hagan del mismo.
 
-El requerimiento de la declaración de responsabilidad que emana del [Real Decreto 1007/2023](https://www.boe.es/buscar/act.php?id=BOE-A-2023-24840) atenta contra los principios del código libre y abierto: El principio de descargo de responsabilidad del autor es imprescindible para la libre circulación del código bajo licencias libres.
+El requerimiento de la declaración responsable que emana del [Real Decreto 1007/2023](https://www.boe.es/buscar/act.php?id=BOE-A-2023-24840) atenta contra los principios del código libre y abierto: El principio de descargo de responsabilidad del autor es imprescindible para la libre circulación del código bajo licencias abiertas.
 
-La no observación del principio de descargo de responsabilidad promueve medidas que limiten los derechos y libertades fundamentales del movimiento del codigo abierto, la libertad de use, de distribución, de copia y de modificación.
+La no observación del principio de descargo de responsabilidad promueve medidas que limiten los derechos y libertades fundamentales del movimiento del codigo abierto: la libertad de uso, distribución, copia y modificación.
 
 Ante esta situación, lo que propone este módulo es la _auto declaración responsable_, un mecanismo incluido en el propio módulo a través del cual el titular de la instancia Dolibarr en la que este se instale puede firmar su propia declaración responsable. La libertad de copiar y modificar el programa conlleva la responsabilidad sobre el uso que de él se haga.
+
+Auto-Veri\*Factu solo podrá activarse previa generación de la auto declaración responsable.
 
 ## Instalación y activación
 
