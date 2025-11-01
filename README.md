@@ -4,9 +4,7 @@
 [![Versión de PHP](https://img.shields.io/badge/php-%3E%3D8.2-8892BF)](composer.json)
 [![Versión de Dolibarr](https://img.shields.io/badge/dolibarr-%3E%3D20.0-263c5c)](composer.json)
 
-Auto Veri\*Factu es un módulo de Dolibarr sencillo que permite generar registros de facturación según el sistema [VERI\*FACTU](https://sede.agenciatributaria.gob.es/Sede/iva/sistemas-informaticos-facturacion-verifactu.html) y su envio telemático a la Agencia Tributaria (AEAT), integrado con el sistema de facturación de Dolibarr.
-
-## Funcionamiento
+> Este proyecto está aun en fase de pruebas, por lo que no se recomienda su uso en un entorno productivo 🙀. Por lo mismo, el proyecto está abierto a contruibuciones y aportaciones, que serán gratamente bienvenidas 🫰.
 
 Una vez instalado y activado, el módulo bloquea la edición de facturas validadas.
 
