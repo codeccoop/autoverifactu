@@ -51,7 +51,7 @@ function autoverifactuSetupPost()
 
     $enabled = autoverifactuGetPost('AUTOVERIFACTU_ENABLED');
     $enabled = $enabled && autoverifactuSystemCheck();
-    autoverifactu_set_const('AUTOVERIFACTU_ENABLED', (string) $enabled);
+    autoverifactu_set_const('AUTOVERIFACTU_ENABLED', $enabled);
 }
 
 function autoverifactuUploadCert()

@@ -53,7 +53,7 @@ $backtopage = GETPOST('backtopage', 'alpha');
 $form = new Form($db);
 
 $help_url = '';
-$title = 'AutoverifactuSetup';
+$title = 'AutoverifactuAbout';
 
 llxHeader('', $langs->trans($title), $help_url, '', 0, 0, '', '', '', 'mod-autoverifactu page-admin_about');
 

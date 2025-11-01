@@ -325,7 +325,14 @@ function autoverifactuSystemCheck()
  */
 function autoverifactuEnabled()
 {
-    return autoverifactuSystemCheck() && getDolGlobalInt('AUTOVERIFACTU_ENABLED');
+    $check = autoverifactuSystemCheck();
+    $enabled = getDolGlobalInt('AUTOVERIFACTU_ENABLED');
+
+    if (!$check && $enabled) {
+        dolibarr_set_const('AUTOVERIFACTU_ENABLED', false);
+    }
+
+    return $check && $enabled;
 }
 
 /**

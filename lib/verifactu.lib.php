@@ -53,7 +53,7 @@ define('AUTOVERIFACTU_XD_NS', 'http://www.w3.org/2000/09/xmldsig');
 */
 function autoverifactuRegisterInvoice($invoice, $action)
 {
-    global $db, $conf,$hookmanager;
+    global $db, $conf, $hookmanager;
 
     if ($invoice->type > Facture::TYPE_DEPOSIT) {
         // Skip non recordable invoice types.

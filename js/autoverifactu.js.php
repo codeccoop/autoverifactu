@@ -103,8 +103,8 @@ $is_admin = $user->admin;
 if ($is_admin && !$enabled && !in_array('DISABLED', $dismissed, true)) {
     $messages[] = array(
         'warning',
-        '<b>' . $langs->trans('Auto-Veri*Factu is installed but not enabled') . '</b>,'
-            . $langs->trans('Your invoices won\'t be emited to the Veri*Factu service') . '.',
+        '<b>' . $langs->trans('AutoVerifactuNotEnabled') . '</b>, '
+            . $langs->trans('InvoicesNotSent') . '.',
         true,
         'DISABLED',
     );
@@ -113,7 +113,7 @@ if ($is_admin && !$enabled && !in_array('DISABLED', $dismissed, true)) {
 if ($is_admin && $testMode && !in_array('TESTMODE', $dismissed, true)) {
     $messages[] = array(
         'info',
-        $langs->trans('Auto-Veri*Factu is in test mode'),
+        $langs->trans('AutoVerifactuInTestMode'),
         true,
         'TESTMODE'
     );

@@ -99,9 +99,9 @@ class ActionsAutoverifactu extends CommonHookActions
                     $result = autoverifactuIntegrityCheck($object);
 
                     if (!$result) {
-                        $this->errors[] = $langs->trans('Unable to find invoice entry on the immutable log');
+                        $this->errors[] = $langs->trans('BlockedLogNotFound');
                     } elseif ($result < 0) {
-                        $this->errors[] = $langs->trans('It seems your invoice data is not consistent');
+                        $this->errors[] = $langs->trans('InconsistentInvoiceData');
                     }
 
                     $testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
@@ -130,23 +130,23 @@ class ActionsAutoverifactu extends CommonHookActions
                     $res = curl_exec($ch);
 
                     if ($res === false) {
-                        $this->errors[] = $langs->trans('Invoice collation API request error');
+                        $this->errors[] = $langs->trans('CollationRequestError');
                     } else {
                         $data = json_decode($res);
 
                         if ($data->status !== 'OK') {
-                            $this->errors[] = $langs->trans('Invoice collaction API response error');
+                            $this->errors[] = $langs->trans('CollationResponseError');
 
                             if ($data->mensaje) {
                                 $this->errors[] = $data->mensaje;
                             }
                         } elseif ($data->mensaje !== 'Factura encontrada') {
-                            $this->errors[] = $langs->trans('The invoice is not publicly registered');
+                            $this->errors[] = $langs->trans('NotPubliclyRegistered');
                         }
                     }
 
                     if (empty($this->errors)) {
-                        $this->results[] = $langs->trans('Invoice integrity check and validation succeed');
+                        $this->results[] = $langs->trans('IntegrityCheckOK');
                     }
             }
         } elseif ($parameters['currentcontext'] === 'admincompany') {
@@ -158,7 +158,7 @@ class ActionsAutoverifactu extends CommonHookActions
                     $_POST['name'] = $mysoc->nom;
                     $_POST['siren'] = $mysoc->idprof1;
 
-                    $this->errors[] = $langs->trans('Update disabled by Veri*Factu');
+                    $this->errors[] = $langs->trans('UpdateDisabledBy');
 
                     $action = 'skip';
                 }
@@ -309,8 +309,8 @@ class ActionsAutoverifactu extends CommonHookActions
             && autoverifactuEnabled()
         ) {
             echo dolGetButtonAction(
-                $langs->trans('Check verifactu integrity'),
-                $langs->trans('Veri*Factu'),
+                $langs->trans('CheckIntegrity'),
+                'Veri*Factu',
                 'default',
                 $_SERVER['PHP_SELF'] . '?action=verifactu&token=' . newToken() . '&id=' . $object->id,
                 '',
@@ -356,7 +356,7 @@ class ActionsAutoverifactu extends CommonHookActions
                 $object->status > Facture::STATUS_DRAFT
                 && in_array($action, array('modif', 'reopen', 'delete'), true)
             ) {
-                $label = $langs->trans('Disabled by Veri*Factu');
+                $label = $langs->trans('DisabledBy');
 
                 $button = dolGetButtonAction(
                     $label,
@@ -376,7 +376,7 @@ class ActionsAutoverifactu extends CommonHookActions
                 $valid_id = $thirdparty->idprof1 && $thirdparty->id_prof_check(1, $thirdparty);
 
                 if (!$valid_id && !$thirdparty->tva_intra) {
-                    $label = $langs->trans('Veri*Factu requires invoice third parties to have a valid professional ID');
+                    $label = $langs->trans('ThirdpartyIdProfRequired');
                     $button = dolGetButtonAction(
                         $label,
                         $parameters['html'],

@@ -3,6 +3,9 @@
 #
 # Generic
 #
+VeriFactu = Veri*Factu
+Active = Actiu
+Settings = Ajustos
 
 # Module label 'ModuleAutoverifactuName'
 ModuleAutoverifactuName = Autoverifactu
@@ -13,7 +16,6 @@ ModuleAutoverifactuDesc = Descripció d'Auto-Veri*Factu
 # Setup page
 #
 AutoVerifactuSetup = Configuració d'Auto-Veri*Factu
-Settings = Configuración
 AutoVerifactuSetupPage = Pàgina de configuració d'Auto-Veri*Factu
 COMPANY_SECTION_TITLE = Empresa/Organització
 SYSTEM_SECTION_TITLE = Sistema
@@ -35,10 +37,15 @@ AUTOVERIFACTU_TAX = Tipus d'import
 AUTOVERIFACTU_DATE_VALIDATION = És obligatori l'ús de a data de validació com a data d'emissió de les factures?
 AUTOVERIFACTU_DATE_VALIDATIONTooltip = La data de les factures ha de coincidir amb la seva data de validació. Ves a Configuració > Mòduls > Factures per canviar el valor de la configuració.
 AUTOVERIFACTU_BLOCKEDLOG_ENABLED = Està el mòdul BlockedLog habilitat?
+YouComanyName = Raó social
+YourCompanyVat = NIF/CIF
+PK12_PATH = ruta/al/teu/certificat.p12
+UploadCertificate = Puja el teu certificat
 
 #
 # Autodeclaration page
 #
+AutoVerifactuAutodeclaration = Declaració responsable
 Draft = Esborrany
 
 #
@@ -49,5 +56,71 @@ AutoverifactuAbout = Relatiu a Auto-Veri*Factu
 AutoverifactuAboutPage = Pàgina d'informació d'Auto-Veri*Factu
 
 #
+# Autoverifactu JS
+#
+AutoVerifactuNotEnabled = Auto-Veri*Factu està instal·lat, però no habilitat
+InvoicesNotSent = Les teves factures no seran trameses al sistema Veri*Factu
+AutoVerifactuInTestMode = Auto-Veri*Factu està en mode de proves
+
+#
+# Messages
+#
+BlockedLogNotFound = Impossible trobar l'entrada de factura al registre immutable
+InconsistentInvoiceData = Sembla que la informació de la factura no és consistent
+CollationRequestError = Error de petició a la API d'acarament de factures
+CollationResponseError = Error de resposta de la API d'acarament de factures
+NotPubliclyRegistered = La factura no està publicament registrada
+IntegrityCheckOK = La comprobació d'integritat i validació de la factura ha estat satisfactoria
+CancelRecordFail = La cancelació del registre de factura Veri*Factu ha fallat
+RecordCreationFail = La creació del registre de factura Veri*Factu ha fallat
+ValidatedNotEditable = Les facutres validades no són editables
+ValidatedNotDeletable = Les facutres validades no es poden esborar
+ValidatedNotModifiable = Les factures validades no es poden modificar
+
+#
+# Buttons
+#
+CheckIntegrity = Comprova la integritat Veri*Factu
+DisabledBy = Deshabilitat per Veri*Factu
+UpdateDisabledBy = Actualització deshabilitada per Veri*Factu
+ThirpartyIdProfRequired = Veri*Factu requereix que els destinataris de les factures disposin d'un NIF/CIF vàlid 
+
+#
 # Autodeclaration page
 #
+Autodeclaration = Auto declaració
+DeclarationTitle = DECLARACIÓ RESPONSABLE DEL SISTEMA INFORMÀTIC DE FACTURACIÓ
+DeclarationSifNameLabel = Nom del sistema informàtic a que fa referència aquesta declaració responsable
+DeclarationSifCodeLabel = Codi identificador del sistema informàtic a que fa referència l'apartat a) d'aquesta declaració responsable
+DeclarationSifVersionLabel = Identificaro complet de la versió concreta del sistema informàtic a que fa referència aquesta declaració responsable
+DeclarationSoftwareDescriptionLabel = Components, maquinaria i programari, dels que consta el sistema informàtic a que fa referència aquesta declaració responsable, a més d'una breu descripció del sistema i les seves principals funcionalitats
+DeclarationSoftwareDescription = Es tracta d'un mòdul que, integrat amb el sistema de facturació nadiu de Dolibarr, implementa les funcionalitats de generació de registres de facturació, el seu enviament a l'agència tributaria, i la immutabilitat i traçabilitat de les accions de facturació
+DeclarationFeaturesListLabel = En concret
+DeclarationFeaturesList1 = Genera automàticament registres de facturació vinculats a les accions de validació, correcció i anulació de factures.
+DeclarationFeaturesList2 = Remet instantàniament els registres de facturació a l'agència tributaria i guarda una còpia immutable dels mateixos.
+DeclarationFeaturesList3 = Insereix el codi QR al format PDF generat a partir de factures validades.
+DeclarationFeaturesList4 = Bloqueja les opcions d'edició de factures un cop han estat validades.
+DeclarationFeaturesList5 = Defineix els camps "Raó social" i "Número d'identificació fiscal" de l'emisor i del destinatari de la factura como obligatoris per a la validación de les mateixes.
+DeclarationFeaturesList6 = Guarda un registre immutable a base de dades de les factures i les accions del sistema de facturació que permet detectar modificacions a les factures i la reconsutrucció de les dades originals.
+DeclarationRequirements1 = Per al seu correcte funcionament, el programa ha de ser instal·lat com un mòdul extern a una instància de Dolibarr i disposar d'accés a Internet.
+DeclarationRequirements2 = Per a la seva deguda activació, el programa requereix de la previa generació de l'auto declaració responsable des del panell de configuració del mòdul.
+DeclarationOnlyVerifactuLabel = Indicació de si el sistema informàtic a que fa referència aquesta declaració responsable s'ha produït de manera que, a efectes de complir amb el Reglament, només pugui funcionar en mode «VERI*FACTU»
+DeclarationBoolYes = S - Sí
+DeclarationBoolNo = N - No
+DeclarationMultiCompanyLabel = Indicació de si el sistema informàtic a que fa referència aquesta declaració responsable permet ser utilitzat per múltiples obligats tributaris o per un mateix usuari per donar suport a la facturació de múltiples obligats tributaris
+DeclarationSignModeLabel = Tipus de firma utilitzats per firmar els registres de facturació i d'esdeveniment en cas que el sistema informàtic a que fa referència aquesta declaració responsable no sigui utilitzat en mode «VERI*FACTU»
+DeclarationSignMode = Donat que es tracta d'un producte de facturació que només pot ser utilitzat en mode «VERI*FACTU», no es realitza una signatura electrònica expresa dels registres de facturació generats, ja que la normativa considera que queden signats al ser tramesos correctament als serveis electrònics de l'agència tributaria amb la degua autenticació mitjançant l'adequat certificat electrònic qualificat.
+DeclarationCompanyName = Raó social de l'entitat productora del sistema informàtic a que fa referència aquesta declaració responsable
+DeclarationTaxID = Número d'identificació fiscal (NIF) espanyol de l'entitat productora del sistema informàtic a que fa referència aquesta declaració responsable
+DeclarationAddress = Adreça postal completa de contacte de l'entitat productora del sistema informàtic a que fa referència aquesta declaració responsable
+DeclarationCompliance = L'entitat productora del sistema informàtic a que fa referència aquesta declaració responsable fa constar que dit sistema informpatic, en la versió aquí indicadoa, compleix amb el disposat a l'article 29.2.j) de la Llei 58/2003, del 17 de desembre, General Tributaria, al Reglament que estableix els requeriments que han d'adoptar els sistemes i programari informàtic o electrònic que suportin els processos de facturació d'empresaris i professionals, i l'estandardització de formats dels registres de facturació, aprovat per Reial Decret 1007/2023, del 5 de desembre, a la Ordre HAC/1177/2024, del 17 d'octubre, i a la seu electrònica de l'Agència Estatal d'Adminsitració Tributària per tot allò que completi les especificacions de dita ordre.
+DeclarationSignDateLabel = Data en que l'entitat productora d'aquest sitema informàtic subscriu aquesta declaració responsable del mateix
+DeclarationSignLocationLabel = Lloc en que l'entitat productora del sistema informàtic subscriu aquesta declaració responsable del mateix
+DeclarationAnnex = Annex
+DeclarationLinksLabel = Enllaços al codi font del mòdul Auto-Veri*Factu
+DeclarationGPLNote = Auto-Veri*Factu està llincenciat sota una llicència GPL i distribuit en obert a través d'Internet per a la seva lliure consulta, còpia, ús i redistribució.
+DeclarationSpecsLabel = El sistema informàtic a que fa referència aquesta declaració responsable compleix les diferents especificacions tècniques i funcionals contingudes a la Ordre HAC/1177/2024, del 17 d'octubre, i a la seu electrónica de l'Agència Estatal d'Administració Tributària per a tot allò que completi les especificacions de dita ordre, de la següent manera:
+DeclarationSpecsListLabel = El component informàtic denominat Auto-Veri*Factu, en la seva versió actual, compleix amb els requisits establerts a la Llei 58/2003, General Tributaria, el Reial Decret 1007/2023 i la Ordre HAC/1177/2024, incloent
+DelcarationSpecs1 = La integritat, conservació, accessibilitat, llegibilitat, traçabilitat i inalterabilitat dels registres de facturació generats pel mòdul de facutració de Dolibarr amb el qual s'integra.
+DeclarationSpecs2 = El compliment de les especificacions i funcionalitats previstes per la tramesa de registres de facturació a l'Agència Estatal d'Administració Tributària quan s'utilitci el sistema VERI*FACTU.
+DeclarationDischarge = Auto-Veri*Factu no constitueix un sistema de facturació autònom, sinó que actua com a component integrat en el mòdul de facturación de Dolibarr, sistema encarregat d'oferir les funcionalitats habituals d'aquest tipus d'aplicacions: capturar informació de facturació, emetre facutres, consultar factures, estadístiques de facturació, exportació, de dades de facturaicó...

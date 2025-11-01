@@ -120,7 +120,7 @@ $formSetup->newItem('COMPANY_SECTION_TITLE')->setAsTitle();
 $name_field = $formSetup->newItem('AUTOVERIFACTU_COMPANY_NAME');
 $name_field->fieldValue = autoverifactuGetPost('AUTOVERIFACTU_COMPANY_NAME') ?: $mysoc->nom;
 $name_field->fieldParams['isMandatory'] = 1;
-$name_field->fieldAttr['placeholder'] = $langs->trans('Your company name');
+$name_field->fieldAttr['placeholder'] = $langs->trans('YourCompanyName');
 $name_field->fieldAttr['disabled'] = true;
 $name_field->fieldAttr['error'] = empty($name_field->fieldValue);
 $invalid = $invalid || $name_field->fieldAttr['error'];
@@ -128,14 +128,14 @@ $invalid = $invalid || $name_field->fieldAttr['error'];
 $vat_field = $formSetup->newItem('AUTOVERIFACTU_VAT');
 $vat_field->fieldValue = autoverifactuGetPost('AUTOVERIFACTU_VAT') ?: $mysoc->idprof1;
 $vat_field->fieldParams['isMandatory'] = 1;
-$vat_field->fieldAttr['placeholder'] = $langs->trans('Your company VAT number');
+$vat_field->fieldAttr['placeholder'] = $langs->trans('YourCompanyVat');
 $vat_field->fieldAttr['disabled'] = true;
 $vat_field->fieldAttr['error'] = !isValidTinForES($vat_field->fieldValue);
 $invalid = $invalid || $vat_field->fieldAttr['error'];
 
 $cert_field = $formSetup->newItem('AUTOVERIFACTU_CERT');
 $cert_field->fieldParams['isMandatory'] = 1;
-$cert_field->fieldAttr['placeholder'] = $langs->trans('path/to/your/certificate.pem');
+$cert_field->fieldAttr['placeholder'] = $langs->trans('PK12_PATH');
 $cert_field->fieldAttr['disabled'] = true;
 $cert_field->fieldAttr['error'] = !is_file(DOL_DATA_ROOT . '/' . $cert_field->fieldValue);
 $invalid = $invalid || $cert_field->fieldAttr['error'];
@@ -273,7 +273,7 @@ $title = 'AutoverifactuSetup';
 llxHeader('', $langs->trans($title), $help_url, '', 0, 0, '', '', '', 'mod-autoverifactu page-admin');
 
 // Subheader
-$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php?restore_lastsearch_values=1">' . img_picto($langs->trans("BackToModuleList"), 'back', 'class="pictofixedwidth"').'<span class="hideonsmartphone">'.$langs->trans("BackToModuleList").'</span></a>';
+$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php?restore_lastsearch_values=1">' . img_picto($langs->trans('BackToModuleList'), 'back', 'class="pictofixedwidth"').'<span class="hideonsmartphone">'.$langs->trans('BackToModuleList').'</span></a>';
 
 echo load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 
@@ -298,12 +298,12 @@ if (!empty($formSetup->items)) {
 }
 
 if (empty($setupnotempty)) {
-    echo '<br>'.$langs->trans("NothingToSetup");
+    echo '<br>'.$langs->trans('NothingToSetup');
 }
 
 $formfile->form_attach_new_file(
     $_SERVER["PHP_SELF"] . '?action=upload',
-    $langs->trans('Upload your certificate'),
+    $langs->trans('UploadCertificate'),
     0,
     0,
     1,
