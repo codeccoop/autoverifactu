@@ -58,15 +58,29 @@ function autoverifactuAdminPrepareHead()
     return $head;
 }
 
+/**
+ * Proxy to the dolibarr_set_const function with multicompany support.
+ *
+ * @param string $name       Const name.
+ * @param mixed  $value      Const value.
+ * @param int    $entity_id  Optional, entity id. If not declared, it is inherited from the global $mysoc variable.
+ *
+ * @return int               -1 if KO, 1 if OK
+ */
 function autoverifactu_set_const($name, $value, $entity_id = null)
 {
     require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 
     global $db, $mysoc;
-    dolibarr_set_const($db, $name, $value, 'chaine', 0, '', is_int($entity_id) ? $entity_id : $mysoc->entity);
+    return dolibarr_set_const($db, $name, $value, 'chaine', 0, '', is_int($entity_id) ? $entity_id : $mysoc->entity);
 }
 
-function autoverifactuDeclarationTemplate()
+/**
+ * Responsible declaration HTML template.
+ *
+ * @return string
+ */
+function autoverifactuDeclarationRenderedTemplate()
 {
     global $mysoc, $langs;
 

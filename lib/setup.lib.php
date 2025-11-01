@@ -30,11 +30,21 @@ require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
 require_once __DIR__ . '/validation.lib.php';
 
+/**
+ * $_POST fields getter with database backup values.
+ *
+ * @param string $field POST field name.
+ *
+ * @return string
+ */
 function autoverifactuGetPost($field)
 {
     return GETPOST($field) ?: getDolGlobalString($field);
 }
 
+/**
+ * Handles POST requests to the module's setup page.
+ */
 function autoverifactuSetupPost()
 {
     $certpath = autoverifactuGetPost('AUTOVERIFACTU_CERT');
@@ -54,6 +64,11 @@ function autoverifactuSetupPost()
     autoverifactu_set_const('AUTOVERIFACTU_ENABLED', $enabled);
 }
 
+/**
+ * Handles certificate upload requests.
+ *
+ * @return string|null Uploaded file path.
+ */
 function autoverifactuUploadCert()
 {
     global $conf;
@@ -62,6 +77,8 @@ function autoverifactuUploadCert()
     if (!is_dir($upload_dir)) {
         dol_mkdir($upload_dir);
     }
+
+    $dest = null;
 
     if (!empty($_FILES['userfile']['tmp_name'])) {
         $file = $_FILES['userfile'];

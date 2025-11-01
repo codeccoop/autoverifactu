@@ -18,8 +18,8 @@
  */
 
 /**
- *       \file       htdocs/mymodule/ajax/myobject.php
- *       \brief      File to return Ajax response on myobject list request
+ * \file       htdocs/custom/autoverifactu/ajax/dismiss_notice.php
+ * \brief      Handle user notice dismission
  */
 
 if (!defined('NOTOKENRENEWAL')) {

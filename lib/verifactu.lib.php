@@ -854,6 +854,12 @@ function autoverifactuLinesToBreakdown($invoice)
     return $breakdown;
 }
 
+/**
+ * Return the invoice record computer system data. It uses $mysoc global variable to fill
+ * the vendor name and nif values.
+ *
+ * @return stdClass Record's computer system data.
+ */
 function autoverifactuGetRecordComputerSystem()
 {
     if (!autoverifactuSystemCheck()) {

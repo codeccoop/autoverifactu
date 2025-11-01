@@ -69,6 +69,13 @@ function autoverifactuIntegrityCheck($invoice)
     return 1;
 }
 
+/**
+ * Get the blocked log of the invoice at its validation.
+ *
+ * @param Facture $invoice Target invoice instance.
+ *
+ * @return BlockedLog|null
+ */
 function autoverifactuFetchBlockedLog($invoice)
 {
     global $db;
@@ -150,6 +157,15 @@ function autoverifactuCheckInvoiceImmutableXML($invoice, $type = 'alta')
     return $result;
 }
 
+/**
+ * Builds the path to the immutable XML files of an invoice.
+ *
+ * @param Facture $invoice Target invice instance.
+ * @param string  $type    Record type. Can be 'alta' or 'anulacion'.
+ *
+ * @return [string, string] Tuple with the filepath in its first possition and the
+ *                          path to its hidden backup file.
+ */
 function autoverifactuInvoiceImmutableXMLPath($invoice, $type = 'alta')
 {
     global $conf;
@@ -424,6 +440,13 @@ function autoverifactuValidateRecord($record)
     return (int) $isTotalValid;
 }
 
+/**
+ * Checks if the invoice has already been recorded as a Veri*Factu record.
+ *
+ * @param Facture $invoice Target invoice instance.
+ *
+ * @return bool
+ */
 function autoverifactuIsInvoiceRecorded($invoice)
 {
     $invoice->fetch_optionals();
