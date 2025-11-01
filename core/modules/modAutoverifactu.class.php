@@ -314,11 +314,6 @@ class modAutoverifactu extends DolibarrModules
             '',
             'autoverifactu@autoverifactu',
             'isModEnabled("autoverifactu")',
-            0,
-            0,
-            array(),
-            '',
-            1 // TODO: Empty on clone
         );
 
         $extrafields->addExtraField(
@@ -340,11 +335,6 @@ class modAutoverifactu extends DolibarrModules
             '',
             'autoverifactu@autoverifactu',
             'isModEnabled("autoverifactu")',
-            0,
-            0,
-            array(),
-            '',
-            1 // TODO: Empty on clone
         );
 
         $extrafields->addExtraField(
@@ -366,11 +356,6 @@ class modAutoverifactu extends DolibarrModules
             '',
             'autoverifactu@autoverifactu',
             'isModEnabled("autoverifactu")',
-            0,
-            0,
-            array(),
-            '',
-            1 // TODO: Empty on clone
         );
 
         // Permissions

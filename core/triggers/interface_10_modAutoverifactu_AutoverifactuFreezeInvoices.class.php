@@ -92,6 +92,16 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
         // TODO: Handle donations.
         // As far as i know, they have to be declared as invoices to the AEAT, it isn't?
         switch ($action) {
+            case 'BILL_CREATE':
+                if (isset($object->context['createfromclone'])) {
+                    $object->array_options['options_verifactu_tms'] = null;
+                    $object->array_options['options_verifactu_hash'] = null;
+                    $object->array_options['options_verifactu_error'] = null;
+
+                    return $object->insertExtraFields();
+                }
+
+                break;
             case 'BILL_CANCEL':
                 $trigger = $_GET['action'] ?? '';
                 $facid = $_GET['facid'] ?? INF;
