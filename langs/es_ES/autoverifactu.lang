@@ -15,8 +15,8 @@ ModuleAutoverifactuDesc = Descripción de Auto-Veri*Factu
 #
 # Setup page
 #
-AutoVerifactuSetup = Configuración de Auto-Veri*Factu
-AutoVerifactuSetupPage = Pagina de configuración de Auto-Veri*Factu
+AutoverifactuSetup = Configuración de Auto-Veri*Factu
+AutoverifactuSetupPage = Pagina de configuración de Auto-Veri*Factu
 COMPANY_SECTION_TITLE = Empresa/Organización
 SYSTEM_SECTION_TITLE = Sistema
 AUTOVERIFACTU_ENABLED = Veri*Factu habilitado
@@ -45,7 +45,8 @@ UploadCertificate = Sube tu cirtificado
 #
 # Autodeclaration page
 #
-AutoVerifactuAutodeclaration = Declaración responsable
+AutoverifactuAutodeclaration = Declaración responsable
+AutoverifactuAutodeclarationPage = Encuentra aquí la declaración responsable del módulo Auto-Verri*Factu
 Draft = Borrador
 
 #

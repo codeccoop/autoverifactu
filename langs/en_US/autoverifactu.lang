@@ -15,8 +15,8 @@ ModuleAutoverifactuDesc = Auto Verifactu description
 #
 # Setup page
 #
-AutoVerifactuSetup = Auto-Veri*Factu setup
-AutoVerifactuSetupPage = Auto-Veri*Factu setup page
+AutoverifactuSetup = Auto-Veri*Factu setup
+AutoverifactuSetupPage = Auto-Veri*Factu setup page
 COMPANY_SECTION_TITLE = Company/Organization
 SYSTEM_SECTION_TITLE = System
 AUTOVERIFACTU_ENABLED = Veri*Factu enabled
@@ -45,7 +45,8 @@ UploadCertificate = Upload your certificate
 #
 # Autodeclaration page
 #
-AutoVerifactuAutodeclaration = Responsable declaration
+AutoverifactuAutodeclaration = Responsable declaration
+AutoverifactuAutodeclarationPage = Find here the reponsable declaration for the Auto-Veri*Factu module
 Draft = Borrador
 
 #

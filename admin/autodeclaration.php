@@ -78,7 +78,7 @@ $action = null;
 $form = new Form($db);
 
 $help_url = '';
-$title = 'AutoVerifactuAutodeclaration';
+$title = 'AutoverifactuAutodeclaration';
 
 llxHeader('', $langs->trans($title), $help_url, '', 0, 0, '', '', '', 'mod-autoverifactu page-admin_autodeclaration');
 
@@ -89,7 +89,17 @@ echo load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 
 // Configuration header
 $head = autoverifactuAdminPrepareHead();
-echo dol_get_fiche_head($head, 'autodeclaration', $langs->trans($title), 0, 'autoverifactu@autoverifactu');
+
+echo dol_get_fiche_head(
+    $head,
+    'autodeclaration',
+    $langs->trans($title),
+    0,
+    'autoverifactu@autoverifactu'
+);
+
+// Autodeclaration page goes here
+echo '<span class="opacitymedium">' . $langs->trans('AutoverifactuAutodeclarationPage') . '</span><br><br>';
 
 $responsability = getDolGlobalString('AUTOVERIFACTU_RESPONSABILITY');
 ?>

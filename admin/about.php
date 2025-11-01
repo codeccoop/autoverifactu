@@ -64,7 +64,17 @@ echo load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 
 // Configuration header
 $head = autoverifactuAdminPrepareHead();
-echo dol_get_fiche_head($head, 'about', $langs->trans($title), 0, 'autoverifactu@autoverifactu');
+
+echo dol_get_fiche_head(
+    $head,
+    'about',
+    $langs->trans($title),
+    0,
+    'autoverifactu@autoverifactu'
+);
+
+// About page goes here
+echo '<span class="opacitymedium">' . $langs->trans('AutoverifactuAboutPage') . '</span><br><br>';
 
 dol_include_once('/autoverifactu/core/modules/modAutoverifactu.class.php');
 $tmpmodule = new modAutoverifactu($db);
