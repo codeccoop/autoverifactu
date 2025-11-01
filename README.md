@@ -46,3 +46,5 @@ Una vez cumplidos los requisitos, podrás activar el Auto-Veri\*Factu. **Ten en 
 ## Hoja de ruta
 
 1. Soporte para el módulo _Multi Company_. Por ahora, **Auto Veri\*Factu no permite su uso en entornos multi compañía**.
+2. Las facturas se vuelven inmutables una vez validadas, pero en ocasiones, la API de Veri\*Factu acepta facturas con errores. En estos casos, se debería poder subsanar (modificar la factura).
+3. ¿Las donaciones se han de incluir en el sistema?
