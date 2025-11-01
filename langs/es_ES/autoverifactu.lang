@@ -1,0 +1,53 @@
+# Translation file
+
+#
+# Generic
+#
+
+# Module label 'ModuleAutoverifactuName'
+ModuleAutoverifactuName = Autoverifactu
+# Module description 'ModuleverifactuDesc'
+ModuleAutoverifactuDesc = Descrición de Auto-Veri*Factu
+
+#
+# Setup page
+#
+AutoVerifactuSetup = Configuración de Auto-Veri*Factu
+Settings = Configuración
+AutoVerifactuSetupPage = Pagina de configuración de Auto-Veri*Factu
+COMPANY_SECTION_TITLE = Empresa/Organización
+SYSTEM_SECTION_TITLE = Sistema
+AUTOVERIFACTU_ENABLED = Veri*Factu habilitado
+AUTOVERIFACTU_RESPONSABILITY = Declaración responsable
+AUTOVERIFACTU_TEST_MODE = Modo de pruebas
+AUTOVERIFACTU_TEST_MODETooltip = En modo de pruebas, Auto-Veri*Factu está conectado al los endpoints del entorno de pruebas de la API de Veri*Factu
+AUTOVERIFACTU_COMPANY_NAME = Nombre
+AUTOVERIFACTU_COMPANY_NAMETooltip = Razón social de tu empresa/organización
+AUTOVERIFACTU_VAT = NIF/CIF
+AUTOVERIFACTU_VATTooltip = NIF/CIF con el que seran expedidas las facturas
+AUTOVERIFACTU_CERT = Certificado
+AUTOVERIFACTU_CERTTooltip = Ruta al fichero PKCS#12. En caso que el fichero no este presente, deberás subir el certificado electrónico de tu empresa usando el formulario de abajo. 
+AUTOVERIFACTU_PASSWORD = Contraseña del certificado
+AUTOVERIFACTU_PASSWORDTooltip = Auto-Veri*Factu solamente soporta certificados PKCS#12, el mismo formato con el que las autoridades españolas distribyen sus certificados electrónicos. Este tipo de ficheros estan encriptados con una contraseña y esta es requerida con tal de usar el certificado al autenticar Dolibarr frente a los endpoints de la AEAT.
+FISCAL_SECTION_TITLE = Fiscal
+AUTOVERIFACTU_REGIME = Régimen fiscal
+AUTOVERIFACTU_TAX = Tipo de impuesto
+AUTOVERIFACTU_DATE_VALIDATION = ¿Es obligatorio el uso de la fecha de valicación como fecha de emision de las facturas?
+AUTOVERIFACTU_DATE_VALIDATIONTooltip = La fecha de las facturas ha de coincidir con su fecha de validación. Ve a Configuración > Módulos > Facturas para cambiar el valor de la configuración.
+AUTOVERIFACTU_BLOCKEDLOG_ENABLED = ¿Esta el módulo BlockedLog habilitado?
+
+#
+# Autodeclaration page
+#
+Draft = Borrador
+
+#
+# About page
+#
+About = Acerca de
+AutoverifactuAbout = Acerca de Auto-Veri*Factu
+AutoverifactuAboutPage = Pagina de información sobre Auto-Veri*Factu
+
+#
+# Autodeclaration page
+#

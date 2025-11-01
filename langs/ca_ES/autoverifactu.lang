@@ -1,0 +1,53 @@
+# Translation file
+
+#
+# Generic
+#
+
+# Module label 'ModuleAutoverifactuName'
+ModuleAutoverifactuName = Autoverifactu
+# Module description 'ModuleverifactuDesc'
+ModuleAutoverifactuDesc = Descripció d'Auto-Veri*Factu
+
+#
+# Setup page
+#
+AutoVerifactuSetup = Configuració d'Auto-Veri*Factu
+Settings = Configuración
+AutoVerifactuSetupPage = Pàgina de configuració d'Auto-Veri*Factu
+COMPANY_SECTION_TITLE = Empresa/Organització
+SYSTEM_SECTION_TITLE = Sistema
+AUTOVERIFACTU_ENABLED = Veri*Factu habilitat
+AUTOVERIFACTU_RESPONSABILITY = Declaració responsable
+AUTOVERIFACTU_TEST_MODE = Mode de proves
+AUTOVERIFACTU_TEST_MODETooltip = En mode de proves, Auto-Veri*Factu està connectat als endpoints de l'entorn de proves de les APIs de Veri*Factu.
+AUTOVERIFACTU_COMPANY_NAME = Nom
+AUTOVERIFACTU_COMPANY_NAMETooltip = Raó social de la teva empresa/organització
+AUTOVERIFACTU_VAT = NIF/CIF
+AUTOVERIFACTU_VATTooltip = NIF/CIF amb el que seran expedies les factures
+AUTOVERIFACTU_CERT = Certificat
+AUTOVERIFACTU_CERTTooltip = Ruta al fitxer PKCS#12. En cas que el fitxer no sigui present, hauràs de pujar el certificat de la teva empresa/organització fent servir el formulari d'abaix.
+AUTOVERIFACTU_PASSWORD = Contrasenya del certificat
+AUTOVERIFACTU_PASSWORDTooltip = Auto-Veri*Factu només suporta els fitxers PKCS#12, el mateix format amb que les autoritats espanyoles distribueixen els certificats electrónics. Aquest tipus de fitxers estan encriptats amb una contrasenya i aquesta es requerida de cara a fer ús del certificat a l'hora d'autenticar Dolibarr davant els endpoints de la AEAT.
+FISCAL_SECTION_TITLE = Fiscal
+AUTOVERIFACTU_REGIME = Règim fiscal
+AUTOVERIFACTU_TAX = Tipus d'import
+AUTOVERIFACTU_DATE_VALIDATION = És obligatori l'ús de a data de validació com a data d'emissió de les factures?
+AUTOVERIFACTU_DATE_VALIDATIONTooltip = La data de les factures ha de coincidir amb la seva data de validació. Ves a Configuració > Mòduls > Factures per canviar el valor de la configuració.
+AUTOVERIFACTU_BLOCKEDLOG_ENABLED = Està el mòdul BlockedLog habilitat?
+
+#
+# Autodeclaration page
+#
+Draft = Esborrany
+
+#
+# About page
+#
+About = Relatiu a
+AutoverifactuAbout = Relatiu a Auto-Veri*Factu
+AutoverifactuAboutPage = Pàgina d'informació d'Auto-Veri*Factu
+
+#
+# Autodeclaration page
+#
