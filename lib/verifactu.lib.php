@@ -418,6 +418,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 {
     global $mysoc;
 
+    $now = dol_now();
     $invoiceRef = $invoice->status > 0 ? $invoice->ref : $invoice->newref;
 
     $invoice->fetch_optionals();
@@ -475,7 +476,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
     $record->invoiceId->issuerId = $mysoc->idprof1;
     $record->invoiceId->invoiceNumber = $invoiceRef;
     $record->invoiceId->issueDate = new DateTimeImmutable(
-        date('Y-m-d H:i:s', $invoice->date),
+        date('Y-m-d H:i:s', $invoice->array_options['options_verifactu_tms'] ?: $now),
         new DateTimeZone('Europe/Madrid'),
     );
 
@@ -495,11 +496,13 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
             } elseif ($thirdparty->idprof1) {
                 $recipient->type = '04';
                 $recipient->value = $thirdparty->idprof1;
-            } else {
-                // NOTE: Autoverifactu requires thirdparty to has the idprof1 setted
-                // TODO: Where Dolibarr store passports or residence card?
-                // 03 Passport, 05 Residence, 06 Others, 07 Unregistered
-            }
+            } /* else {
+                 NOTE: Autoverifactu requires thirdparty to has the idprof1 setted. Other ID type codes are:
+                  * 03 Passport
+                  * 05 Residence
+                  * 06 Others
+                  * 07 Unregistered
+            } */
         } else {
             $recipient->name = $thirdparty->nom;
             $recipient->nif = $thirdparty->idprof1;
@@ -545,7 +548,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
         $sourceId->issuerId = $sourceInvoice->thirdparty->idprof1;
         $sourceId->invoiceNumber = $sourceInvoice->ref;
         $sourceId->issueDate = new DateTimeImmutable(
-            date('Y-m-d H:i:s', $sourceInvoice->date),
+            date('Y-m-d H:i:s', $sourceInvoice->array_options['options_verifactu_tms'] ?: $now),
             new DateTimeZone('Europe/Madrid'),
         );
 
@@ -576,16 +579,17 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
         '',
     );
 
-    $previous = autoverifactuGetPreviousValidInvoice($invoice);
+    $previous = autoverifactuGetPreviousValidInvoice($invoice, $now);
     if ($previous) {
         $record->previousInvoiceId = new stdClass();
         $record->previousInvoiceId->issuerId = $mysoc->idprof1;
         $record->previousInvoiceId->invoiceNumber = $invoiceRef;
         $record->previousInvoiceId->issueDate = new DateTimeImmutable(
-            date('Y-m-d H:i:s', $previous->date),
+            date('Y-m-d H:i:s', $previous->array_options['options_verifactu_tms']),
             new DateTimeZone('Europe/Madrid'),
         );
 
+        $previous->fetch_optionals();
         $record->previousHash = substr($previous->array_options['options_verifactu_hash'], 0, 64);
     } else {
         $record->previousInvoiceId = null;
@@ -595,9 +599,10 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
     $record->system = autoverifactuGetRecordComputerSystem();
 
     $record->hashedAt = new DateTimeImmutable(
-        date('Y-m-d H:i:s', time()),
+        date('Y-m-d H:i:s', $invoice->array_options['options_verifactu_tms'] ?: $now),
         new DateTimeZone('Europe/Madrid'),
     );
+
     $record->hash = autoverifactuCalculateRecordHash($record);
 
     global $hookmanager;
@@ -890,8 +895,8 @@ function autoverifactuCalculateRecordHash($record)
         $payload .= '&ImporteTotal=' . $record->totalAmount;
         $payload .= '&Huella=' . ($record->previousHash ?? '');
         $payload .= '&FechaHoraHusoGenRegistro=' . $record->hashedAt->format('c');
-    // Otherwise, it's a validated invoice in process to be canceled.
     } elseif ($record->type === 'anulacion') {
+        // Otherwise, it's a validated invoice in process to be canceled.
         $payload  = 'IDEmisorFacturaAnulada=' . $record->invoiceId->issuerId;
         $payload .= '&NumSerieFacturaAnulada=' . $record->invoiceId->invoiceNumber;
         $payload .= '&FechaExpedicionFacturaAnulada=' . $record->invoiceId->issueDate->format('d-m-Y');

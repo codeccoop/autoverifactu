@@ -33,7 +33,7 @@ FISCAL_SECTION_TITLE = Fiscal
 AUTOVERIFACTU_REGIME = Fiscal regime
 AUTOVERIFACTU_TAX = Tax type
 AUTOVERIFACTU_DATE_VALIDATION = Is invoice validation date mandatory?
-AUTOVERIFACTU_DATE_VALIDATIONTooltip = Invoice date has to be set to the date when it's validated
+AUTOVERIFACTU_DATE_VALIDATIONTooltip = Invoice date has to be set to the date when it's validated. Go to Setup > Modules > Invoice to change the setting value.
 AUTOVERIFACTU_BLOCKEDLOG_ENABLED = Is BlockedLog module enabled?
 
 #

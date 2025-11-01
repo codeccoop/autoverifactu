@@ -313,7 +313,12 @@ class modAutoverifactu extends DolibarrModules
             '',
             '',
             'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")'
+            'isModEnabled("autoverifactu")',
+            0,
+            0,
+            array(),
+            '',
+            1 // TODO: Empty on clone
         );
 
         $extrafields->addExtraField(
@@ -334,19 +339,24 @@ class modAutoverifactu extends DolibarrModules
             '',
             '',
             'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")'
+            'isModEnabled("autoverifactu")',
+            0,
+            0,
+            array(),
+            '',
+            1 // TODO: Empty on clone
         );
 
         $extrafields->addExtraField(
             'verifactu_tms',
-            'VerifactuDate',
-            'timestamp',
+            'VerifactuTimeStamp',
+            'int',
             1,
-            0,
+            15,
             'facture',
             0,
             0,
-            'CURRENT_TIMESTAMP',
+            '0',
             '',
             0,
             '',
@@ -355,7 +365,12 @@ class modAutoverifactu extends DolibarrModules
             '',
             '',
             'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")'
+            'isModEnabled("autoverifactu")',
+            0,
+            0,
+            array(),
+            '',
+            1 // TODO: Empty on clone
         );
 
         // Permissions

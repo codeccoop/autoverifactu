@@ -166,33 +166,24 @@ function autoverifactuInvoiceImmutableXMLPath($invoice, $type = 'alta')
 /**
  * Gets the source invoice from the fk_facture_source value.
  *
- * @param Facture Invoice object.
+ * @param Facture $invoice Invoice object.
+ * @param int $tms Validation process start timestamp.
  *
  * @return Facture|null
  */
-function autoverifactuGetPreviousValidInvoice($invoice)
+function autoverifactuGetPreviousValidInvoice($invoice, $tms = null)
 {
     global $db;
 
-    // $prevRef = $invoice->getNextNumRef($invoice, 'last');
-    // $previous = new Facture($db);
-    // $found = $previous->fetch(null, $prevRef);
-    //
-    // if ($found) {
-    //     return $previous;
-    // }
-
-    $dt = new DateTime(
-        date('Y-m-d H:i:s', $invoice->date),
-        new DateTimeZone('Europe/Madrid')
-    );
+    $timestamp = $invoice->array_options['options_verifactu_tms'] ?: $tms ?: time();
 
     $sql = 'SELECT f.rowid FROM ' . $db->prefix() . 'facture f';
     $sql .= ' LEFT JOIN ' . $db->prefix() . 'facture_extrafields fx';
     $sql .= ' ON f.rowid = fx.fk_object';
     $sql .= ' WHERE f.fk_statut > 0 AND f.type <= 3';
     $sql .= ' AND fx.verifactu_hash IS NOT null';
-    $sql .= ' AND fx.verifactu_tms < ' . $dt->format('YmdHis');
+    $sql .= ' AND fx.verifactu_tms < ' . $timestamp;
+    $sql .= ' AND fx.fk_object != ' . $invoice->id;
     $sql .= ' ORDER BY fx.verifactu_tms DESC';
 
     $result = $db->query($sql);
@@ -245,17 +236,11 @@ function autoverifactuRecordFromLog($blockedlog, $recordType = 'alta')
     $objectdata = $blockedlog->object_data;
 
     $blocked = new Facture($db);
+    $blocked->fetch($blockedlog->fk_object);
 
     $blocked->status = 1;
     $blocked->type = $objectdata->type;
     $blocked->ref = $objectdata->ref;
-    $blocked->date = $objectdata->date;
-
-    if (in_array($objectdata->type, array(1, 2))) {
-        $invoice = new Facture($db);
-        $invoice->fetch($blockedlog->fk_object);
-        $blocked->fk_facture_source = $invoice->fk_facture_source;
-    }
 
     $lines = array();
     foreach ($objectdata->invoiceline as $linedata) {
