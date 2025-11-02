@@ -375,7 +375,7 @@ class ActionsAutoverifactu extends CommonHookActions
                 $thirdparty = $object->thirdparty;
                 $valid_id = $thirdparty->idprof1 && $thirdparty->id_prof_check(1, $thirdparty);
 
-                if (!$valid_id && !$thirdparty->tva_intra) {
+                if (!$valid_id && !$thirdparty->tva_intra && !autoverifactuIsPosInvoice($object)) {
                     $label = $langs->trans('ThirdpartyIdProfRequired');
                     $button = dolGetButtonAction(
                         $label,

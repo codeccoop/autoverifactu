@@ -26,6 +26,8 @@
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
+require_once __DIR__ . '/validation.lib.php';
+
 /* Veri*Factu API URLs */
 define('VERIFACTU_BASE_URL', 'https://www1.agenciatributaria.gob.es'); // Production environment
 define('VERIFACTU_TEST_BASE_URL', 'https://prewww1.aeat.es'); // Test environment
@@ -430,7 +432,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
         case 0:
         /* Downpayment invoice */
         case 3:
-            if ($invoice->module_source === 'takepos') {
+            if (autoverifactuIsPosInvoice($invoice)) {
                 // Factura simplificada y facturas sin identificación del destinatario (Art. 6.1.D del R.D. 1619/2012).
                 $invoiceType = 'F2';
             } else {
@@ -451,7 +453,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
             // $invoiceType = 'R2';
             // Factura rectificativa (Art 80.4 de la Ley 37/1992)
             // $invoiceType = 'R3';
-            if ($invoice->module_source === 'takepos') {
+            if (autoverifactuIsPosInvoice($invoice)) {
                 // Factura rectificativa simplificada
                 $invoiceType = 'R5';
             } else {
@@ -545,10 +547,10 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
         }
 
         $sourceId = new stdClass();
-        $sourceId->issuerId = $sourceInvoice->thirdparty->idprof1;
+        $sourceId->issuerId = $mysoc->idprof1;
         $sourceId->invoiceNumber = $sourceInvoice->ref;
         $sourceId->issueDate = new DateTimeImmutable(
-            date('Y-m-d H:i:s', $sourceInvoice->array_options['options_verifactu_tms'] ?: $now),
+            date('Y-m-d H:i:s', $sourceInvoice->array_options['options_verifactu_tms']),
             new DateTimeZone('Europe/Madrid'),
         );
 

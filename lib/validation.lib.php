@@ -269,11 +269,15 @@ function autoverifactuRecordFromLog($blockedlog, $recordType = 'alta')
 
     $blocked->lines = $lines;
 
-    $blocked->thirdparty = new Societe($db);
-    $blocked->thirdparty->nom = $objectdata->thirdparty->name;
-    $blocked->thirdparty->idprof1 = $objectdata->thirdparty->idprof1;
-    $blocked->thirdparty->country_code = $objectdata->thirdparty->country_code;
-    $blocked->thirdparty->code_client = $objectdata->thirdparty->code_client;
+    if ($objectdata->thirdparty) {
+        $blocked->thirdparty = new Societe($db);
+        $blocked->thirdparty->nom = $objectdata->thirdparty->name;
+        $blocked->thirdparty->idprof1 = $objectdata->thirdparty->idprof1u ?? null;
+        $blocked->thirdparty->country_code = $objectdata->thirdparty->country_code ?? null;
+        $blocked->thirdparty->code_client = $objectdata->thirdparty->code_client;
+    } else {
+        $blocked->thirdparty = null;
+    }
 
     return autoverifactuInvoiceToRecord($blocked, $recordType);
 }
@@ -451,4 +455,32 @@ function autoverifactuIsInvoiceRecorded($invoice)
 {
     $invoice->fetch_optionals();
     return !!($invoice->array_options['options_verifactu_hash'] ?? false);
+}
+
+/**
+ * Checks if an invoices is a POS invoice, or a derived invoice from a POS invoice.
+ *
+ * @param Facture $invoice Target invoice.
+ *
+ * @return bool
+ */
+function autoverifactuIsPosInvoice($invoice)
+{
+    $is_derived = in_array(
+        $invoice->type,
+        array(
+            Facture::TYPE_REPLACEMENT,
+            Facture::TYPE_CREDIT_NOTE
+        )
+    );
+
+    if ($is_derived && $invoice->fk_facture_source) {
+        global $db;
+        $source = new Facture($db);
+        $source->fetch($invoice->fk_facture_source);
+
+        return $source->module_source === 'takepos';
+    }
+
+    return $invoice->module_source === 'takepos';
 }
