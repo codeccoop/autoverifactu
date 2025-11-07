@@ -1,6 +1,6 @@
 # Auto Veri\*Factu
 
-[![Package Versión](https://img.shields.io/badge/version-v0.0.4-f68243)](composer.json)
+[![Package Versión](https://img.shields.io/github/v/release/codeccoop/autoverifactu)](composer.json)
 [![Versión de PHP](https://img.shields.io/badge/php-%3E%3D8.2-8892BF)](composer.json)
 [![Versión de Dolibarr](https://img.shields.io/badge/dolibarr-%3E%3D20.0-263c5c)](composer.json)
 
