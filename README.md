@@ -32,7 +32,7 @@ Auto-Veri\*Factu solo podrá activarse previa generación de la auto declaració
 
 ## Instalación y activación
 
-Puedes descargarte la última versión del código desde el listado de versiones disponibles en ([GitHub 🐱](https://github.com/codeccoop/autoverifactu/releases).
+Puedes descargarte la última versión del código desde el listado de versiones disponibles en [GitHub 🐱](https://github.com/codeccoop/autoverifactu/releases).
 
 Una vez obtenido el paquete zip con el código, deberás subirlo a tu instancia de Dolibarr desde el menú `Inicio > Configuración > Módulos > Instalación de módulos externos`.
 
