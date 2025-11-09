@@ -33,6 +33,7 @@
 require_once DOL_DOCUMENT_ROOT . '/core/triggers/dolibarrtriggers.class.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
+require_once dirname(__DIR__, 2) . '/lib/autoverifactu.lib.php';
 require_once dirname(__DIR__, 2) . '/lib/verifactu.lib.php';
 require_once dirname(__DIR__, 2) . '/lib/validation.lib.php';
 
@@ -70,7 +71,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
      */
     public function runTrigger($action, $object, $user, $langs, $conf)
     {
-        if (!autoverifactuEnabled()) {
+        if (!autoverifactuEnabled() && $action !== 'USER_LOGOUT') {
             return 0;
         }
 
@@ -162,6 +163,9 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                     return -1;
                 }
 
+                break;
+            case 'USER_LOGOUT':
+                autoverifactu_set_const('AUTOVERIFACTU_DISMISSED_NOTICES', '');
                 break;
         }
 
