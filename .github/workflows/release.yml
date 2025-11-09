@@ -12,13 +12,20 @@ jobs:
   release:
     name: Release pushed tag
     runs-on: ubuntu-22.04
+    env:
+      TAG: ${{ github.ref_name }}
     steps:
+      - name: Package
+        run: |
+          mkdir autoverifactu
+          mv admin ajax class cre css img js langs lib LICENSE env.php autoverifactu
+          zip -r "autoverifactu-$TAG.zip" autoverifactu
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
         run: |
           gh release create "$TAG" \
             --repo="$GITHUB_REPOSITORY" \
             --title="$TAG" \
             --generate-notes
+            "autoverifactu-$TAG.zip"
