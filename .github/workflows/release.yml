@@ -21,7 +21,10 @@ jobs:
           path: autoverifactu
 
       - name: Package
-        run: zip -r "autoverifactu-$TAG.zip" autoverifactu
+        run: |
+          zip -r "autoverifactu-$TAG.zip" autoverifactu \
+            -x "autoverifactu/.*" \
+            -x "autoverifactu/composer.*
 
       - name: Create release
         env:
