@@ -349,7 +349,7 @@ function autoverifactuEnabled()
     $enabled = getDolGlobalInt('AUTOVERIFACTU_ENABLED');
 
     if (!$check && $enabled) {
-        dolibarr_set_const('AUTOVERIFACTU_ENABLED', false);
+        autoverifactu_set_const('AUTOVERIFACTU_ENABLED', false);
     }
 
     return $check && $enabled;
