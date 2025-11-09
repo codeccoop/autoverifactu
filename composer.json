@@ -5,6 +5,7 @@
     "php": ">=8.0"
   },
   "require-dev": {
-    "caprel/dolibarr-stubs": "^18.0"
+    "caprel/dolibarr-stubs": "^18.0",
+    "squizlabs/php_codesniffer": "^3.13"
   }
 }
