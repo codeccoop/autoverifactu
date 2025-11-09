@@ -1,4 +1,4 @@
-# Auto Veri\*Factu
+# Auto-Veri\*Factu
 
 [![Package Versión](https://img.shields.io/github/v/release/codeccoop/autoverifactu)](composer.json)
 [![Versión de PHP](https://img.shields.io/badge/php-%3E%3D8.2-8892BF)](composer.json)
