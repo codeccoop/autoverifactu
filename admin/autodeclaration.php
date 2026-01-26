@@ -113,7 +113,7 @@ $responsability = getDolGlobalString('AUTOVERIFACTU_RESPONSABILITY');
         <?php echo $autodeclaration ?>
     </div>
 <?php } else {
-    echo autoverifactuDeclarationTemplate();
+    echo autoverifactuDeclarationRenderedTemplate();
 } ?>
 </div>
 <div style="margin-top: 1rem">
