@@ -355,6 +355,7 @@ class ActionsAutoverifactu extends CommonHookActions
             if (
                 $object->status > Facture::STATUS_DRAFT
                 && in_array($action, array('modif', 'reopen', 'delete'), true)
+                && !empty($parameters['userRight'])
             ) {
                 $label = $langs->trans('DisabledBy');
 
@@ -375,8 +376,14 @@ class ActionsAutoverifactu extends CommonHookActions
                 $thirdparty = $object->thirdparty;
                 $valid_id = $thirdparty->idprof1 && $thirdparty->id_prof_check(1, $thirdparty);
 
-                if (!$valid_id && !$thirdparty->tva_intra && !autoverifactuIsPosInvoice($object)) {
+                if (
+                    !$valid_id
+                    && !$thirdparty->tva_intra
+                    && !autoverifactuIsPosInvoice($object)
+                    && !empty($parameters['userRight'])
+                ) {
                     $label = $langs->trans('ThirdpartyIdProfRequired');
+
                     $button = dolGetButtonAction(
                         $label,
                         $parameters['html'],
@@ -393,7 +400,36 @@ class ActionsAutoverifactu extends CommonHookActions
 
                 $object->fetch_lines();
 
-                if (count($object->lines) > 12) {
+                if (count($object->lines) > 12 && !empty($parameters['userRight'])) {
+                    $label = $langs->trans('MaxInvoiceLines');
+                    $button = dolGetButtonAction(
+                        $label,
+                        $parameters['html'],
+                        $parameters['actionType'],
+                        '',
+                        $parameters['id'],
+                        0,
+                        $parameters['params']
+                    );
+
+                    $this->resprints = $button;
+                    return 1;
+                }
+            }
+        } elseif ($object->element === 'propal' && autoverifactuEnabled()) {
+            $url = parse_url($parameters['url']);
+            parse_str($url['query'] ?? '', $query);
+
+            $action = $query['action'] ?? null;
+
+            if (
+                $object->status === Propal::STATUS_SIGNED
+                && $action === 'create'
+                && strpos('/facture/', $url['path'])
+            ) {
+                $object->fetch_lines();
+
+                if (count($object->lines) > 12 && !empty($parameters['userRight'])) {
                     $label = $langs->trans('MaxInvoiceLines');
                     $button = dolGetButtonAction(
                         $label,
