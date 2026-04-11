@@ -41,6 +41,9 @@ YouComanyName = Your company name
 YourCompanyVat = Your company VAT number
 PK12_PATH = path/to/your/certificate.p12
 UploadCertificate = Upload your certificate
+ADVANCED_SECTION_TITLE = Advaned
+AUTOVERIFACTU_SPLIT_INVOICES = Automatically split invoices when maximum number of lines for invoice is reached
+AUTOVERIFACTU_SPLIT_INVOICESTooltip = During invoice generation based on related documents (quotation, order, contract, etc.), if the original document exceeds the maximum number of allowed invoice lines by Veri*Factu, it will be splitted into multiple invoices, each adhering to the line limit.
 
 #
 # Autodeclaration page

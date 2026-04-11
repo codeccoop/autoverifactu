@@ -75,13 +75,15 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
             return 0;
         }
 
+        static $context;
+
         /**
          * Tracked invoices types:
          *   0: Default ✓
          *   1: Replacement ✓
          *   2: Credit note ✓
          *   3: Down payment ✓
-         *   4: Progorma ✕
+         *   4: Proforma ✕
          *   5: Situation ✕
          *
          * Invoice status:
@@ -100,7 +102,69 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                     $object->array_options['options_verifactu_hash'] = null;
                     $object->array_options['options_verifactu_error'] = null;
 
-                    return $object->insertExtraFields();
+                    $result = $object->insertExtraFields();
+                    if ($result < 0) {
+                        return $result;
+                    }
+                }
+
+                if (!$context) {
+                    $context = new stdClass;
+                    $context->invoice = $object;
+                }
+
+                if (
+                    $object->origin
+                    && $object->origin_id
+                    && getDolGlobalInt('AUTOVERIFACTU_SPLIT_INVOICES')
+                ) {
+                    global $db, $user;
+
+                    if (isset($context->origin) && $context->origin->element === $object->origin) {
+                        return;
+                    }
+
+                    if ($object->origin === 'propal') {
+                        dol_include_once('/comm/propal/class/propal.class.php');
+                        $sourceObject = new Propal($db);
+                    } elseif ($object->origin_type === 'order') {
+                        dol_include_once('/commande/class/commande.class.php');
+                        $sourceObject = new Commande($db);
+                    } elseif ($object->origin_type === 'contract') {
+                        dol_include_once('/contrat/class/contrat.class.php');
+                        $sourceObject = new Contrat($db);
+                    }
+
+                    $sourceObject->fetch($object->origin_id);
+                    $sourceObject->fetch_lines();
+
+                    $context->origin = $sourceObject;
+
+                    $sourceLines = count($sourceObject->lines);
+                    if ($sourceLines > 12) {
+                        $context->splitInvoice = true;
+
+                        $sourceLines -= 12;
+
+                        while ($sourceLines >= 0) {
+                            $siblingId = $object->createFromCurrent($user);
+                            if ($siblingId < 0) {
+                                return $siblingId;
+                            }
+
+                            $result = $object->add_object_linked('facture', $siblingId);
+                            if ($result < 0) {
+                                return $result;
+                            }
+
+                            $result = $sourceObject->add_object_linked('facture', $siblingId);
+                            if ($result < 0) {
+                                return $result;
+                            }
+
+                            $sourceLines -= 12;
+                        }
+                    }
                 }
 
                 break;
@@ -121,6 +185,13 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 return $result;
             case 'BILL_VALIDATE':
             // case 'DON_VALIDATE':
+                $object->fetch_lines();
+                if (is_array($object->lines) && count($object->lines) > 12) {
+                    dol_syslog('Veri*Factu bans invoices with more than 12 lines');
+                    $this->errors[] = $langs->trans('MaxInvoiceLines');
+                    return -1;
+                }
+
                 $result = autoverifactuRegisterInvoice($object, $action);
 
                 if ($result < 0) {
@@ -165,16 +236,59 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
 
                 break;
             case 'LINEBILL_INSERT':
-                global $db;
-                $facture = new Facture($db);
-                $facture->fetch($object->fk_facture);
+                global $db, $mysoc;
+
+                $facture = $context->invoice ?? null;
+
+                if (!$facture) {
+                    $facture = new Facture($db);
+                    $facture->fetch($object->fk_facture);
+                }
+
                 $facture->fetch_lines();
 
-                if (is_array($facture->lines) && count($facture->lines) > 12) {
-                    dol_syslog('Veri*Factu bans invoices with more than 12 lines');
-                    $this->errors[] = $langs->trans('MaxInvoiceLines');
-                    return -1;
+                if (count($facture->lines) > 12) {
+                    if (isset($context->splitInvoice) && $context->splitInvoice) {
+                        $result = $facture->fetchObjectLinked();
+                        if ($result < 0) {
+                            $this->errors[] = $langs->trans('FetchSplittedInvoicesError');
+                            return $result;
+                        }
+
+                        $linkedInvoices = $facture->linkedObjects['facture'] ?? array();
+                        foreach ($linkedInvoices as $candidate) {
+                            $candidate->fetch_lines();
+
+                            if (count($candidate->lines) < 12) {
+                                $linkedInvoice = $candidate;
+                            }
+                        }
+
+                        if (!isset($linkedInvoice)) {
+                            $this->errors[] = $langs->trans('MaxInvoiceLinesError');
+                            return -1;
+                        }
+
+                        $result = $object->delete(null, 1);
+                        if ($result < 0) {
+                            $this->errors[] = $langs->trans('SplitInvoiceLinesError');
+                            return -1;
+                        }
+
+                        $object->fk_facture = $linkedInvoice->id;
+                        $result = $object->insert($user, 1);
+                        if ($result < 0) {
+                            $this->errors[] = $langs->trans('SplitInvoiceLinesError');
+                            return -1;
+                        }
+
+                        $linkedInvoice->update_price(1, 'auto', 0, $mysoc);
+                    } else {
+                        dol_syslog('Veri*Factu bans invoices with more than 12 lines');
+                        setEventMessage($langs->trans('MaxInvoiceLinesWarn'), 'warnings');
+                    }
                 }
+
                 break;
             case 'LINEPROPAL_INSERT':
             case 'LINEORDER_INSERT':

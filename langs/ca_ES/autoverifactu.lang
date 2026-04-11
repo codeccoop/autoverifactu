@@ -41,6 +41,9 @@ YouComanyName = Raó social
 YourCompanyVat = NIF/CIF
 PK12_PATH = ruta/al/teu/certificat.p12
 UploadCertificate = Puja el teu certificat
+ADVANCED_SECTION_TITLE = Avançat
+AUTOVERIFACTU_SPLIT_INVOICES = Generar múltiples factures automàticament en superar el límit de línies
+AUTOVERIFACTU_SPLIT_INVOICESTooltip = Durant la generació de factures en base a documents relacionats (pressupost, comanda, contracte, etc.), en cas que el document original super el nombre màxim de línies de factura permeses per Veri*Factu, es generaran múltiples factures automàticament respectant el límit de línies per cadascuna.
 
 #
 # Autodeclaration page

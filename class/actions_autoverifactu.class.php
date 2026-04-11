@@ -416,35 +416,6 @@ class ActionsAutoverifactu extends CommonHookActions
                     return 1;
                 }
             }
-        } elseif ($object->element === 'propal' && autoverifactuEnabled()) {
-            $url = parse_url($parameters['url']);
-            parse_str($url['query'] ?? '', $query);
-
-            $action = $query['action'] ?? null;
-
-            if (
-                $object->status === Propal::STATUS_SIGNED
-                && $action === 'create'
-                && strpos('/facture/', $url['path'])
-            ) {
-                $object->fetch_lines();
-
-                if (count($object->lines) > 12 && !empty($parameters['userRight'])) {
-                    $label = $langs->trans('MaxInvoiceLines');
-                    $button = dolGetButtonAction(
-                        $label,
-                        $parameters['html'],
-                        $parameters['actionType'],
-                        '',
-                        $parameters['id'],
-                        0,
-                        $parameters['params']
-                    );
-
-                    $this->resprints = $button;
-                    return 1;
-                }
-            }
         }
     }
 
