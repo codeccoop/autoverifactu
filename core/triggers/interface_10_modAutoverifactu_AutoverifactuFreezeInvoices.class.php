@@ -127,12 +127,22 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                     if ($object->origin === 'propal') {
                         dol_include_once('/comm/propal/class/propal.class.php');
                         $sourceObject = new Propal($db);
-                    } elseif ($object->origin_type === 'order') {
+                    } elseif ($object->origin_type === 'order' || $object->origin_type === 'commande') {
                         dol_include_once('/commande/class/commande.class.php');
                         $sourceObject = new Commande($db);
-                    } elseif ($object->origin_type === 'contract') {
+                    } elseif ($object->origin_type === 'contrat' || $object->origin_type === 'contract') {
                         dol_include_once('/contrat/class/contrat.class.php');
                         $sourceObject = new Contrat($db);
+                    } elseif ($object->origin_type === 'shipping') {
+                        dol_include_once('/expedition/class/expedition.class.php');
+                        $sourceObject = new Expedition($db);
+                    } elseif ($object->origin_type === 'fichinter') {
+                        dol_include_once('/fichinter/class/fichinter.class.php');
+                        $sourceObject = new Fichinter($db);
+                    }
+
+                    if (!isset($sourceObject)) {
+                        return;
                     }
 
                     $sourceObject->fetch($object->origin_id);
@@ -303,9 +313,9 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 break;
             case 'LINEPROPAL_INSERT':
             case 'LINEORDER_INSERT':
-            case 'LINESUPPLIER_PROPOSAL_INSERT':
             case 'LINECONTRACT_INSERT':
-            // case 'LINEFICHINTER_CREATE':
+            case 'LINEFICHINTER_CREATE':
+            case 'LINESHIPPING_INSERT':
                 if (!getDolGlobalInt('AUTOVERIFACTU_SPLIT_INVOICES')) {
                     setEventMessage($langs->trans('MaxEntityLinesWarn'), 'warnings');
                 }
