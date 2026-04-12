@@ -124,6 +124,11 @@ class modAutoverifactu extends DolibarrModules
             'hooks' => array(
                 'admincompany',
                 'invoicecard',
+                'propalcard',
+                'ordercard',
+                'contractcard',
+                'interventioncard',
+                'expeditioncard',
                 'pdfgeneration',
             ),
             /* END MODULEBUILDER HOOKSCONTEXTS */

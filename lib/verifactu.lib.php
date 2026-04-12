@@ -304,8 +304,8 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
 
     curl_setopt($ch, CURLOPT_POSTFIELDS, $envelope);
     $res = curl_exec($ch);
-    error_log('# RESPUESTA ALTA REGISTRO');
-    error_log($res);
+    dol_syslog('# RESPUESTA ALTA REGISTRO', LOG_DEBUG);
+    dol_syslog($res, LOG_DEBUG);
 
     if ($res === false) {
         $error = curl_error($ch);
@@ -324,21 +324,24 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
     $faults = $doc->getElementsByTagName('Fault');
 
     if ($faults->count() > 0) {
-        error_log($envelope);
+        dol_syslog('# REJECTED SOAP ENVELOPE', LOG_DEBUG);
+        dol_syslog($envelope, LOG_DEBUG);
         throw new Exception($res, 400);
     }
 
     $status = $doc->getElementsByTagName('EstadoRegistro')[0];
 
     if ($status->nodeValue === 'Incorrecto') {
-        error_log($envelope);
+        dol_syslog('# REJECTED SOAP ENVELOPE', LOG_DEBUG);
+        dol_syslog($envelope, LOG_DEBUG);
         throw new Exception($res, 400);
     } elseif ($status->nodeValue === 'AceptadoConErrores') {
         $errCode = $doc->getElementsByTagName('CodigoErrorRegistro')[0] ?? null;
         $errMessage = $doc->getElementsByTagName('DescripcionErrorRegistro')[0] ?? null;
 
         if (!$errMessage || !$errCode) {
-            error_log($envelope);
+            dol_syslog('# REJECTED SOAP ENVELOPE', LOG_DEBUG);
+            dol_syslog($envelope, LOG_DEBUG);
             throw new Exception($res, 500);
         }
 
@@ -428,10 +431,8 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
     $thirdparty = $invoice->thirdparty;
 
     switch ($invoice->type) {
-        /* Standard invoice */
-        case 0:
-        /* Downpayment invoice */
-        case 3:
+        case Facture::TYPE_STANDARD:
+        case Facture::TYPE_DEPOSIT:
             if (autoverifactuIsPosInvoice($invoice)) {
                 // Factura simplificada y facturas sin identificación del destinatario (Art. 6.1.D del R.D. 1619/2012).
                 $invoiceType = 'F2';
@@ -443,10 +444,8 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
             // Factura emitida en sustitución de facturas simplificadas facturadas y declaradas.
             // $invoiceType = 'F3';
             break;
-        /* Replacement invoice */
-        case 1:
-        /* Credit notes */
-        case 2:
+        case Facture::TYPE_REPLACEMENT:
+        case Facture::TYPE_CREDIT_NOTE:
             // Factura rectificativa (Art 80.1 y 80.2 de la Ley 37/1992)
             // $invoiceType = 'R1';
             // Factura rectificativa por impago (Art 80.3 de la Ley 37/1992)

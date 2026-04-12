@@ -41,6 +41,9 @@ YouComanyName = Raó social
 YourCompanyVat = NIF/CIF
 PK12_PATH = ruta/al/teu/certificat.p12
 UploadCertificate = Puja el teu certificat
+ADVANCED_SECTION_TITLE = Avançat
+AUTOVERIFACTU_SPLIT_INVOICES = Generar múltiples factures automàticament en superar el límit de línies
+AUTOVERIFACTU_SPLIT_INVOICESTooltip = Durant la generació de factures en base a documents relacionats (pressupost, comanda, contracte, etc.), en cas que el document original super el nombre màxim de línies de factura permeses per Veri*Factu, es generaran múltiples factures automàticament respectant el límit de línies per cadascuna.
 
 #
 # Autodeclaration page
@@ -77,6 +80,11 @@ RecordCreationFail = La creació del registre de factura Veri*Factu ha fallat
 ValidatedNotEditable = Les facutres validades no són editables
 ValidatedNotDeletable = Les facutres validades no es poden esborar
 ValidatedNotModifiable = Les factures validades no es poden modificar
+SplitInvoiceError = S'ha produït un error al fraccionar una factura amb més de 12 línies en múltiples factures parcials relacionades
+FetchSplitInvoicesError = S'ha produït un error al carregar la relació de factures parcials derivades del fraccionament d'una factura amb més de 12 línies
+MaxInvoiceLinesError = <b>Veri*Factu no permet factures amb més de 12 línies</b>. Agrupa línies per concepte o codi CNAE, o emet factures parcials si l'agrupació no és possible
+MaxInvoiceLinesWarn = <b>Veri*Factu no permet factures amb més de 12 línies. Una factura amb més de 12 línies no podrà ser validada.</b> Agrupa línies per concepte o codi CNAE, o emet factures parcials si l'agrupació no és possible
+MaxEntityLinesWarn = <b>Veri*Factu no permet factures amb més de 12 línies.</b> Les factures generades a partir d'aquesta document no podran ser validades sense aplicar-hi una agrupació de les línies de factura.
 
 #
 # Buttons
@@ -84,7 +92,8 @@ ValidatedNotModifiable = Les factures validades no es poden modificar
 CheckIntegrity = Comprova la integritat Veri*Factu
 DisabledBy = Deshabilitat per Veri*Factu
 UpdateDisabledBy = Actualització deshabilitada per Veri*Factu
-ThirpartyIdProfRequired = Veri*Factu requereix que els destinataris de les factures disposin d'un NIF/CIF vàlid 
+ThirdpartyIdProfRequired = Veri*Factu requereix que els destinataris de les factures disposin d'un NIF/CIF vàlid 
+MaxInvoiceLines = Veri*Factu no permet factures amb més de 12 línies
 
 #
 # Autodeclaration page

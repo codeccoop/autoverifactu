@@ -69,8 +69,6 @@ if (!$user->admin) {
  * View
  */
 
-dol_syslog("Call ajax autoverifactu/ajax/dismiss_notice.php");
-
 top_httphead();
 
 $dismissed = getDolGlobalString('AUTOVERIFACTU_DISMISSED_NOTICES', '');

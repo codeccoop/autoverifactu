@@ -41,6 +41,9 @@ YouComanyName = Your company name
 YourCompanyVat = Your company VAT number
 PK12_PATH = path/to/your/certificate.p12
 UploadCertificate = Upload your certificate
+ADVANCED_SECTION_TITLE = Advaned
+AUTOVERIFACTU_SPLIT_INVOICES = Automatically split invoices when maximum number of lines for invoice is reached
+AUTOVERIFACTU_SPLIT_INVOICESTooltip = During invoice generation based on related documents (quotation, order, contract, etc.), if the original document exceeds the maximum number of allowed invoice lines by Veri*Factu, it will be splitted into multiple invoices, each adhering to the line limit.
 
 #
 # Autodeclaration page
@@ -77,6 +80,11 @@ RecordCreationFail = Veri*Factu invoice record creation has failed
 ValidatedNotEditable = Validated invoices are not editables
 ValidatedNotDeletable = Validated invoices can't be deleted
 ValidatedNotModifiable = Validated invoices can't be modified
+SplitInvoiceError = An error occurred while splitting an invoice with more than 12 lines into multiple related partial invoices
+FetchSplitInvoicesError = An error occurred while loading the relation of partial invoices derived from the splitting of an invoice with more than 12 lines
+MaxInvoiceLinesError = <b>Veri*Factu does not allow invoices with more than 12 lines.</b> Try to merge lines by concept or CNAE code, or emit partial invoices if line merging is not possible
+MaxInvoiceLinesError = <b>Veri*Factu does not allow invoices with more than 12 lines. An invoice with more than 12 lines could not be validated.</b> Try to merge lines by concept or CNAE code, or emit partial invoices if line merging is not possible
+MaxEntityLinesError = <b>Veri*Factu does not allow invoices with more than 12 lines.</b> The invoices generated from this document could not be validated without merging its invoice lines.
 
 #
 # Buttons
@@ -84,7 +92,8 @@ ValidatedNotModifiable = Validated invoices can't be modified
 CheckIntegrity = Check Veri*Factu integrity
 DisabledBy = Disabled by Veri*Factu
 UpdateDisabledBy = Update disabled by Veri*Factu
-ThirpartyIdProfRequired = Veri*Factu requires invoice third parties to have a valid professional ID
+ThirdpartyIdProfRequired = Veri*Factu requires invoice third parties to have a valid professional ID
+MaxInvoiceLines = Veri*Factu does not allow invoices with more than 12 lines
 
 #
 # Autodeclaration page

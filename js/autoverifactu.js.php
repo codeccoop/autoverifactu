@@ -89,6 +89,10 @@ if (!$testMode && ($index = array_search('TESTMODE', $dismissed, true)) !== fals
 }
 
 if (count($drop)) {
+    $dismissed = array_filter($dismissed, function ($tag) use ($drop) {
+        return !in_array($tag, $drop, true);
+    });
+
     autoverifactu_set_const(
         'AUTOVERIFACTU_DISMISSED_NOTICES',
         implode(',', array_filter(array_map('trim', $dismissed))),
