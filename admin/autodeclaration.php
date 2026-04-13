@@ -117,7 +117,7 @@ $responsability = getDolGlobalString('AUTOVERIFACTU_RESPONSABILITY');
 } ?>
 </div>
 <div style="margin-top: 1rem">
-    <form id="autodeclarationForm" action="/custom/autoverifactu/admin/autodeclaration.php?token=<?php echo newToken() ?>" method="POST">
+    <form id="autodeclarationForm" action="<?php echo rtrim(DOL_URL_ROOT, '/') ?>/custom/autoverifactu/admin/autodeclaration.php?token=<?php echo newToken() ?>" method="POST">
         <input type="hidden" name="autodeclaration" />
         <div class="form-setup-button-container">
             <?php if ($responsability) : ?>
