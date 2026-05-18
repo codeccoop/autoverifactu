@@ -78,7 +78,7 @@ class modAutoverifactu extends DolibarrModules
         $this->editor_squarred_logo = 'logo-codec.png@autoverifactu';                   // Must be image filename into the module/img directory followed with @modulename. Example: 'myimage.png@autoverifactu'
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated', 'experimental_deprecated' or a version string like 'x.y.z'
-        $this->version = '0.0.10';
+        $this->version = '0.0.11';
         // Url to the file with your last numberversion of this module
         //$this->url_last_version = 'http://www.example.com/versionmodule.txt';
 
@@ -357,6 +357,86 @@ class modAutoverifactu extends DolibarrModules
             '',
             0,
             '',
+            '',
+            '',
+            'autoverifactu@autoverifactu',
+            'isModEnabled("autoverifactu")',
+        );
+        //nuevos campos  
+        // tipo de impuesto
+        $extrafields->addExtraField(
+            'verifactu_Tax_Type',
+            'VerifactuTaxType',
+            'select',
+            1,
+            2,
+            'facturedet',
+            0,
+            0,
+            'S1',
+            array(
+                'options' => array(
+                    'S1' => 'Operación Sujeta y No exenta - Sin inversión del sujeto pasivo.',
+                    'S2' => 'Operación Sujeta y No exenta - Con Inversión del sujeto pasivo.',
+                    'N1' => 'Operación No Sujeta artículo 7, 14, otros.',
+                    'N2' => 'Operación No Sujeta por Reglas de localización.',
+                ),
+            ),
+            0,
+            '',
+            '3',
+            'Se corresponde con el valor del campo CalificacionOperacion y es la clave de la operación sujeta y no exenta o de la operación no sujeta. Los valores que puede tener están relacionados con los de la lista L9',
+            '',
+            '',
+            'autoverifactu@autoverifactu',
+            'isModEnabled("autoverifactu")',
+        );
+        //Tipos de exención
+        $extrafields->addExtraField(
+            'verifactu_Tax_Exception',
+            'VerifactuTaxException',
+            'select',
+            1,
+            2,
+            'facturedet',
+            0,
+            0,
+            '',
+            array(
+                'options' => array(
+                    'E1' => 'Exenta por el artículo 20.',
+                    'E2' => 'Exenta por el artículo 21.',
+                    'E3' => 'Exenta por el artículo 22.',
+                    'E4' => 'Exenta por los artículos 23 y 24.',
+                    'E5' => 'Exenta por el artículo 25.',
+                    'E6' => 'Exenta por otros.',
+                ),
+            ),
+            0,
+            '',
+            '3',
+            'Se corresponde con el valor del campo CalificacionOperacion y es la clave de la operación sujeta y no exenta o de la operación no sujeta. Los valores que puede tener están relacionados con los de la lista L9',
+            '',
+            '',
+            'autoverifactu@autoverifactu',
+            'isModEnabled("autoverifactu")',
+        );
+        // Fecha de operación
+        $extrafields->addExtraField(
+            'verifactu_date_operation',
+            'VerifactuDateOperation',
+            'date',
+            1,
+            2,
+            'facture',
+            0,
+            0,
+            '',
+            '',
+            0,
+            '',
+            '3',
+            'Es la fecha en la que se produce el devengo del impuesto',
             '',
             '',
             'autoverifactu@autoverifactu',

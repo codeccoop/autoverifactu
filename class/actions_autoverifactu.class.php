@@ -103,9 +103,9 @@ class ActionsAutoverifactu extends CommonHookActions
                     } elseif ($result < 0) {
                         $this->errors[] = $langs->trans('InconsistentInvoiceData');
                     }
-
+                    //url de verificacion en casp de test ou production
                     $testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
-                    $base_url = $testMode ? VERIFACTU_TEST_BASE_URL : VERIFACTU_BASE_URL;
+                    $base_url = $testMode ? VERIFACTU_TEST_VERIFICACION_BASE_URL : VERIFACTU_BASE_URL;
                     $endpoint = '/wlpl/TIKE-CONT/ValidarQR';
                     $query = http_build_query(array(
                         'nif' => $mysoc->idprof1,
@@ -129,6 +129,7 @@ class ActionsAutoverifactu extends CommonHookActions
 
                     $res = curl_exec($ch);
 
+
                     if ($res === false) {
                         $this->errors[] = $langs->trans('CollationRequestError');
                     } else {
@@ -140,7 +141,9 @@ class ActionsAutoverifactu extends CommonHookActions
                             if ($data->mensaje) {
                                 $this->errors[] = $data->mensaje;
                             }
-                        } elseif ($data->mensaje !== 'Factura encontrada') {
+                        } elseif ( !($data->mensaje === 'Factura encontrada' || 
+                                    $data->mensaje ==="Encontrada" )
+                            ) {
                             $this->errors[] = $langs->trans('NotPubliclyRegistered');
                         }
                     }
@@ -235,7 +238,12 @@ class ActionsAutoverifactu extends CommonHookActions
         ) {
             $pdf = &$parameters['pdf'];
 
-            $base_url = VERIFACTU_BASE_URL;
+            //url de verificacion en casp de test ou production
+            $testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
+
+            $base_url = $testMode ? VERIFACTU_TEST_VERIFICACION_BASE_URL : VERIFACTU_BASE_URL;
+                    
+   
             $endpoint = '/wlpl/TIKE-CONT/ValidarQR';
             $query = http_build_query(array(
                 'nif' => $mysoc->idprof1,

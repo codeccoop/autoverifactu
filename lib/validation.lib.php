@@ -33,6 +33,10 @@ require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
 
 require_once __DIR__ . '/verifactu.lib.php';
+require_once __DIR__ . '/validate.lib.php';
+
+
+
 
 /**
  * Compare the invoice record hash with the hash of the record from the immutable log.
@@ -43,7 +47,12 @@ require_once __DIR__ . '/verifactu.lib.php';
  */
 function autoverifactuIntegrityCheck($invoice)
 {
+
+
+   
+
     $blockedlog = autoverifactuFetchBlockedLog($invoice);
+
 
     if (!$blockedlog) {
         return 0;
@@ -54,8 +63,13 @@ function autoverifactuIntegrityCheck($invoice)
         return -1;
     }
 
+
+
     $record = autoverifactuInvoiceToRecord($invoice);
+
+    
     $immutable = autoverifactuRecordFromLog($blockedlog);
+
 
     if (!$record || !$immutable) {
         return -1;
@@ -248,28 +262,39 @@ function autoverifactuGetSourceInvoice($invoice)
 function autoverifactuRecordFromLog($blockedlog, $recordType = 'alta')
 {
     global $db;
-
+        
     $objectdata = $blockedlog->object_data;
 
     $blocked = new Facture($db);
     $blocked->fetch($blockedlog->fk_object);
+
+
 
     $blocked->status = 1;
     $blocked->type = $objectdata->type;
     $blocked->ref = $objectdata->ref;
 
     $lines = array();
-    foreach ($objectdata->invoiceline as $linedata) {
+    
+    $extrafields = new ExtraFields($db);
+    $extralabels = $extrafields->fetch_name_optionals_label('facturedet');
+ 
+
+
+
+    foreach ($objectdata->invoiceline as $indice => $linedata) {
         $line = new FactureLigne($db);
         $line->tva_tx = $linedata->tva_tx;
         $line->total_ht = $linedata->total_ht;
         $line->total_tva = $linedata->total_tva;
+        $line->array_options["options_verifactu_Tax_Type"] = "validate";
         $lines[] = $line;
     }
 
     $blocked->lines = $lines;
 
-    if ($objectdata->thirdparty) {
+
+    if (isset($objectdata->thirdparty) && $objectdata->thirdparty) {
         $blocked->thirdparty = new Societe($db);
         $blocked->thirdparty->nom = $objectdata->thirdparty->name;
         $blocked->thirdparty->idprof1 = $objectdata->thirdparty->idprof1u ?? null;
@@ -364,6 +389,18 @@ function autoverifactuEnabled()
  */
 function autoverifactuValidateRecord($record)
 {
+
+    //validacion de todos los datos de la factura
+    $isCorrect=autoverifactuValidateValuesRecord($record);
+
+    if(!$isCorrect){
+        return 0;
+    }
+    //validamos que el total de la factura coincida con el total calculado
+    if($record->factureTotalAmount!==$record->factureTtc){
+        return 0;
+    }
+
     if (!isset($record->breakdown, $record->totalTaxAmount, $record->totalAmount)) {
         return 0;
     }
@@ -483,4 +520,177 @@ function autoverifactuIsPosInvoice($invoice)
     }
 
     return $invoice->module_source === 'takepos';
+}
+
+/* Validates the values ​​of an invoice record.
+ *
+ * @param  stdClass $record Target record.
+ *
+ * @return int              0 if validatio fail, 1 if succeed
+ */
+function autoverifactuValidateValuesRecord($record){
+
+    $isValidType =autoverifactuValidateTypeInvoice($record->type);
+    if(!$isValidType){
+        return 0;
+    }
+    $isValidDateOperation=autoverifactuValidateDate($record->dateOperation,false);
+    
+    if(!$isValidDateOperation){
+        return 0;
+    }
+
+
+    $isValidVerifactuInvoice=autoverifactuValidateVerifactuInvoice($record->invoiceType);
+      
+    if(!$isValidVerifactuInvoice){
+        return 0;
+    }
+
+    $isValidDescription=autoverifactuValidateAlphaNumber($record->description,500);
+    if(!$isValidDescription){
+        return 0;
+    }
+  
+
+    $isValidRef=autoverifactuValidateAlphaNumberScript($record->invoiceId->invoiceNumber,60);
+    if(!$isValidRef){
+        return 0;
+    }
+
+    $isValidTotalAmount=autoverifactuValidateNumber($record->factureTtc,12,2);
+    if(!$isValidTotalAmount){
+        return 0;
+    }
+
+    $isValidTtc=autoverifactuValidateNumber($record->factureTtc,12,2);
+    if(!$isValidTtc){
+        return 0;
+    }
+
+    for ($i=0; $i < count($record->recipients); $i++) { 
+       $isValidNif=autoverifactuValidateNifName($record->recipients[$i]->nif,$record->recipients[$i]->name);
+   
+       if(!$isValidNif){
+            return 0;
+       }
+    } 
+
+  
+    if($record->correctiveType){
+        $isValidCorrectiveType=autoverifactuValidateVerifactuInvoiceRectificative($record->correctiveType,false);
+        if(!$isValidCorrectiveType){
+            return 0;
+        } 
+    }
+
+    for ($i=0; $i < count($record->correctedInvoices); $i++) { 
+        # añadir logica
+    }
+
+    if($record->correctedBaseAmount){
+        $isValidCorrectedBaseAmount=autoverifactuValidateNumber($record->correctedBaseAmount,12,2);
+        if(!$isValidCorrectedBaseAmount){
+            return 0;
+        } 
+    }
+    if($record->correctedTaxAmount){
+        $isValidCorrectedTaxAmount=autoverifactuValidateNumber($record->correctedTaxAmount,12,2);
+        if(!$isValidCorrectedTaxAmount){
+            return 0;
+        } 
+    }
+
+    for ($i=0; $i < count($record->replacedInvoices); $i++) { 
+        # añadir logica
+    }
+
+    for ($i=0; $i < count($record->breakdown); $i++) {
+
+
+
+        $isValidTotalTaxType=autoverifactuValidateTaxType($record->breakdown[0]->taxType);
+        if(!$isValidTotalTaxType){
+            return 0;
+        } 
+        if($record->breakdown[0]->taxType === '01'){
+            $isValidRegimeType=autoverifactuValidateRegimeTypeIva($record->breakdown[0]->regimeType);
+            if(!$isValidRegimeType){
+                return 0;
+            } 
+        }else{
+            $isValidRegimeType=autoverifactuValidateRegimeTypeOther($record->breakdown[0]->regimeType);
+            if(!$isValidRegimeType){
+                return 0;
+            } 
+        }
+
+        $isValidOperationType=autoverifactuValidateOperationType($record->breakdown[0]->operationType);
+        if(!$isValidOperationType){
+            return 0;
+        } 
+
+        $isValidTotalTaxRate=autoverifactuValidateNumber($record->breakdown[0]->taxRate,4,2);
+        if(!$isValidTotalTaxRate){
+            return 0;
+        } 
+
+        $isValidBaseAmount=autoverifactuValidateNumber($record->breakdown[0]->baseAmount,12,2);
+        if(!$isValidBaseAmount){
+            return 0;
+        } 
+
+        $isValidTaxAmount=autoverifactuValidateNumber($record->breakdown[0]->taxAmount,12,2);
+        if(!$isValidTaxAmount){
+            return 0;
+        } 
+
+        if(isset($record->breakdown[0]->exemptionCode)){
+            $isValidTexemptionCode=autoverifactuValidateExemptionCode($record->breakdown[0]->exemptionCode,12,2);
+        }
+        
+        return 1;
+
+        if(!$isValidTexemptionCode){
+            return 0;
+        } 
+  
+    }
+
+
+    $isValidTotalTaxAmount=autoverifactuValidateNumber($record->totalTaxAmount,12,2);
+    if(!$isValidTotalTaxAmount){
+        return 0;
+    }
+
+    $isValidTotalAmount=autoverifactuValidateNumber($record->totalAmount,12,2);
+    if(!$isValidTotalAmount){
+        return 0;
+    } 
+  
+
+    return 1;
+}
+
+
+
+/**
+ * Validates the issuer data for a Veri*Factu record.
+ *
+ * @param array $issuer The issuer data to validate.
+ *
+ * @return int 1 if valid, 0 otherwise.
+ */
+function autoverifactuValidateIssuer($issuer){
+    if (!$issuer || !$issuer['idprof1'] || !$issuer['name']) {
+        return 0;
+    }
+
+    $isValidNifName=autoverifactuValidateNifName($issuer['idprof1'],$issuer['name'] );
+
+    if(!$isValidNifName){
+        return 0;
+    }
+
+    return 1;
 }
