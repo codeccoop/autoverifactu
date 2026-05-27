@@ -524,7 +524,7 @@ function autoverifactuIsPosInvoice($invoice)
     return $invoice->module_source === 'takepos';
 }
 
-/* Validates the values ​​of an invoice record.
+/* Validates the values ​​of an invoice record
  *
  * @param  stdClass $record Target record.
  *
