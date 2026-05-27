@@ -29,10 +29,9 @@ require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 require_once __DIR__ . '/validation.lib.php';
 
 /* Veri*Factu API URLs */
-
 define('VERIFACTU_BASE_URL', 'https://www1.agenciatributaria.gob.es'); // Production environment
 define('VERIFACTU_TEST_BASE_URL', 'https://prewww1.aeat.es'); // Test environment
-define('VERIFACTU_TEST_VERIFICACION_BASE_URL', 'https://prewww2.aeat.es'); //url para la verificación de registros en entorno de pruebas
+
 /* XML namespaces */
 define('AUTOVERIFACTU_SOAPENV_NS', 'http://schemas.xmlsoap.org/soap/envelope/');
 define(
@@ -196,8 +195,6 @@ function autoverifactuRegisterInvoice($invoice, $action)
             );
         }
     } catch (Error | Exception $e) {
-        var_dump($e);
-    
         if (isset($xml) && $xml) {
             file_put_contents($file, $xml);
         }
@@ -222,8 +219,6 @@ function autoverifactuRegisterInvoice($invoice, $action)
  */
 function autoverifactuSendInvoice($invoice, $action, &$xml)
 {
-
-    
     if (!autoverifactuSystemCheck()) {
         dol_syslog('Veri*Factu bridge does not pass system checks');
         return;
@@ -274,20 +269,12 @@ function autoverifactuSendInvoice($invoice, $action, &$xml)
     }
 
     global $mysoc;
-
-    $issuer = array(
-        'name' => $mysoc->nom,
-        'idprof1' => $mysoc->idprof1,
-    );
-    
-    $issuerIsValid = autoverifactuValidateIssuer($issuer);
-
-    if (!$issuerIsValid) {
-        throw new Exception('Inconsistent issuer data');
-    }
     $envelope = autoverifactuSoapEnvelope(
         $record,
-        $issuer
+        array(
+            'name' => $mysoc->nom,
+            'idprof1' => $mysoc->idprof1,
+        ),
     );
 
     $testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
@@ -434,8 +421,6 @@ function autoverifactuSoapEnvelope($record, $issuer, $representative = null)
 */
 function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 {
-
-
     global $mysoc;
 
     $now = dol_now();
@@ -444,8 +429,6 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
     $invoice->fetch_optionals();
     $invoice->fetch_thirdparty();
     $thirdparty = $invoice->thirdparty;
-
-
 
     switch ($invoice->type) {
         case Facture::TYPE_STANDARD:
@@ -486,20 +469,9 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
     $record = new stdClass();
     $record->type = $recordType;
 
-    if($invoice->array_options["options_verifactu_date_operation"]!==""){
-        $record->dateOperation=     new DateTimeImmutable(
-            date('Y-m-d H:i:s', $invoice->array_options["options_verifactu_date_operation"]),
-            new DateTimeZone('Europe/Madrid'),
-        );;
-    }else{
-        $record->dateOperation= $invoice->array_options["options_verifactu_date_operation"];
-    }
-
     $record->issuerName = trim($mysoc->nom);
     $record->invoiceType = $invoiceType;
-    //elimino caracteres no permitidos en la descripción, ya que pueden causar el rechazo del registro por parte de la AEAT
-    $record->description = 'Factura ' . preg_replace('/[^a-zA-Z0-9ñÑáéíóúÁÉÍÓÚüÜ]/u', ' ', $invoiceRef);
-
+    $record->description = 'Factura ' . $invoiceRef;
 
     $record->invoiceId = new stdClass();
     $record->invoiceId->issuerId = trim($mysoc->idprof1);
@@ -508,10 +480,6 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
         date('Y-m-d H:i:s', $invoice->array_options['options_verifactu_tms'] ?: $now),
         new DateTimeZone('Europe/Madrid'),
     );
-
-   //calculo el total y obtengo el total (para más tarde validar que son correctos)
-   $record->factureTotalAmount= number_format($invoice->total_ht + $invoice->total_tva + $invoice->total_localtax1, 2, '.', '');
-   $record->factureTtc=number_format($invoice->total_ttc, 2, '.', '');
 
     $record->recipients = array();
 
@@ -660,7 +628,6 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
     }
 
     if (autoverifactuValidateRecord($record)) {
-
         return $record;
     }
 }
@@ -704,10 +671,6 @@ function autoverifactuRecordToXML($record, $xml = null)
 
         $recordEl->appendChild($xml->createElement('sum1:NombreRazonEmisor', htmlspecialchars($record->issuerName)));
         $recordEl->appendChild($xml->createElement('sum1:TipoFactura', $record->invoiceType));
-        // Añado la etiqueta Fecha de Operación, que no es obligatoria,
-        if( $record->dateOperation !==""){
-            $recordEl->appendChild($xml->createElement('sum1:FechaOperacion', $record->dateOperation->format('d-m-Y')));
-        }
 
         if (($record->correctiveType ?? null) !== null) {
             $recordEl->appendChild($xml->createElement('sum1:TipoRectificativa', $record->correctiveType));
@@ -790,36 +753,13 @@ function autoverifactuRecordToXML($record, $xml = null)
             $breakdown->appendChild($dEl);
 
             $dEl->appendChild($xml->createElement('sum1:Impuesto', $details->taxType));
-            
-            // Si el tipo de impuesto es 01 o 03, se debe incluir el régimen aplicable.
             if (in_array($details->taxType, array('01', '03'), true)) {
                 $dEl->appendChild($xml->createElement('sum1:ClaveRegimen', $details->regimeType));
             }
-            // Si el código de exención es E1, E2, E3, E4, E5 o E6, se indicará el código de exención.
-            if(in_array($details->exemptionCode, array('E1', 'E2','E3','E4','E5','E6'), true)){
-                $dEl->appendChild($xml->createElement('sum1:OperacionExenta', $details->exemptionCode));
-            }
-            //se indicará la calificación de la operación en caso de no existir código de exención.
-            if(!in_array($details->exemptionCode, array('E1', 'E2','E3','E4','E5','E6'), true)){
-                $dEl->appendChild($xml->createElement('sum1:CalificacionOperacion', $details->operationType));
-            }
-            // Se indicará el tipo impositivo, si no existe código de exención o la calificación de la operación no es N1.
-            if(!(in_array($details->exemptionCode, array('E1', 'E2','E3','E4','E5','E6'), true) || $details->operationType === 'N1' )){
-                
-                $dEl->appendChild($xml->createElement('sum1:TipoImpositivo', $details->taxRate));
-            }
-            
+            $dEl->appendChild($xml->createElement('sum1:CalificacionOperacion', $details->operationType));
+            $dEl->appendChild($xml->createElement('sum1:TipoImpositivo', $details->taxRate));
             $dEl->appendChild($xml->createElement('sum1:BaseImponibleOimporteNoSujeto', $details->baseAmount));
-            
-            // Se indicará el cantidad impositiva, si no existe código de exención o la calificación de la operación no es N1.
-            if(!(in_array($details->exemptionCode, array('E1', 'E2','E3','E4','E5','E6'), true) || $details->operationType === 'N1' ) ){
-                $dEl->appendChild($xml->createElement('sum1:CuotaRepercutida', $details->taxAmount));
-            }
-            // Se indicará el recargo de equivalencia y el tipo en caso de existir
-            if(isset($details->EquivalenceSurchargeType ) && isset($details->EquivalenceSurcharge)){
-                $dEl->appendChild($xml->createElement('sum1:TipoRecargoEquivalencia', $details->EquivalenceSurchargeType));
-                $dEl->appendChild($xml->createElement('sum1:CuotaRecargoEquivalencia', $details->EquivalenceSurcharge));
-            }
+            $dEl->appendChild($xml->createElement('sum1:CuotaRepercutida', $details->taxAmount));
         }
 
         $recordEl->appendChild($xml->createElement('sum1:CuotaTotal', $record->totalTaxAmount));
@@ -905,60 +845,11 @@ function autoverifactuLinesToBreakdown($invoice)
         // TODO: Handle operation types (S1, S2, S3, S4)
         // NOTE: At this moment, autoverifactu only supports S1 operations (Operaciones sujetas y no exentas)
         // NOTE: To modify this constant autoverifactu offers the `autoverifactu` hook.
-        
-        //añado los diferentes tipos de operación según el código seleccionado en la línea
- 
-
-
-    
-            switch ($line->array_options["options_verifactu_Tax_Type"]) {
-                case 'S1':
-        
-                    // Operaciones sujetas y no exentas
-                    $details->operationType = 'S1';
-                    $details->taxRate = number_format((float) $line->tva_tx, 2, '.', '');
-                    $details->baseAmount = number_format((float) $line->total_ht, 2, '.', '');
-                    $details->taxAmount = number_format((float) $line->total_tva, 2, '.', '');
-                    $details->exemptionCode=$line->array_options["options_verifactu_Tax_Exception"];
-
-                    if( $details->regimeType =="18"){
-                        $details->tax_type=$line->localtax1_type;
-                        $details->EquivalenceSurchargeType =number_format((float) $line->localtax1_tx, 2, '.', '') ;
-                        $details->EquivalenceSurcharge=number_format((float) $line->total_localtax1, 2, '.', '');
-                    }
-                    $breakdown[] = $details;
-                    break;
-                case 'S2':
-                    //Sujetas a Inversión del Sujeto Pasivo
-                    $details->operationType = 'S2';
-                    $details->taxRate = number_format((float) $line->tva_tx, 2, '.', '');
-                    $details->baseAmount = number_format((float) $line->total_ht, 2, '.', '');
-                    $details->taxAmount = number_format((float) $line->total_tva, 2, '.', '');
-                    $breakdown[] = $details;
-                    break;
-                case 'N1':
-                    //No Sujetas a IVA por reglas de localización
-                    $details->operationType = 'N1';
-                    $details->taxRate = number_format((float) $line->tva_tx, 2, '.', '');
-                    $details->baseAmount = number_format((float) $line->total_ht, 2, '.', '');
-                    $details->taxAmount = number_format((float) $line->total_tva, 2, '.', '');
-                    
-                    $breakdown[] = $details;
-                    break;
-                case 'N2':
-                    //el código N2 se refiere a operaciones "No Sujetas por otros motivos"
-                    $details->operationType = 'N2';
-                    $breakdown[] = $details;
-                break; 
-                case 'validate':
-                    //Solo se utilizara en caso de envair la factura para vadidarla. 
-                    $details->operationType = 'validate';
-                    $details->taxRate = number_format((float) $line->tva_tx, 2, '.', '');
-                    $details->baseAmount = number_format((float) $line->total_ht, 2, '.', '');
-                    $details->taxAmount = number_format((float) $line->total_tva, 2, '.', '');
-                    $breakdown[] = $details; 
-                break;  
-            }           
+        $details->operationType = 'S1';
+        $details->taxRate = number_format((float) $line->tva_tx, 2, '.', '');
+        $details->baseAmount = number_format((float) $line->total_ht, 2, '.', '');
+        $details->taxAmount = number_format((float) $line->total_tva, 2, '.', '');
+        $breakdown[] = $details;
     }
 
     return $breakdown;
