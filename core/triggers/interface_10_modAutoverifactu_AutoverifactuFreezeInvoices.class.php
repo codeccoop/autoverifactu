@@ -212,7 +212,12 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 $result = autoverifactuRegisterInvoice($object, $action);
 
                 if ($result < 0) {
-                    $this->errors[] = $langs->trans('RecordCreationFail');
+                      if (!empty($object->errors)) {
+                         $this->errors = array_merge($this->errors, (array) $object->errors);
+                      }else{
+                        $this->errors[] = $langs->trans('RecordCreationFail');
+                      }
+                    
                 }
 
                 return $result;

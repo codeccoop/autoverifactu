@@ -228,13 +228,24 @@ class ActionsAutoverifactu extends CommonHookActions
     {
         global $mysoc;
 
+    
+    
+        // 2. Si el objeto no lo tiene, lo buscamos en el request o configuración
+
+
+       
+   
         $object = $parameters['object'];
+
+
+        $modelpdf = $object->model_pdf;
 
         if (
             $object->element === 'facture'
             && $object->status > Facture::STATUS_DRAFT
             && $object->type <= Facture::TYPE_DEPOSIT
-            && autoverifactuEnabled()
+            && autoverifactuEnabled() 
+            && $modelpdf !== "Autoverifactu"
         ) {
             $pdf = &$parameters['pdf'];
 
@@ -251,48 +262,42 @@ class ActionsAutoverifactu extends CommonHookActions
                 'fecha' => date('d-m-Y', $object->date),
                 'importe' => number_format($object->total_ttc, 2, '.', ''),
             ));
+            //El código «QR» deberá tener un tamaño entre 30x30 y 40x40 milímetros y seguir las especificaciones de la norma ISO/IEC 18004:2015
+            //A este respecto, se deben mantener como mínimo 2 milímetros de espacio vacío (en blanco) alrededor de los cuatro lados del código «QR», recomendándose que sean 6 milímetros.
+            //La presentación del código «QR» incluirá también un texto que siempre deberá ir precediéndolo: «QR tributario:», y que se situará encima del propio código «QR» 
+            // (preferiblemente centrado con respecto a este), de manera que sirva para identificarlo y distinguirlo de otros posibles códigos «QR» que pudiera contener la factura para otros cometidos.
+           
+           
+            $pdf->setTopMargin($pdfhandler->tab_top -5);           
+            $pdf->MultiCell(30, 10, 'QR tributario:', 0, 'C', 0, 1);
 
             $pdf->write2DBarcode(
                 $base_url . $endpoint . '?' . $query,
                 'QRCODE,M',
                 $pdfhandler->marge_gauche,
-                $pdfhandler->tab_top - 5,
-                25,
-                25,
+                $pdfhandler->tab_top-1 ,
+                32,
+                32,
                 array(
                     'border' => false,
-                    'padding' => 0,
+                    'padding' => 2,
                     'fgcolor' => array(25, 25, 25),
-                    'bgcolor' => false,
+                     'bgcolor' => array(255, 255, 255), //margen color blanco con padding 2mm
                     'module_width' => 1,
                     'module_height' => 1,
                 ),
-                25,
+                30,
             );
 
-            $pdf->setTopMargin($pdfhandler->tab_top + 21);
-            $pdf->MultiCell(25, 5, 'Veri*Factu', 0, 'C', 0, 1);
+            $pdf->setTopMargin($pdfhandler->tab_top + 32);
+            $pdf->MultiCell(30, 10, 'VERI*FACTU', 0, 'C', 0, 1);
 
-            $this->results = array('extra_under_address_shift' => 27);
+            $this->results = array('extra_under_address_shift' => 40);
         }
 
         return 0;
     }
 
-    /**
-     * Execute action after PDF (document) creation
-     *
-     * @param   array<string,mixed> $parameters Array of parameters
-     * @param   CommonDocGenerator  $pdfhandler PDF builder handler
-     * @param   string              $action     'add', 'update', 'view'
-     * @return  int                             Return integer <0 if KO,
-     *                                          =0 if OK but we want to process standard actions too,
-     *                                          >0 if OK and we want to replace standard actions.
-     */
-    public function afterPDFCreation($parameters, &$pdfhandler, &$action)
-    {
-        return 0;
-    }
 
     /**
      * Execute action on card page buttons render. If it is a facture page,
