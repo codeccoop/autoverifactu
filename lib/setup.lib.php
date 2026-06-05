@@ -56,8 +56,8 @@ function autoverifactuSetupPost()
     $tax = autoverifactuGetPost('AUTOVERIFACTU_TAX') ?: '01';
     autoverifactu_set_const('AUTOVERIFACTU_TAX', $tax);
 
-    $regime = autoverifactuGetPost('AUTOVERIFACTU_REGIME') ?: '01';
-    autoverifactu_set_const('AUTOVERIFACTU_REGIME', $regime);
+    $regime = autoverifactuGetPost('AUTOVERIFACTU_DEFAULT_REGIME') ?: '01';
+    autoverifactu_set_const('AUTOVERIFACTU_DEFAULT_REGIME', $regime);
 
     $enabled = autoverifactuGetPost('AUTOVERIFACTU_ENABLED');
     $enabled = $enabled && autoverifactuSystemCheck();

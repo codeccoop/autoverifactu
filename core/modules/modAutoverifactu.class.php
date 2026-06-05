@@ -255,7 +255,8 @@ class modAutoverifactu extends DolibarrModules
      */
     public function init($options = '')
     {
-        global $db; // , $conf, $langs;
+        global $db, $langs; // , $conf;
+        $langs->loadLangs(array('autoverifactu@autoverifactu'));
 
         dolibarr_set_const($db, 'FAC_FORCE_DATE_VALIDATION', '1', 'chaine', 0, '', 0);
 
@@ -271,6 +272,29 @@ class modAutoverifactu extends DolibarrModules
         include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
         $extrafields = new ExtraFields($this->db);
 
+        // Fecha de operación
+        $extrafields->addExtraField(
+            'verifactu_date_operation',
+            'VerifactuDateOperation',
+            'date',
+            1,
+            2,
+            'facture',
+            0,
+            0,
+            '',
+            '',
+            0,
+            '',
+            '3',
+            $langs->trans('VerifactuDateOperiationDescription'),
+            '',
+            '',
+            'autoverifactu@autoverifactu',
+            'isModEnabled("autoverifactu")',
+        );
+
+        // Tipo de rectificación en caso de que la factura sea rectificativa.
         $extrafields->addExtraField(
             'verifactu_rectification_type',
             'VerifactuRectificationType',
@@ -283,23 +307,24 @@ class modAutoverifactu extends DolibarrModules
             '',
             array(
                 'options' => array(
-                    'R1' => 'Factura Rectificativa (Error fundado en derecho y Art. 80 Uno Dos y Seis LIVA)',
-                    'R2' => 'Factura Rectificativa (Art. 80.3)',
-                    'R3' => 'Factura Rectificativa (Art. 80.4)',
-                    'R4' => 'Factura Rectificativa (Resto)',
-                    // 'R5' => 'Factura Rectificativa en facturas simplificadas',
+                    'R1' => $langs->trans('VerifactuRectificationTypeR1'),
+                    'R2' => $langs->trans('VerifactuRectificationTypeR2'),
+                    'R3' => $langs->trans('VerifactuRectificationTypeR3'),
+                    'R4' => $langs->trans('VerifactuRectificationTypeR4'),
+                    // 'R5' => $langs->trans('VerifactuRectificationTypeR5')
                 ),
             ),
             0,
             '',
             '3',
-            'En caso de ser esta una factura recificativa, indica de que tipo es',
+            $langs->trans('VerifactuRectificationTypeDescription'),
             '',
             '',
             'autoverifactu@autoverifactu',
             'isModEnabled("autoverifactu")',
         );
 
+        //
         $extrafields->addExtraField(
             'verifactu_hash',
             'VerifactuHash',
@@ -321,6 +346,8 @@ class modAutoverifactu extends DolibarrModules
             'isModEnabled("autoverifactu")',
         );
 
+        // campo para el almacenamiento de errores parciales de validación
+        // de la factura.
         $extrafields->addExtraField(
             'verifactu_error',
             'VerifactuError',
@@ -342,6 +369,7 @@ class modAutoverifactu extends DolibarrModules
             'isModEnabled("autoverifactu")',
         );
 
+        // timestamp de validación de la factura.
         $extrafields->addExtraField(
             'verifactu_tms',
             'VerifactuTimeStamp',
@@ -362,11 +390,53 @@ class modAutoverifactu extends DolibarrModules
             'autoverifactu@autoverifactu',
             'isModEnabled("autoverifactu")',
         );
-        //nuevos campos  
-        // tipo de impuesto
+
+        // regimen de facturación de la línea de factura
         $extrafields->addExtraField(
-            'verifactu_Tax_Type',
-            'VerifactuTaxType',
+            'verifactu_regime_type',
+            'VerifactuDetailsRegimeType',
+            'select',
+            1,
+            2,
+            'facturedet',
+            0,
+            1,
+            '01',
+            array(
+                'options' => array(
+                    '01' => $langs->trans('VerifactuDetailsRegimeType01'),
+                    '02' => $langs->trans('VerifactuDetailsRegimeType02'),
+                    '03' => $langs->trans('VerifactuDetailsRegimeType03'),
+                    '04' => $langs->trans('VerifactuDetailsRegimeType04'),
+                    '05' => $langs->trans('VerifactuDetailsRegimeType05'),
+                    '06' => $langs->trans('VerifactuDetailsRegimeType06'),
+                    '07' => $langs->trans('VerifactuDetailsRegimeType07'),
+                    '08' => $langs->trans('VerifactuDetailsRegimeType08'),
+                    '09' => $langs->trans('VerifactuDetailsRegimeType09'),
+                    '10' => $langs->trans('VerifactuDetailsRegimeType10'),
+                    '11' => $langs->trans('VerifactuDetailsRegimeType11'),
+                    '14' => $langs->trans('VerifactuDetailsRegimeType14'),
+                    '15' => $langs->trans('VerifactuDetailsRegimeType15'),
+                    '17' => $langs->trans('VerifactuDetailsRegimeType17'),
+                    '18' => $langs->trans('VerifactuDetailsRegimeType18'),
+                    '19' => $langs->trans('VerifactuDetailsRegimeType19'),
+                    '20' => $langs->trans('VerifactuDetailsRegimeType20'),
+                ),
+            ),
+            0,
+            '',
+            '3',
+            $langs->trans('VerifactuDetailsRegimeTypeDescription'),
+            '',
+            '',
+            'autoverifactu@autoverifactu',
+            'isModEnabled("autoverifactu")',
+        );
+
+        // tipo de operación de la línea de factura
+        $extrafields->addExtraField(
+            'verifactu_operation_type',
+            'VerifactuDetailsOperationType',
             'select',
             1,
             2,
@@ -376,25 +446,26 @@ class modAutoverifactu extends DolibarrModules
             'S1',
             array(
                 'options' => array(
-                    'S1' => 'Operación Sujeta y No exenta - Sin inversión del sujeto pasivo.',
-                    'S2' => 'Operación Sujeta y No exenta - Con Inversión del sujeto pasivo.',
-                    'N1' => 'Operación No Sujeta artículo 7, 14, otros.',
-                    'N2' => 'Operación No Sujeta por Reglas de localización.',
+                    'S1' => $langs->trans('VerifactuDetailsOperationTypeS1'),
+                    'S2' => $langs->trans('VerifactuDetailsOperationTypeS2'),
+                    'N1' => $langs->trans('VerifactuDetailsOperationTypeN1'),
+                    'N2' => $langs->trans('VerifactuDetailsOperationTypeN2'),
                 ),
             ),
             0,
             '',
             '3',
-            'Se corresponde con el valor del campo CalificacionOperacion y es la clave de la operación sujeta y no exenta o de la operación no sujeta. Los valores que puede tener están relacionados con los de la lista L9',
+            $langs->trans('VerifactuDetailsOperationTypeDescription'),
             '',
             '',
             'autoverifactu@autoverifactu',
             'isModEnabled("autoverifactu")',
         );
-        //Tipos de exención
+
+        // Tipos de exención
         $extrafields->addExtraField(
-            'verifactu_Tax_Exception',
-            'VerifactuTaxException',
+            'verifactu_tax_excemption',
+            'VerifactuDetailsTaxExcemption',
             'select',
             1,
             2,
@@ -404,39 +475,18 @@ class modAutoverifactu extends DolibarrModules
             '',
             array(
                 'options' => array(
-                    'E1' => 'Exenta por el artículo 20.',
-                    'E2' => 'Exenta por el artículo 21.',
-                    'E3' => 'Exenta por el artículo 22.',
-                    'E4' => 'Exenta por los artículos 23 y 24.',
-                    'E5' => 'Exenta por el artículo 25.',
-                    'E6' => 'Exenta por otros.',
+                    'E1' => $langs->trans('VerifactuDetailsTaxExcemptionE1'),
+                    'E2' => $langs->trans('VerifactuDetailsTaxExcemptionE2'),
+                    'E3' => $langs->trans('VerifactuDetailsTaxExcemptionE3'),
+                    'E4' => $langs->trans('VerifactuDetailsTaxExcemptionE4'),
+                    'E5' => $langs->trans('VerifactuDetailsTaxExcemptionE5'),
+                    'E6' => $langs->trans('VerifactuDetailsTaxExcemptionE6'),
                 ),
             ),
             0,
             '',
             '3',
-            'Se corresponde con el valor del campo CalificacionOperacion y es la clave de la operación sujeta y no exenta o de la operación no sujeta. Los valores que puede tener están relacionados con los de la lista L9',
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-        // Fecha de operación
-        $extrafields->addExtraField(
-            'verifactu_date_operation',
-            'VerifactuDateOperation',
-            'date',
-            1,
-            2,
-            'facture',
-            0,
-            0,
-            '',
-            '',
-            0,
-            '',
-            '3',
-            'Es la fecha en la que se produce el devengo del impuesto',
+            $langs->trans('VerifactuDetailsTaxExcemptionDescription'),
             '',
             '',
             'autoverifactu@autoverifactu',

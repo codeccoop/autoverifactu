@@ -103,9 +103,9 @@ class ActionsAutoverifactu extends CommonHookActions
                     } elseif ($result < 0) {
                         $this->errors[] = $langs->trans('InconsistentInvoiceData');
                     }
-                    //url de verificacion en casp de test ou production
+                    // url de verificacion en casp de test ou production.
                     $testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
-                    $base_url = $testMode ? VERIFACTU_TEST_VERIFICACION_BASE_URL : VERIFACTU_BASE_URL;
+                    $base_url = $testMode ? VERIFACTU_TEST_COLLATION_BASE_URL : VERIFACTU_COLLATION_BASE_URL;
                     $endpoint = '/wlpl/TIKE-CONT/ValidarQR';
                     $query = http_build_query(array(
                         'nif' => $mysoc->idprof1,
@@ -129,7 +129,6 @@ class ActionsAutoverifactu extends CommonHookActions
 
                     $res = curl_exec($ch);
 
-
                     if ($res === false) {
                         $this->errors[] = $langs->trans('CollationRequestError');
                     } else {
@@ -141,9 +140,7 @@ class ActionsAutoverifactu extends CommonHookActions
                             if ($data->mensaje) {
                                 $this->errors[] = $data->mensaje;
                             }
-                        } elseif ( !($data->mensaje === 'Factura encontrada' || 
-                                    $data->mensaje ==="Encontrada" )
-                            ) {
+                        } elseif (!in_array($data->mensaje, array('Factura encontrada', 'Encontrada'), true)) {
                             $this->errors[] = $langs->trans('NotPubliclyRegistered');
                         }
                     }
@@ -205,7 +202,7 @@ class ActionsAutoverifactu extends CommonHookActions
                 $result = autoverifactuCheckInvoiceImmutableXML($object, 'anulacion');
 
                 if (!$result < 0) {
-                    return $resutl;
+                    return $result;
                 }
             }
         }
@@ -238,12 +235,12 @@ class ActionsAutoverifactu extends CommonHookActions
         ) {
             $pdf = &$parameters['pdf'];
 
-            //url de verificacion en casp de test ou production
+            // url de verificacion en casp de test ou production.
             $testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
 
-            $base_url = $testMode ? VERIFACTU_TEST_VERIFICACION_BASE_URL : VERIFACTU_BASE_URL;
-                    
-   
+            $base_url = $testMode ? VERIFACTU_TEST_COLLATION_BASE_URL : VERIFACTU_COLLATION_BASE_URL;
+
+
             $endpoint = '/wlpl/TIKE-CONT/ValidarQR';
             $query = http_build_query(array(
                 'nif' => $mysoc->idprof1,
@@ -430,17 +427,20 @@ class ActionsAutoverifactu extends CommonHookActions
     public function formObjectOptions($parameters, $object, $action)
     {
         global $extrafields;
+        if ($parameters['currentcontext'] !== 'invoicecard' || $object->element !== 'facture') {
+            return;
+        }
+
         if (
-            $parameters['currentcontext'] === 'invoicecard'
-            && $object->element === 'facture'
-            && $action === 'edit_extras'
-            && !in_array(
+            !in_array(
                 $object->type,
                 array(
                     Facture::TYPE_REPLACEMENT,
                     Facture::TYPE_CREDIT_NOTE
                 ),
-            )
+                true
+            ) && $object->id !== null // never hide the field for invoice creation forms
+            // && $action === 'edit_extras'
         ) {
             $extrafields->attributes['facture']['list']['verifactu_rectification_type'] = '0';
         }

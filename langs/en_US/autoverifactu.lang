@@ -6,6 +6,7 @@
 VeriFactu = Veri*Factu
 Active = Active
 Settings = Settings
+Others = Others
 
 # Module label 'ModuleAutoverifactuName'
 ModuleAutoverifactuName = Autoverifactu
@@ -32,7 +33,8 @@ AUTOVERIFACTU_CERTTooltip = Path to the uploaded PEM file. If the field is empty
 AUTOVERIFACTU_PASSWORD = Certificate password
 AUTOVERIFACTU_PASSWORDTooltip = Auto-Veri*Factu only supports PKCS#12 certificates, in the same format that electronic certifcates as distributed by the spanish authorities. This kind of bundle is encrypted with a password and it is required in order to use the certificate to authenticate Dolibarr against the AEAT endpoints.
 FISCAL_SECTION_TITLE = Fiscal
-AUTOVERIFACTU_REGIME = Fiscal regime
+AUTOVERIFACTU_DEFAULT_REGIME = Fiscal regime
+AUTOVERIFACTU_DEFAULT_REGIMETooltip = The selected value will be used as the default value for invoice lines
 AUTOVERIFACTU_TAX = Tax type
 AUTOVERIFACTU_DATE_VALIDATION = Is invoice validation date mandatory?
 AUTOVERIFACTU_DATE_VALIDATIONTooltip = Invoice date has to be set to the date when it's validated. Go to Setup > Modules > Invoice to change the setting value.
@@ -50,7 +52,7 @@ AUTOVERIFACTU_SPLIT_INVOICESTooltip = During invoice generation based on related
 #
 AutoverifactuAutodeclaration = Responsable declaration
 AutoverifactuAutodeclarationPage = Find here the reponsable declaration for the Auto-Veri*Factu module
-Draft = Borrador
+Draft = Draft
 
 #
 # About page
@@ -134,3 +136,53 @@ DeclarationSpecsListLabel = El componente informático denominado Auto-Veri*Fact
 DelcarationSpecs1 = La integridad, conservación, accesibilidad, legibilidad, trazabilidad e inalterabilidad de los registros de facturación generados por el módulo de facturación de Dolibarr con el que se integra.
 DeclarationSpecs2 = El cumplimiento de las especificaciones técnicas y funcionales previstas para la remisión de registros de facturación a la Agencia Estatal de Administración Tributaria cuando se utilice como sistema VERI*FACTU.
 DeclarationDischarge = Auto-Veri*Factu no constituye un sistema de facturación autónomo, sino que actúa como componente integrado en el módlo de facturación de Dolibarr, sistema encargado de ofrecer las funcionalidades habituales de este tipo de aplicación: capturar información de facturación, expedir facturas, consultar facturas, estadísticas de facturación, exportación de datos de facturacion...
+
+#
+# Extra Fields
+#
+VerifactuRectificationType = Corrective invoice
+VerifactuRectificationTypeDescription = En caso de ser esta una factura recificativa, indica de que tipo es
+VerifactuRectificationTypeR1 = Factura Rectificativa (Error fundado en derecho y Art. 80 Uno Dos y Seis LIVA)
+VerifactuRectificationTypeR2 = Factura Rectificativa (Art. 80.3)
+VerifactuRectificationTypeR3 = Factura Rectificativa (Art. 80.4)
+VerifactuRectificationTypeR4 = Factura Rectificativa (Resto)
+VerifactuRectificationTypeR5 = Factura Rectificativa en facturas simplificadas
+
+VerifactuDateOperation = Operation date
+VerifactuDateOperation = Fecha en la que se produce el devengo del impuesto
+
+VerifactuDetailsRegimeType = Fiscal regime
+VerifactuDetailsRegimeTypeDescription = Régimen fiscal de la operación
+VerifactuDetailsRegimeType01 = Operación de régimen general
+VerifactuDetailsRegimeType02 = Exportación
+VerifactuDetailsRegimeType03 = Régimen especial de bienes usados
+VerifactuDetailsRegimeType04 = Régimen especial del oro de inversión
+VerifactuDetailsRegimeType05 = Régimen especial de las agencias de viajes
+VerifactuDetailsRegimeType06 = Régimen especial grupo de entidades en IVA
+VerifactuDetailsRegimeType07 = Régimen especial del criterio de caja
+VerifactuDetailsRegimeType08 = Operaciones sujetas al IPSI / IGIC
+VerifactuDetailsRegimeType09 = Prestación de servicios de agencias de viaje que actúan como mediadoras
+VerifactuDetailsRegimeType10 = Cobros por cuenta de terceros de honorarios profesionales o de derechos derivados de la propiedad
+VerifactuDetailsRegimeType11 = Operaciones de arrendamiento de local de negocio
+VerifactuDetailsRegimeType14 = Factura con IVA pendiente de devengo en certificaciones de obra a la Administración Pública
+VerifactuDetailsRegimeType15 = Factura con IVA pendiente de devengo en operaciones de tracto sucesivo
+VerifactuDetailsRegimeType17 = Operación acogida a alguno de los regímenes previstos en el capítulo XI del título IX
+VerifactuDetailsRegimeType18 = Recargo de equivalencia
+VerifactuDetailsRegimeType19 = Actividades incluidas en el régimen especial de agricultura, ganadería y pesca
+VerifactuDetailsRegimeType20 = Régimen simplificado
+
+VerifactuDetailsOperationType = Operation type
+VerifactuDetailsOperationTypeDescription = Calificación de la operación en caso de no estar exenta
+VerifactuDetailsOperationTypeS1 = Operación sujeta y no exenta
+VerifactuDetailsOperationTypeS2 = Operación sujeta y no exenta - Con inversión del sujeto pasivo
+VerifactuDetailsOperationTypeN1 = Operación no sujeta artículo 7, 14, otros
+VerifactuDetailsOperationTypeN2 = Operación no sujeta por reglas de localización
+
+VerifactuDetailsTaxExcemption = Excemption code
+VerifactuDetailsTaxExcemptionDescription = Indicar solamente en caso de que la operación esté exenta de impuestos
+VerifactuDetailsTaxExcemptionE1 = Exenta por el artículo 20
+VerifactuDetailsTaxExcemptionE2 = Exenta por el artículo 21
+VerifactuDetailsTaxExcemptionE3 = Exenta por el artículo 22
+VerifactuDetailsTaxExcemptionE4 = Exenta por el artículo 23 y 24
+VerifactuDetailsTaxExcemptionE5 = Exenta por el artículo 25
+VerifactuDetailsTaxExcemptionE6 = Exenta por otros

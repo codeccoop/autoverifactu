@@ -156,7 +156,7 @@ $taxes = array(
     '01' => 'IVA',
     '02' => 'IPSI',
     '03' => 'IGIC',
-    '05' => 'Otros',
+    '05' => $langs->trans('Others'),
 );
 
 $taxField = $formSetup->newItem('AUTOVERIFACTU_TAX')->setAsSelect($taxes);
@@ -164,29 +164,28 @@ $taxField->fieldParams['isMandatory'] = 1;
 $taxField->defaultFieldValue = '01';
 
 $regimes = array(
-    '01' => 'Operación de régimen general',
-    '02' => 'Exportación',
-    '03' => 'Operaciones a las que se aplique el régimen especial de bienes usados',
-    '04' => 'Régimen especial del oro de inversión',
-    '05' => 'Régimen especial de las agencias de viajes',
-    '06' => 'Régimen especial grupo de entidades en IVA',
-    '07' => 'Régimen especial del criterio de caja',
-    '08' => 'Operaciones sujetas al IPSI / IGIC',
-    '09' => 'Facturación de las prestaciones de servicios de agencias de viaje que actúan como mediadoras',
-    '10' => 'Cobros por cuenta de terceros de honorarios profesionales o de derechos derivados de la propiedad industrial, de autor u otros',
-    '11' => 'Operaciones de arrendamiento de local de negocio',
-    '14' => 'Factura con IVA pendiente de devengo en certificaciones de obra cuyo destinatario sea una Administración Pública',
-    '15' => 'Factura con IVA pendiente de devengo en operaciones de tracto sucesivo',
-    '17' => 'Operación acogida a alguno de los regímenes previstos en el Capítulo XI del Título IX',
-    '18' => 'Recargo de equivalencia',
-    '19' => 'Operaciones de actividades incluidas en el Régimen Especial de Agricultura, Ganadería y Pesca',
-    '20' => 'Régimen simplificado',
+    '01' => $langs->trans('VerifactuDetailsRegimeType01'),
+    '02' => $langs->trans('VerifactuDetailsRegimeType02'),
+    '03' => $langs->trans('VerifactuDetailsRegimeType03'),
+    '04' => $langs->trans('VerifactuDetailsRegimeType04'),
+    '05' => $langs->trans('VerifactuDetailsRegimeType05'),
+    '06' => $langs->trans('VerifactuDetailsRegimeType06'),
+    '07' => $langs->trans('VerifactuDetailsRegimeType07'),
+    '08' => $langs->trans('VerifactuDetailsRegimeType08'),
+    '09' => $langs->trans('VerifactuDetailsRegimeType09'),
+    '10' => $langs->trans('VerifactuDetailsRegimeType10'),
+    '11' => $langs->trans('VerifactuDetailsRegimeType11'),
+    '14' => $langs->trans('VerifactuDetailsRegimeType14'),
+    '15' => $langs->trans('VerifactuDetailsRegimeType15'),
+    '17' => $langs->trans('VerifactuDetailsRegimeType17'),
+    '18' => $langs->trans('VerifactuDetailsRegimeType18'),
+    '19' => $langs->trans('VerifactuDetailsRegimeType19'),
+    '20' => $langs->trans('VerifactuDetailsRegimeType20'),
 );
 
-$regimeField = $formSetup->newItem('AUTOVERIFACTU_REGIME')->setAsSelect($regimes);
+$regimeField = $formSetup->newItem('AUTOVERIFACTU_DEFAULT_REGIME')->setAsSelect($regimes);
 $regimeField->fieldParams['isMandatory'] = 1;
-$regimeField->defaultFieldValue = '01';
-$regimeField->fieldAttr['disabled'] = !in_array(getDolGlobalString('AUTOVERIFACTU_REGIME') ?: '01', array('01', '03'), true);
+// $regimeField->defaultFieldValue = '01';
 
 $formSetup->newItem('SYSTEM_SECTION_TITLE')->setAsTitle();
 

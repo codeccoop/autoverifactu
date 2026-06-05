@@ -6,6 +6,7 @@
 VeriFactu = Veri*Factu
 Active = Actiu
 Settings = Ajustos
+Others = Altres
 
 # Module label 'ModuleAutoverifactuName'
 ModuleAutoverifactuName = Autoverifactu
@@ -32,7 +33,8 @@ AUTOVERIFACTU_CERTTooltip = Ruta al fitxer PKCS#12. En cas que el fitxer no sigu
 AUTOVERIFACTU_PASSWORD = Contrasenya del certificat
 AUTOVERIFACTU_PASSWORDTooltip = Auto-Veri*Factu només suporta els fitxers PKCS#12, el mateix format amb que les autoritats espanyoles distribueixen els certificats electrónics. Aquest tipus de fitxers estan encriptats amb una contrasenya i aquesta es requerida de cara a fer ús del certificat a l'hora d'autenticar Dolibarr davant els endpoints de la AEAT.
 FISCAL_SECTION_TITLE = Fiscal
-AUTOVERIFACTU_REGIME = Règim fiscal
+AUTOVERIFACTU_DEFAULT_REGIME = Règim fiscal per defecte
+AUTOVERIFACTU_DEFAULT_REGIMETooltip = El valor seleccionat es farà servir com a valor per defecte a les línies de factura
 AUTOVERIFACTU_TAX = Tipus d'import
 AUTOVERIFACTU_DATE_VALIDATION = És obligatori l'ús de a data de validació com a data d'emissió de les factures?
 AUTOVERIFACTU_DATE_VALIDATIONTooltip = La data de les factures ha de coincidir amb la seva data de validació. Ves a Configuració > Mòduls > Factures per canviar el valor de la configuració.
@@ -134,3 +136,53 @@ DeclarationSpecsListLabel = El component informàtic denominat Auto-Veri*Factu, 
 DelcarationSpecs1 = La integritat, conservació, accessibilitat, llegibilitat, traçabilitat i inalterabilitat dels registres de facturació generats pel mòdul de facutració de Dolibarr amb el qual s'integra.
 DeclarationSpecs2 = El compliment de les especificacions i funcionalitats previstes per la tramesa de registres de facturació a l'Agència Estatal d'Administració Tributària quan s'utilitci el sistema VERI*FACTU.
 DeclarationDischarge = Auto-Veri*Factu no constitueix un sistema de facturació autònom, sinó que actua com a component integrat en el mòdul de facturación de Dolibarr, sistema encarregat d'oferir les funcionalitats habituals d'aquest tipus d'aplicacions: capturar informació de facturació, emetre facutres, consultar factures, estadístiques de facturació, exportació, de dades de facturaicó...
+
+#
+# Extra Fields
+#
+VerifactuRectificationType = Factura rectificativa
+VerifactuRectificationTypeDescription = En cas de ser aquesta una factura rectificativa, indica de quin tipus és
+VerifactuRectificationTypeR1 = Factura Rectificativa (Error fonamentat en dret i Art. 80 Un Dos i Sis LIVA)
+VerifactuRectificationTypeR2 = Factura Rectificativa (Art. 80.3)
+VerifactuRectificationTypeR3 = Factura Rectificativa (Art. 80.4)
+VerifactuRectificationTypeR4 = Factura Rectificativa (Resta)
+VerifactuRectificationTypeR5 = Factura Rectificativa en factures simplificades
+
+VerifactuDateOperation = Data d'operació
+VerifactuDateOperation = Data en la qual es produeix la meritació de l'impost
+
+VerifactuDetailsRegimeType = Règim fiscal
+VerifactuDetailsRegimeTypeDescription = Regim fiscal de l'operació
+VerifactuDetailsRegimeType01 = Operació del règim general
+VerifactuDetailsRegimeType02 = Exportació
+VerifactuDetailsRegimeType03 = Operacions a les que s'aplica el règim especial de bens utilitzats
+VerifactuDetailsRegimeType04 = Règim especial de l'or d'inversió
+VerifactuDetailsRegimeType05 = Règim especial de les agències de viatge
+VerifactuDetailsRegimeType06 = Règim especial grup d'entitats en IVA
+VerifactuDetailsRegimeType07 = Règim especial del criteri de caixa
+VerifactuDetailsRegimeType08 = Operacions subjectes al IPSI / IGIC
+VerifactuDetailsRegimeType09 = Facturació de les prestacions de serveis a agències de viatge que actuen com a mediadores
+VerifactuDetailsRegimeType10 = Cobraments per compte de tercers d'honoraris professionals o de drets derivats de la propietat
+VerifactuDetailsRegimeType11 = Operacions d'arrendament de local de negoci
+VerifactuDetailsRegimeType14 = Factura amb IVA pendent de meritatge en certificacions d'obra a l'Administració Pública
+VerifactuDetailsRegimeType15 = Factura amb IVA pendent de meritatge en operacions de tracte successiu
+VerifactuDetailsRegimeType17 =  Operació acollida a algun dels règims previstos al capítol XI del títol IX
+VerifactuDetailsRegimeType18 = Recàrrec d'equivalència
+VerifactuDetailsRegimeType19 = Operacions d'activitats incloses al règim especial d'agricultura, ramaderia i pesca
+VerifactuDetailsRegimeType20 = Règim simplificat
+
+VerifactuDetailsOperationType = Tipus d'operació
+VerifactuDetailsOperationTypeDescription = Calificació de la operació en cas de no estar exempta
+VerifactuDetailsOperationTypeS1 = Operació subjecta y no exempta
+VerifactuDetailsOperationTypeS2 = Operació subjecta y no exempta - Amb inversió del subjecte passiu
+VerifactuDetailsOperationTypeN1 = Operació no subjecta artícle 7, 14, altres
+VerifactuDetailsOperationTypeN2 = Operació no subjecta per regles de localització
+
+VerifactuDetailsTaxExcemption = Codi d'excempció
+VerifactuDetailsTaxExcemptionDescription = Indicar només en cas que la operació estigui exempta d'impostos
+VerifactuDetailsTaxExcemptionE1 = Excempta per l'artícle 20
+VerifactuDetailsTaxExcemptionE2 = Excempta per l'artícle 21
+VerifactuDetailsTaxExcemptionE3 = Excempta per l'artícle 22
+VerifactuDetailsTaxExcemptionE4 = Excempta per l'artícle 23 i 24
+VerifactuDetailsTaxExcemptionE5 = Excempta per l'artícle 25
+VerifactuDetailsTaxExcemptionE6 = Excempta per altres

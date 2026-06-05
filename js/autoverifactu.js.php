@@ -74,11 +74,12 @@ global $langs, $user, $mysoc;
 
 $langs->loadLangs(array('admin', 'autoverifactu@autoverifactu'));
 
+$defaultRegime = getDolGlobalString('AUTOVERIFACTU_DEFAULT_REGIME') ?: '01';
 $enabled = (bool) getDolGlobalString('AUTOVERIFACTU_ENABLED');
 $testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
 $dismissed = array_filter(array_map('trim', explode(',', getDolGlobalString('AUTOVERIFACTU_DISMISSED_NOTICES', ''))));
 
-$drop = [];
+$drop = array();
 
 if ($enabled && ($index = array_search('DISABLED', $dismissed, true)) !== false) {
     $drop = array_merge($drop, array_splice($dismissed, $index, 1));
@@ -126,6 +127,7 @@ if ($is_admin && $testMode && !in_array('TESTMODE', $dismissed, true)) {
 
 /* Javascript library of module Auto-Veri*Factu */
 document.addEventListener("DOMContentLoaded", function () {
+    // handle ui messages
     const entity = <?php echo $mysoc->entity ?: 1 ?>;
     const messages = <?php echo json_encode($messages); ?>;
     messages.forEach(function (msg) {
@@ -142,4 +144,68 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+
+    autoverifactuHandleInvoiceCardReactivity();
+    autoverifactuHandleInvoiceDetailsReactivity();
 });
+
+function autoverifactuHandleInvoiceCardReactivity() {
+    const form = document.querySelector("#formtocreate");
+    if (!form) return;
+
+    const rectificationTypeField = form.querySelector(".field_options_verifactu_rectification_type");
+    if (!rectificationTypeField) return;
+
+    let invoiceType = "0";
+    function setInvoiceType(value) {
+        invoiceType = value;
+
+        // 0 = 'Factura estándard'
+        // 1 = 'Factura rectificativa'
+        // 2 = 'Abono'
+        if (value === "1" || value === "2") {
+            rectificationTypeField.style.display = "table-row";
+        } else {
+            rectificationTypeField.style.display = "none";
+            rectificationTypeField.querySelector("select").value = "";
+        }
+    }
+
+    const radioButtons = form.querySelectorAll('input[type="radio"]');
+    radioButtons.forEach((input) => {
+        if (input.checked) {
+            setInvoiceType(input.value);
+        }
+
+        input.addEventListener("change", () => {
+            if (input.checked) {
+                setInvoiceType(input.value);
+            }
+        });
+    });
+}
+
+function autoverifactuHandleInvoiceDetailsReactivity() {
+    const form = document.querySelector("form#addproduct");
+    if (!form) return;
+
+    const regimeField = form.querySelector(".fieldline_options_verifactu_regime_type select");
+    const optTypeField = form.querySelector(".fieldline_options_verifactu_operation_type select");
+    const excemptionField = form.querySelector(".fieldline_options_verifactu_tax_excemption select");
+    if (!(regimeField && optTypeField && excemptionField)) return;
+
+    $(regimeField).val("<?php echo $defaultRegime ?>").trigger("change");
+    $(optTypeField).val("S1").trigger("change");
+
+    $(optTypeField).on("change", function () {
+        if (this.value) {
+            $(excemptionField).val("").trigger("change");
+        }
+    });
+
+    $(excemptionField).on("change", function () {
+        if (this.value) {
+            $(optTypeField).val("").trigger("change");
+        }
+    });
+}
