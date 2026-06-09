@@ -103,7 +103,7 @@ class ActionsAutoverifactu extends CommonHookActions
                     } elseif ($result < 0) {
                         $this->errors[] = $langs->trans('InconsistentInvoiceData');
                     }
-                    // url de verificacion en casp de test ou production.
+                    // url de verificacion en caso de test o production.
                     $testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
                     $base_url = $testMode ? VERIFACTU_TEST_COLLATION_BASE_URL : VERIFACTU_COLLATION_BASE_URL;
                     $endpoint = '/wlpl/TIKE-CONT/ValidarQR';

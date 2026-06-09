@@ -260,11 +260,7 @@ function autoverifactuRecordFromLog($blockedlog, $recordType = 'alta')
     $blocked->ref = $objectdata->ref;
 
     $lines = array();
-
-    $extrafields = new ExtraFields($db);
-    $extralabels = $extrafields->fetch_name_optionals_label('facturedet');
-
-    foreach ($objectdata->invoiceline as $indice => $linedata) {
+    foreach ($objectdata->invoiceline as $linedata) {
         $line = new FactureLigne($db);
         $line->tva_tx = $linedata->tva_tx;
         $line->total_ht = $linedata->total_ht;

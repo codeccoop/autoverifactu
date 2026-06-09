@@ -287,7 +287,7 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 
     $envelope = $xml = autoverifactuSoapEnvelope(
         $record,
-        $issuer
+        $issuer,
     );
 
     $res = autoverifactuSoapRequest($envelope);
