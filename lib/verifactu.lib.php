@@ -279,12 +279,12 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
         'name' => $mysoc->nom,
         'idprof1' => $mysoc->idprof1,
     );
-
-    $issuerIsValid = autoverifactuValidateIssuer($issuer);
+  	//no exisiste la funcion autoverifactuValidateIssuer
+    /*$issuerIsValid = autoverifactuValidateIssuer($issuer);
 
     if (!$issuerIsValid) {
         throw new Exception('Inconsistent issuer data');
-    }
+    }*/
 
     $envelope = $xml = autoverifactuSoapEnvelope(
         $record,
@@ -938,6 +938,8 @@ function autoverifactuLinesToBreakdown($invoice)
             $details->equivalenceSurcharge->type = number_format((float) $line->localtax1_tx, 2, '.', '') ;
             $details->equivalenceSurcharge->total = number_format((float) $line->total_localtax1, 2, '.', '');
         }
+		//falta añadir al array 
+        $breakdown[] = $details;
     }
 
     return $breakdown;
