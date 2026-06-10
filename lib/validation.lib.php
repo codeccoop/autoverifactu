@@ -510,7 +510,8 @@ function autoverifactuValidateRecordValues($record)
         && autoverifactuValidateInvoiceType($record->invoiceType)
         && autoverifactuValidateDate($record->dateOperation, false)
         && autoverifactuValidateAlphaNumber($record->description, 500)
-        && autoverifactuValidateAlphaNumber($record->invoiceNumber, 60)
+		//$record->invoiceNumber no existe es $record->invoiceId->invoiceNumber
+        && autoverifactuValidateAlphaNumber($record->invoiceId->invoiceNumber, 60)
         && autoverifactuValidateNumber($record->factureTotalAmount, 12, 2)
         && autoverifactuValidateNumber($record->factureTtc, 12, 2)
         && $record->factureTotalAmount === $record->factureTtc
