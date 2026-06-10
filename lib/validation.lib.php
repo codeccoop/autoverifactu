@@ -365,10 +365,10 @@ function autoverifactuEnabled()
  * Performs record data validation.
  *
  * @param  stdClass $record Target record.
- *
+ * @param string &$errorMsg Parameter by reference to store the error message.
  * @return int              0 if validatio fail, 1 if succeed
  */
-function autoverifactuValidateRecord($record)
+function autoverifactuValidateRecord($record, &$errorMsg = '')
 {
     $isValid = autoverifactuValidateRecordValues($record);
     if (!$isValid) {
@@ -376,6 +376,7 @@ function autoverifactuValidateRecord($record)
     }
 
     if (!isset($record->breakdown, $record->totalTaxAmount, $record->totalAmount)) {
+        $errorMsg="AUTOVERIFACTU_ERROR_ValidateExistBreakdownTotalTaxAmountTotalAmount";
         return 0;
     }
 
@@ -384,33 +385,41 @@ function autoverifactuValidateRecord($record)
         && count($record->recipients)
     ) {
         // If is simplified, it should not have recipients.
+        $errorMsg="AUTOVERIFACTU_ERROR_ValidateIsSimplifiedNotRecipients";
         return 0;
     }
 
     $isCorrective = preg_match('/R[0-5]/', $record->invoiceType);
     if ($isCorrective && !$record->correctiveType) {
+        $errorMsg="AUTOVERIFACTU_ERROR_ValidateCorrectiveIsNotCorrectiveType";
         return 0;
     } elseif (!$isCorrective && $record->correctiveType) {
+        $errorMsg="AUTOVERIFACTU_ERROR_ValidateIsNotCorrectiveCorrectiveType";
         return 0;
     } elseif (!$isCorrective && count($record->correctedInvoices)) {
+        $errorMsg="AUTOVERIFACTU_ERROR_ValidateIsNotCorrectiveCountCorrectiveInvoices";
         return 0;
     }
 
     if ($record->correctiveType === 'S') {
         // If its corrective by diferrence it should have base and tax amounts.
         if (!$record->correctedBaseAmount || !$record->correctedTaxAmount) {
+            $errorMsg="AUTOVERIFACTU_ERROR_ValidateIsCorrectiveDiferenceBAseTaxAmounts";
             return 0;
         }
     } else {
         // If is corrective by substitution, it shouldn't.
         if ($record->correctedBaseAmount || $record->correctedTaxAmount) {
+            $errorMsg="AUTOVERIFACTU_ERROR_ValidateIsCorrectiveSustitutionTaxAmountBaseAmount";
             return 0;
         }
     }
 
     if ($record->invoiceType === 'F3' && count($record->replacedInvoices)) {
+        $errorMsg="AUTOVERIFACTU_ERROR_ValidateIsF3ReplaceInvoices";
         return 0;
     } elseif ($record->invoiceType !== 'F3' && count($record->replacedInvoices)) {
+        $errorMsg="AUTOVERIFACTU_ERROR_ValidateIsNotF3ReplaceInvoices";
         return 0;
     }
 
@@ -418,6 +427,7 @@ function autoverifactuValidateRecord($record)
     $expectedBase = 0;
     foreach ($record->breakdown as $details) {
         if (!isset($details->taxAmount, $details->baseAmount, $details->taxRate)) {
+            $errorMsg="AUTOVERIFACTU_ERROR_ValidateTaxAmountBaseAmountTaxRate";
             return 0;
         }
 
@@ -432,6 +442,7 @@ function autoverifactuValidateRecord($record)
         }
 
         if (!$validTaxAmount) {
+            $errorMsg="AUTOVERIFACTU_ERROR_ValidateTaxAmount";
             return 0;
         }
 
@@ -452,7 +463,12 @@ function autoverifactuValidateRecord($record)
         }
     }
 
-    return (int) $isTotalValid;
+    if(!(int) $isTotalValid){
+        $errorMsg="AUTOVERIFACTU_ERROR_ValidateTotalValid";
+        return 0;
+    }
+
+    return 1;
 }
 
 /**
@@ -644,6 +660,7 @@ function autoverifactuValidateAlphaNumber($value, $length, $required = true)
  */
 function autoverifactuValidateNumber($value, $digits = 12, $decimals = 2, $required = true)
 {
+
     if (!$required && empty($value)) {
         return true;
     }
@@ -656,15 +673,28 @@ function autoverifactuValidateNumber($value, $digits = 12, $decimals = 2, $requi
 
     $parts = explode('.', $abs);
     $integers = $parts[0];
-    $decimals = $parts[1] ?? '';
+    //en versiones de php más extrictas $parts[1] ?? ''; al realizar la resta de $digits - $decimals da error al no ser un valor numérico, por eso asigno 0
+    $decimalPart = $parts[1] ?? '';
+    
 
-    $maxIntegers = $digits - $decimals;
+    $maxIntegers;
+    
+    if ($decimalPart === '') {
+        $maxIntegers = $digits;
+    }else{
+        $maxIntegers = $digits - $decimals;
+    }
+
+
+
+
     $intCount = strlen($integers);
-    $decCount = strlen($decimals);
+    $decCount = strlen($decimalPart);
+
 
     return (
         $intCount <= $maxIntegers
-        && $decCount <= $decimals
+        && $decCount <= intval($decimals)
         && $intCount + $decCount <= $digits
     );
 }

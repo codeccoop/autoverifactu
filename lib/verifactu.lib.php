@@ -26,7 +26,7 @@
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
-require_once __DIR__ . '/validation.lib.php';
+
 
 /* Veri*Factu API URLs */
 define('VERIFACTU_BASE_URL', 'https://www1.agenciatributaria.gob.es'); // Production API host
@@ -92,7 +92,8 @@ function autoverifactuRegisterInvoice($invoice, $action)
     $invoice->fetch_thirdparty();
     $thirdparty = $invoice->thirdparty;
     $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
-    if ($valid_id <= 0 && !$thirdparty->tva_intra) {
+	 //las facturas simplificadas no tienen tercero y por tanto tienen que evitar esta validación 
+    if (!autoverifactuIsPosInvoice($invoice) && $valid_id <= 0 && !$thirdparty->tva_intra) {
         dol_syslog('Skip invoice verifactu record registration due to thirdparty without a vaid idprof1');
         return -1;
     }
@@ -204,6 +205,9 @@ function autoverifactuRegisterInvoice($invoice, $action)
         }
 
         dol_syslog('Error on verifactu request ' . print_r($e, true), LOG_ERR);
+        
+        $invoice->errors[] = $e->getMessage();
+        
         return -1;
     }
 
@@ -224,6 +228,7 @@ function autoverifactuRegisterInvoice($invoice, $action)
 function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 {
     if (!autoverifactuSystemCheck()) {
+        $invoice->errors[] ="VerifactuErrorSytemChecks";
         dol_syslog('Veri*Factu bridge does not pass system checks');
         return;
     }
@@ -231,6 +236,7 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
     $enabled = getDolGlobalString('AUTOVERIFACTU_ENABLED') === '1';
 
     if (!$enabled) {
+        $invoice->errors[] ="VerifactuErrorNotEnabled";
         dol_syslog('Veri*Factu bridge is not enabled');
         return;
     }
@@ -243,12 +249,14 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
             . $invoice->id .
             'is already registered',
         );
-
+        $invoice->errors[] ="VerifactuErrorSkipInvoiceRegistration";
         return;
     }
 
     $record = autoverifactuInvoiceToRecord($invoice, $recordType);
+    
     if (!$record) {
+        
         throw new Exception('Inconsistent invoice data');
     }
 
@@ -268,7 +276,6 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
             'Verifactu record registry interception on "autoverifactuRecord" for invoice #'
             . $invoice->id,
         );
-
         return $reshook;
     }
 
@@ -686,6 +693,8 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 
     if (autoverifactuValidateRecord($record)) {
         return $record;
+    }else{
+         throw new Exception($errorMsg ?: 'Inconsistent invoice data');
     }
 }
 
@@ -820,10 +829,19 @@ function autoverifactuRecordToXML($record, $xml = null)
                 $dEl->appendChild($xml->createElement('sum1:CalificacionOperacion', $details->operationType));
             }
 
+			// Se indicará el tipo impositivo y la cuota repercutida si no existe código de exención o
+            // la calificación de la operación no es N1 ni N2.
+			
+			//hay que poner en este order los campos TipoImpositivo, BaseImponibleOimporteNoSujeto , CuotaRepercutida
+            if (!($details->exemptionCode || in_array($details->operationType, array('N1', 'N2'), true))) {
+                $dEl->appendChild($xml->createElement('sum1:TipoImpositivo', $details->taxRate));
+            }
+
+			$dEl->appendChild($xml->createElement('sum1:BaseImponibleOimporteNoSujeto', $details->baseAmount));
+			
             // Se indicará el tipo impositivo y la cuota repercutida si no existe código de exención o
             // la calificación de la operación no es N1 ni N2.
             if (!($details->exemptionCode || in_array($details->operationType, array('N1', 'N2'), true))) {
-                $dEl->appendChild($xml->createElement('sum1:TipoImpositivo', $details->taxRate));
                 $dEl->appendChild($xml->createElement('sum1:CuotaRepercutida', $details->taxAmount));
             }
 
@@ -877,7 +895,6 @@ function autoverifactuRecordToXML($record, $xml = null)
 
     $systemEl = $xml->createElement('sum1:SistemaInformatico');
     $recordEl->appendChild($systemEl);
-
     $systemEl->appendChild($xml->createElement('sum1:NombreRazon', htmlspecialchars($record->system->vendorName)));
     $systemEl->appendChild($xml->createElement('sum1:NIF', htmlspecialchars($record->system->vendorNif)));
     $systemEl->appendChild($xml->createElement('sum1:NombreSistemaInformatico', htmlspecialchars($record->system->name)));
