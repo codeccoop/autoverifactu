@@ -644,6 +644,7 @@ function autoverifactuValidateAlphaNumber($value, $length, $required = true)
  */
 function autoverifactuValidateNumber($value, $digits = 12, $decimals = 2, $required = true)
 {
+
     if (!$required && empty($value)) {
         return true;
     }
@@ -656,18 +657,29 @@ function autoverifactuValidateNumber($value, $digits = 12, $decimals = 2, $requi
 
     $parts = explode('.', $abs);
     $integers = $parts[0];
-    $decimals = $parts[1] ?? '';
+    //en versiones de php más extrictas $parts[1] ?? ''; al realizar la resta de $digits - $decimals da error al no ser un valor numérico, por eso asigno 0
+    $decimalPart = $parts[1] ?? '';
+    
 
-    $maxIntegers = $digits - $decimals;
+    $maxIntegers;
+    
+    if ($decimalPart === '') {
+        $maxIntegers = $digits;
+    }else{
+        $maxIntegers = $digits - $decimals;
+    }
+
     $intCount = strlen($integers);
-    $decCount = strlen($decimals);
+    $decCount = strlen($decimalPart);
+
 
     return (
         $intCount <= $maxIntegers
-        && $decCount <= $decimals
+        && $decCount <= intval($decimals)
         && $intCount + $decCount <= $digits
     );
 }
+
 
 /**
  * Tax type code validation.
