@@ -92,7 +92,8 @@ function autoverifactuRegisterInvoice($invoice, $action)
     $invoice->fetch_thirdparty();
     $thirdparty = $invoice->thirdparty;
     $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
-    if ($valid_id <= 0 && !$thirdparty->tva_intra) {
+    //las facturas simplificadas no tienen tercero y por tanto tienen que evitar esta validación 
+    if (!autoverifactuIsPosInvoice($invoice) && $valid_id <= 0 && !$thirdparty->tva_intra) {
         dol_syslog('Skip invoice verifactu record registration due to thirdparty without a vaid idprof1');
         return -1;
     }
