@@ -580,7 +580,16 @@ function autoverifactuValidateRecordType($value, $required = true)
  */
 function autoverifactuValidateDate($value, $required = true)
 {
-    $d = DateTime::createFromFormat('d-m-y', $value);
+    //Si está vacío y no es obligatorio, es válido
+    if (!$required && empty($value)) {
+        return true;
+    }
+    //Si ya es un objeto de fecha (DateTime o DateTimeImmutable), es válido
+    if ($value instanceof DateTimeInterface) {
+        return true;
+    }
+
+    $d = DateTime::createFromFormat('d-m-y', $value); 
     return $d && $d->format('d-m-y') === $value  || !$required && empty($value);
 }
 
