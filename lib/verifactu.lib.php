@@ -92,7 +92,8 @@ function autoverifactuRegisterInvoice($invoice, $action)
     $invoice->fetch_thirdparty();
     $thirdparty = $invoice->thirdparty;
     $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
-    if ($valid_id <= 0 && !$thirdparty->tva_intra) {
+    //las facturas simplificadas no tienen tercero y por tanto tienen que evitar esta validación 
+    if (!autoverifactuIsPosInvoice($invoice) && $valid_id <= 0 && !$thirdparty->tva_intra) {
         dol_syslog('Skip invoice verifactu record registration due to thirdparty without a vaid idprof1');
         return -1;
     }
@@ -278,12 +279,12 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
         'name' => $mysoc->nom,
         'idprof1' => $mysoc->idprof1,
     );
-
-    $issuerIsValid = autoverifactuValidateIssuer($issuer);
+  	//no exisiste la funcion autoverifactuValidateIssuer
+    /*$issuerIsValid = autoverifactuValidateIssuer($issuer);
 
     if (!$issuerIsValid) {
         throw new Exception('Inconsistent issuer data');
-    }
+    }*/
 
     $envelope = $xml = autoverifactuSoapEnvelope(
         $record,
@@ -822,12 +823,15 @@ function autoverifactuRecordToXML($record, $xml = null)
 
             // Se indicará el tipo impositivo y la cuota repercutida si no existe código de exención o
             // la calificación de la operación no es N1 ni N2.
+			//hay que poner en este order los campos TipoImpositivo, BaseImponibleOimporteNoSujeto , CuotaRepercutida
             if (!($details->exemptionCode || in_array($details->operationType, array('N1', 'N2'), true))) {
                 $dEl->appendChild($xml->createElement('sum1:TipoImpositivo', $details->taxRate));
+            }
+			$dEl->appendChild($xml->createElement('sum1:BaseImponibleOimporteNoSujeto', $details->baseAmount));
+			
+            if (!($details->exemptionCode || in_array($details->operationType, array('N1', 'N2'), true))) {
                 $dEl->appendChild($xml->createElement('sum1:CuotaRepercutida', $details->taxAmount));
             }
-
-            $dEl->appendChild($xml->createElement('sum1:BaseImponibleOimporteNoSujeto', $details->baseAmount));
 
             // Se indicará el recargo de equivalencia y el tipo en caso de existir
             if (!$details->exemptionCode && $details->operationType === 'S1' && isset($details->equivalenceSurcharge)) {
@@ -922,7 +926,8 @@ function autoverifactuLinesToBreakdown($invoice)
     foreach ($invoice->lines as $line) {
         $details = new stdClass();
         $details->taxType = getDolGlobalString('AUTOVERIFACTU_TAX') ?: '01';
-        $details->regimeType = $line->array_options['options_verifactu_regim_type'] ?: $defaultRegime;
+		// variable incorrecta options_verifactu_regim_type=> options_verifactu_regime_type
+        $details->regimeType = $line->array_options['options_verifactu_regime_type'] ?: $defaultRegime;
         $details->operationType = $line->array_options['options_verifactu_operation_type'] ?: 'S1';
         $details->excemptionCode = $line->array_options['options_verifactu_tax_excemption'] ?: null;
         $details->taxRate = number_format((float) $line->tva_tx, 2, '.', '');
@@ -934,6 +939,8 @@ function autoverifactuLinesToBreakdown($invoice)
             $details->equivalenceSurcharge->type = number_format((float) $line->localtax1_tx, 2, '.', '') ;
             $details->equivalenceSurcharge->total = number_format((float) $line->total_localtax1, 2, '.', '');
         }
+		//falta añadir al array 
+        $breakdown[] = $details;
     }
 
     return $breakdown;

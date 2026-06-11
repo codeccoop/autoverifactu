@@ -182,7 +182,16 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                         }
                     }
                 }
-
+               //Al crear una factura tipo rectificativa tenemos que borrar el hash y los demás campos si no lo hacemos el programa detecta que esa factura ha sido enviada
+                if($object->type == Facture::TYPE_REPLACEMENT){
+                    $object->array_options['options_verifactu_tms'] = null;
+                    $object->array_options['options_verifactu_hash'] = null;
+                    $object->array_options['options_verifactu_error'] = null;
+                    $result = $object->insertExtraFields();
+                    if ($result < 0) {
+                        return $result;
+                    }
+                }
                 break;
             case 'BILL_CANCEL':
                 $trigger = $_GET['action'] ?? '';

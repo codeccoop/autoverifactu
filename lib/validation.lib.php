@@ -269,6 +269,7 @@ function autoverifactuRecordFromLog($blockedlog, $recordType = 'alta')
         $line->tva_tx = $linedata->tva_tx;
         $line->total_ht = $linedata->total_ht;
         $line->total_tva = $linedata->total_tva;
+		//si introducimos este valor hay que añadirlo en la funcion de validación
         $line->array_options['options_verifactu_operation_type'] = 'validate';
         $lines[] = $line;
     }
@@ -510,10 +511,13 @@ function autoverifactuValidateRecordValues($record)
         && autoverifactuValidateInvoiceType($record->invoiceType)
         && autoverifactuValidateDate($record->dateOperation, false)
         && autoverifactuValidateAlphaNumber($record->description, 500)
-        && autoverifactuValidateAlphaNumber($record->invoiceNumber, 60)
+		//$record->invoiceNumber no existe es $record->invoiceId->invoiceNumber
+        && autoverifactuValidateAlphaNumber($record->invoiceId->invoiceNumber, 60)
         && autoverifactuValidateNumber($record->factureTotalAmount, 12, 2)
         && autoverifactuValidateNumber($record->factureTtc, 12, 2)
         && $record->factureTotalAmount === $record->factureTtc
+ 		//Estás pasando la variable tipo de factura correctiva I o S (Diferencia o Sustitución) 
+		//la función debe de validar si es de tipo S o I 
         && autoverifactuValidateCorrectiveType($record->correctiveType, false)
         && autoverifactuValidateNumber($record->correctedBaseAmount, 12, 2, false)
         && autoverifactuValidateNumber($record->correctedTaxAmount, 12, 2, false)
@@ -577,7 +581,16 @@ function autoverifactuValidateRecordType($value, $required = true)
  */
 function autoverifactuValidateDate($value, $required = true)
 {
-    $d = DateTime::createFromFormat('d-m-y', $value);
+    //Si está vacío y no es obligatorio, es válido
+    if (!$required && empty($value)) {
+        return true;
+    }
+    //Si ya es un objeto de fecha (DateTime o DateTimeImmutable), es válido
+    if ($value instanceof DateTimeInterface) {
+        return true;
+    }
+
+    $d = DateTime::createFromFormat('d-m-y', $value); 
     return $d && $d->format('d-m-y') === $value  || !$required && empty($value);
 }
 
@@ -605,7 +618,8 @@ function autoverifactuValidateInvoiceType($value, $required = true)
  */
 function autoverifactuValidateCorrectiveType($value, $required = true)
 {
-    $options = array('R1', 'R2', 'R3', 'R4', 'R5');
+    //factura correctiva I o S (Diferencia o Sustitución )
+    $options = array('I', 'S');
     return in_array($value, $options, true) || !$required && empty($value);
 }
 
@@ -623,8 +637,8 @@ function autoverifactuValidateAlphaNumber($value, $length, $required = true)
     if (!$required && empty($value)) {
         return true;
     }
-
-    $actualLength = mb_strlen($string, 'UTF-8');
+	// la variable $string no existe es $value
+    $actualLength = mb_strlen($value, 'UTF-8');
     if ($actualLength === 0 || $actualLength > intval($length)) {
         return false;
     }
@@ -644,6 +658,7 @@ function autoverifactuValidateAlphaNumber($value, $length, $required = true)
  */
 function autoverifactuValidateNumber($value, $digits = 12, $decimals = 2, $required = true)
 {
+
     if (!$required && empty($value)) {
         return true;
     }
@@ -656,18 +671,29 @@ function autoverifactuValidateNumber($value, $digits = 12, $decimals = 2, $requi
 
     $parts = explode('.', $abs);
     $integers = $parts[0];
-    $decimals = $parts[1] ?? '';
+    //en versiones de php más extrictas $parts[1] ?? ''; al realizar la resta de $digits - $decimals da error al no ser un valor numérico, por eso asigno 0
+    $decimalPart = $parts[1] ?? '';
+    
 
-    $maxIntegers = $digits - $decimals;
+    $maxIntegers;
+    
+    if ($decimalPart === '') {
+        $maxIntegers = $digits;
+    }else{
+        $maxIntegers = $digits - $decimals;
+    }
+
     $intCount = strlen($integers);
-    $decCount = strlen($decimals);
+    $decCount = strlen($decimalPart);
+
 
     return (
         $intCount <= $maxIntegers
-        && $decCount <= $decimals
+        && $decCount <= intval($decimals)
         && $intCount + $decCount <= $digits
     );
 }
+
 
 /**
  * Tax type code validation.
@@ -726,7 +752,8 @@ function autoverifactuValidateRegimeType($value, $required = true)
  */
 function autoverifactuValidateOperationType($value, $required = true)
 {
-    $options = array('S1', 'S2', 'N1', 'N2');
+	//si usas la el valor validate en la funcion autoverifactuRecordFromLog tenemos que añadirlo tambien en la validación
+    $options = array('S1', 'S2', 'N1', 'N2','validate' );
     return in_array($value, $options, true) || !$required && empty($value);
 }
 
