@@ -102,6 +102,8 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                     $object->array_options['options_verifactu_tms'] = null;
                     $object->array_options['options_verifactu_hash'] = null;
                     $object->array_options['options_verifactu_error'] = null;
+					//al copiar una factura tienemos que poner el estado en Pendiente de envío (0)
+					$object->array_options['options_verifactu_status'] = 0;
 
                     $result = $object->insertExtraFields();
                     if ($result < 0) {
