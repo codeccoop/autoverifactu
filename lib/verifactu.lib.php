@@ -59,6 +59,7 @@ function autoverifactuRegisterInvoice($invoice, $action)
 {
     global $db, $conf, $hookmanager;
 
+    $error;
     if ($invoice->type > Facture::TYPE_DEPOSIT) {
         // Skip non recordable invoice types.
         return 0;
@@ -92,7 +93,8 @@ function autoverifactuRegisterInvoice($invoice, $action)
     $invoice->fetch_thirdparty();
     $thirdparty = $invoice->thirdparty;
     $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
-    if ($valid_id <= 0 && !$thirdparty->tva_intra) {
+    //las facturas simplificadas no tienen tercero y por tanto tienen que evitar esta validación 
+    if (!autoverifactuIsPosInvoice($invoice) && $valid_id <= 0 && !$thirdparty->tva_intra) {
         dol_syslog('Skip invoice verifactu record registration due to thirdparty without a vaid idprof1');
         return -1;
     }
@@ -223,6 +225,7 @@ function autoverifactuRegisterInvoice($invoice, $action)
  */
 function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 {
+     
     if (!autoverifactuSystemCheck()) {
         dol_syslog('Veri*Factu bridge does not pass system checks');
         return;
@@ -248,6 +251,8 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
     }
 
     $record = autoverifactuInvoiceToRecord($invoice, $recordType);
+
+     
     if (!$record) {
         throw new Exception('Inconsistent invoice data');
     }
@@ -278,12 +283,12 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
         'name' => $mysoc->nom,
         'idprof1' => $mysoc->idprof1,
     );
-
-    $issuerIsValid = autoverifactuValidateIssuer($issuer);
+  	//no exisiste la funcion autoverifactuValidateIssuer
+    /*$issuerIsValid = autoverifactuValidateIssuer($issuer);
 
     if (!$issuerIsValid) {
         throw new Exception('Inconsistent issuer data');
-    }
+    }*/
 
     $envelope = $xml = autoverifactuSoapEnvelope(
         $record,
@@ -297,7 +302,11 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
     if ($status->nodeValue === 'Incorrecto') {
         dol_syslog('# REJECTED SOAP ENVELOPE', LOG_DEBUG);
         dol_syslog($envelope, LOG_DEBUG);
+        $invoice->array_options['options_verifactu_status'] = '2';
+        $invoice->insertExtraFields();
+        
         throw new Exception($res->saveXML(), 400);
+
     } elseif ($status->nodeValue === 'AceptadoConErrores') {
         $errCode = $res->getElementsByTagName('CodigoErrorRegistro')[0] ?? null;
         $errMessage = $res->getElementsByTagName('DescripcionErrorRegistro')[0] ?? null;
@@ -311,8 +320,15 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
         $record->error = new stdClass();
         $record->error->code = $errCode->nodeValue;
         $record->error->message = $errMessage->nodeValue;
+        //actualizo el estado a Enviada y correcta con errores
+        $invoice->array_options['options_verifactu_status'] = '4';
+        $invoice->insertExtraFields();
     }
 
+    //actualizo el estado a Enviada y correcta
+    $invoice->array_options['options_verifactu_status'] = '1';
+    $invoice->insertExtraFields();
+    
     return $record;
 }
 
@@ -328,6 +344,7 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
  */
 function autoverifactuSoapRequest($body, $ttl = 3)
 {
+    global  $db;
     $testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
     $base_url = $testMode ? VERIFACTU_TEST_BASE_URL : VERIFACTU_BASE_URL;
 
@@ -352,11 +369,14 @@ function autoverifactuSoapRequest($body, $ttl = 3)
             'User-Agent: Mozilla/5.0 (compatible; Módulo Auto-Veri*Factu de Dolibarr/0.0.1',
         ),
     );
-
+    var_dump(htmlentities($body));
+   
     curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
     $res = curl_exec($ch);
     dol_syslog('# RESPUESTA ALTA REGISTRO', LOG_DEBUG);
     dol_syslog($res, LOG_DEBUG);
+
+    echo "<br>"; echo "<br>"; echo "<br>"; echo "<br>";
 
     if ($res === false) {
         $error = curl_error($ch);
@@ -367,11 +387,28 @@ function autoverifactuSoapRequest($body, $ttl = 3)
     }
 
     curl_close($ch);
+    var_dump(htmlentities($res));
+
 
     $doc = new DOMDocument();
     $doc->loadXML($res . "\n");
     $faults = $doc->getElementsByTagName('Fault');
+    $shippingWaitingTimeNodes=$doc->getElementsByTagName('TiempoEsperaEnvio');
+    if ($shippingWaitingTimeNodes->length > 0) {
+        
+        $now=new DateTimeImmutable(
+            'now',
+            new DateTimeZone('Europe/Madrid'),
+        );
 
+        $shippingWaitingTime = (int) $shippingWaitingTimeNodes->item(0)->nodeValue;
+        $newShipment= $now->modify("+" . $shippingWaitingTime . " seconds");
+        $newValueTimestamp=$newShipment->getTimestamp();
+        $result = dolibarr_set_const($db, 'VERIFACTU_NEXT_DELIVERY_ALLOWED', $newValueTimestamp, 'chaine', 0, '', 0);
+        if($result<=0){
+            dol_syslog('# VERIFACTU SAVE DOLIBARR CONST VERIFACTU_NEXT_DELIVERY_ALLOWED', LOG_DEBUG);
+        }
+    } 
     if ($faults->count() > 0) {
         $fault = $faults[0];
         $code = $fault->getElementsByTagName('faultcode')[0];
@@ -392,7 +429,9 @@ function autoverifactuSoapRequest($body, $ttl = 3)
         dol_syslog($body, LOG_DEBUG);
         throw new Exception($res, 400);
     }
+    
 
+    
     return $doc;
 }
 
@@ -638,6 +677,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
     );
 
     $previous = autoverifactuGetPreviousValidInvoice($invoice, $now);
+  
     if ($previous) {
         $record->previousInvoiceId = new stdClass();
         $record->previousInvoiceId->issuerId = trim($mysoc->idprof1);
@@ -684,9 +724,11 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
         return $reshook;
     }
 
+
     if (autoverifactuValidateRecord($record)) {
         return $record;
     }
+    
 }
 
 /**
@@ -822,12 +864,15 @@ function autoverifactuRecordToXML($record, $xml = null)
 
             // Se indicará el tipo impositivo y la cuota repercutida si no existe código de exención o
             // la calificación de la operación no es N1 ni N2.
+			//hay que poner en este order los campos TipoImpositivo, BaseImponibleOimporteNoSujeto , CuotaRepercutida
             if (!($details->exemptionCode || in_array($details->operationType, array('N1', 'N2'), true))) {
                 $dEl->appendChild($xml->createElement('sum1:TipoImpositivo', $details->taxRate));
+            }
+			$dEl->appendChild($xml->createElement('sum1:BaseImponibleOimporteNoSujeto', $details->baseAmount));
+			
+            if (!($details->exemptionCode || in_array($details->operationType, array('N1', 'N2'), true))) {
                 $dEl->appendChild($xml->createElement('sum1:CuotaRepercutida', $details->taxAmount));
             }
-
-            $dEl->appendChild($xml->createElement('sum1:BaseImponibleOimporteNoSujeto', $details->baseAmount));
 
             // Se indicará el recargo de equivalencia y el tipo en caso de existir
             if (!$details->exemptionCode && $details->operationType === 'S1' && isset($details->equivalenceSurcharge)) {
@@ -919,10 +964,15 @@ function autoverifactuLinesToBreakdown($invoice)
     $breakdown = array();
 
     $defaultRegime = getDolGlobalString('AUTOVERIFACTU_DEFAULT_REGIME') ?: '01';
+ 
+
     foreach ($invoice->lines as $line) {
+
+      
         $details = new stdClass();
         $details->taxType = getDolGlobalString('AUTOVERIFACTU_TAX') ?: '01';
-        $details->regimeType = $line->array_options['options_verifactu_regim_type'] ?: $defaultRegime;
+		// variable incorrecta options_verifactu_regim_type=> options_verifactu_regime_type
+        $details->regimeType = $line->array_options['options_verifactu_regime_type'] ?: $defaultRegime;
         $details->operationType = $line->array_options['options_verifactu_operation_type'] ?: 'S1';
         $details->excemptionCode = $line->array_options['options_verifactu_tax_excemption'] ?: null;
         $details->taxRate = number_format((float) $line->tva_tx, 2, '.', '');
@@ -934,8 +984,11 @@ function autoverifactuLinesToBreakdown($invoice)
             $details->equivalenceSurcharge->type = number_format((float) $line->localtax1_tx, 2, '.', '') ;
             $details->equivalenceSurcharge->total = number_format((float) $line->total_localtax1, 2, '.', '');
         }
+		//falta añadir al array 
+        $breakdown[] = $details;
     }
 
+ 
     return $breakdown;
 }
 
@@ -998,4 +1051,155 @@ function autoverifactuCalculateRecordHash($record)
     }
 
     return strtoupper(hash('sha256', $payload));
+}
+
+/**
+ * Verifactu invoice record registration.
+ *
+ * @param  Facture $invoices Array object invoices.
+ *
+ * @return int              Return <0 if KO, 0 if skipped, >0 if OK.
+*/
+function autoverifactuRegisterInvoiceList($invoices)
+{
+    global $db, $conf, $hookmanager;
+
+    if (empty($invoices) || !is_array($invoices)) {
+        return 0;
+    }
+
+    if (empty($conf->facture->multidir_output[$conf->entity])) {
+        dol_syslog('Constant $conf->facture->multidir_output not defined', LOG_ERR);
+        return -1;
+    }
+    $recordsLote = array();
+    $facturasValidasLote = array();
+    foreach ($invoices as $invoice) {
+        if ($invoice->type > Facture::TYPE_DEPOSIT) continue;
+        $invoice->fetch_thirdparty();
+        $thirdparty = $invoice->thirdparty;
+        $valid_id = $thirdparty->id_prof_check(1, $thirdparty);
+        if (!autoverifactuIsPosInvoice($invoice) && $valid_id <= 0 && !$thirdparty->tva_intra) {
+            dol_syslog('Skip invoice #' . $invoice->id . ' due to thirdparty without valid idprof1');
+            continue;
+        }
+        if (!count($invoice->lines)) {
+            dol_syslog('Skip invoice #' . $invoice->id . ' due to no lines');
+            continue;
+        }
+        $recordType ='alta';
+        $record = autoverifactuInvoiceToRecord($invoice, $recordType);
+        if ($record) {
+            $recordsLote[] = $record;
+            $facturasValidasLote[] = $invoice; // Guardamos la correspondencia
+        }
+    }
+    if (empty($recordsLote)) {
+        return 0;
+    }
+
+    global $mysoc;
+    $issuer = array(
+        'name' => $mysoc->nom,
+        'idprof1' => $mysoc->idprof1,
+    );
+
+    try {
+        $envelope = autoverifactuSoapEnvelopeMass($recordsLote, $issuer);
+        $resDOM = autoverifactuSoapRequest($envelope);
+        $exitos = 0;
+        $registroFacturaNodes = $resDOM->getElementsByTagName('RespuestaLinea');
+        foreach ($facturasValidasLote as $index => $invoice) {
+            $nodoRespuesta = $registroFacturaNodes->item($index);
+            $status = $nodoRespuesta ? $nodoRespuesta->getElementsByTagName('EstadoRegistro')[0]->nodeValue : 'Incorrecto';
+            $invoiceref = dol_sanitizeFileName($invoice->ref);
+            $dir = $conf->facture->multidir_output[$invoice->entity ?? $conf->entity] . '/' . $invoiceref;
+            if (!file_exists($dir)) dol_mkdir($dir);
+            if ($status === 'Correcto' || $status === 'AceptadoConErrores') {            
+                // Guardar localmente el XML individual o masivo por cumplimiento normativo de almacenamiento
+                $file = $dir . '/' . $invoiceref .  '-alta.xml' ;
+                file_put_contents($file, $envelope); 
+
+                // Actualizar huellas y estados de éxito (1 = Correcto, 4 = Aceptado con Errores)
+                $invoice->array_options['options_verifactu_hash'] = $recordsLote[$index]->hash;
+                $invoice->array_options['options_verifactu_tms'] = $recordsLote[$index]->hashedAt->getTimestamp();
+                $invoice->array_options['options_verifactu_status'] = ($status === 'Correcto') ? '1' : '4';
+                            
+                if ($status === 'AceptadoConErrores') {
+                    $errMessage = $nodoRespuesta->getElementsByTagName('DescripcionErrorRegistro')[0]->nodeValue;
+                    $invoice->array_options['options_verifactu_error'] = $errMessage;
+                } else {
+                    $invoice->array_options['options_verifactu_error'] = '';
+                }
+
+                $invoice->insertExtraFields();
+                $exitos++;
+            } else {
+                // Estado 'Incorrecto' (La factura individual ha sido rechazada estructuralmente)
+                $errMessage = $nodoRespuesta ? $nodoRespuesta->getElementsByTagName('DescripcionErrorRegistro')[0]->nodeValue : 'Error estructural en lote';
+                            
+                $invoice->array_options['options_verifactu_status'] = '2'; // 2 = Rechazado
+                $invoice->array_options['options_verifactu_error'] = $errMessage;
+                $invoice->insertExtraFields();
+                            
+                dol_syslog('Factura #' . $invoice->id . ' rechazada por AEAT: ' . $errMessage, LOG_ERR);
+            }
+        }
+
+        return $exitos == count($facturasValidasLote);
+
+    }catch (Exception $e) {
+            dol_syslog('Critical error in Veri*Factu mass mailing:' . $e->getMessage(), LOG_ERR);
+            return -1;
+    }
+
+}
+
+/**
+ * Gets an verifactu list invoice record and returns it inside a SOAP envelope.
+ *
+ * @param stdClass    $record         list invoice record.
+ * @param array       $issuer         Issuer data with name and id keys.
+ * @param array|null  $representative Representative data with name and id keys.
+ *
+ * @return string                     SOAP XML enveloped record.
+ */
+function autoverifactuSoapEnvelopeMass($records, $issuer, $representative = null)
+{
+    $xml = new DOMDocument('1.0', 'UTF-8');
+
+    $envelope = $xml->createElement('soapenv:Envelope');
+    $envelope->setAttribute('xmlns:soapenv', AUTOVERIFACTU_SOAPENV_NS);
+    $envelope->setAttribute('xmlns:sum', AUTOVERIFACTU_SUM_NS);
+    $envelope->setAttribute('xmlns:sum1', AUTOVERIFACTU_SUM1_NS);
+    $envelope->setAttribute('xmlns:xd', AUTOVERIFACTU_XD_NS);
+
+    $headerEl = $xml->createElement('soapenv:Header');
+    $envelope->appendChild($headerEl);
+
+    $body = $xml->createElement('soapenv:Body');
+    $envelope->appendChild($body);
+
+    // Contenedor principal ÚNICO para todo el lote
+    $root = $xml->createElement('sum:RegFactuSistemaFacturacion');
+    $body->appendChild($root);
+
+    // Cabecera ÚNICA del emisor
+    $regHeaderEl = $xml->createElement('sum:Cabecera');
+    $root->appendChild($regHeaderEl);
+
+    $issuerEl = $xml->createElement('sum1:ObligadoEmision');
+    $regHeaderEl->appendChild($issuerEl);
+
+    $issuerEl->appendChild($xml->createElement('sum1:NombreRazon', htmlspecialchars($issuer['name'])));
+    $issuerEl->appendChild($xml->createElement('sum1:NIF', htmlspecialchars($issuer['idprof1'])));
+
+  
+    foreach ($records as $record) {
+        $recordEl = autoverifactuRecordToXML($record, $xml);
+        $root->appendChild($recordEl);
+    }
+
+    $xml->appendChild($envelope);
+    return $xml->saveXML($envelope);
 }

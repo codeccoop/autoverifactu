@@ -186,3 +186,10 @@ VerifactuDetailsTaxExcemptionE3 = Exenta por el artículo 22
 VerifactuDetailsTaxExcemptionE4 = Exenta por el artículo 23 y 24
 VerifactuDetailsTaxExcemptionE5 = Exenta por el artículo 25
 VerifactuDetailsTaxExcemptionE6 = Exenta por otros
+
+verifactuStatusSelect0=Pendiente de envío
+verifactuStatusSelect1=Registrado Correctamente
+verifactuStatusSelect2=Rechazado
+verifactuStatusSelect3=En cola (Espera Temporal)
+verifactuStatusSelect4=Registrado Correctamente pero con Errores
+verifactuStatusDescription=Estado de la factura en Veri*Factu
