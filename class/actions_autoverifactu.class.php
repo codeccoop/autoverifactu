@@ -76,6 +76,7 @@ class ActionsAutoverifactu extends CommonHookActions
     public function __construct($db)
     {
         $this->db = $db;
+
     }
 
     /**
@@ -91,11 +92,18 @@ class ActionsAutoverifactu extends CommonHookActions
      */
     public function doActions($parameters, &$object, &$action)
     {
-        global $langs, $mysoc;
+        global $langs, $mysoc, $dolibarr_main_url_root;
+
+        if($parameters['currentcontext'] ==='invoicelist'){
+            //añade estilo a los estados de verifactu.
+           echo '<link rel="stylesheet" type="text/css" href="'.$dolibarr_main_url_root.'/custom/autoverifactu/css/selector_status.css.php">';
+        }
 
         if ($parameters['currentcontext'] === 'invoicecard') {
+          
             switch ($action) {
                 case 'verifactu':
+                     
                     $result = autoverifactuIntegrityCheck($object);
 
                     if (!$result) {
@@ -114,13 +122,12 @@ class ActionsAutoverifactu extends CommonHookActions
                         'importe' => number_format($object->total_ttc, 2, '.', ''),
                         'formato' => 'json',
                     ));
-
                     $ch = curl_init();
+                    echo $base_url . $endpoint . '?' . $query;
                     curl_setopt($ch, CURLOPT_URL, $base_url . $endpoint . '?' . $query);
                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
                     curl_setopt($ch, CURLOPT_FAILONERROR, 1);
-
                     curl_setopt($ch, CURLOPT_SSLCERTTYPE, 'P12');
                     $certPath = DOL_DATA_ROOT . '/' . getDolGlobalString('AUTOVERIFACTU_CERT');
                     curl_setopt($ch, CURLOPT_SSLCERT, $certPath);
@@ -171,6 +178,7 @@ class ActionsAutoverifactu extends CommonHookActions
             setEventMessages($this->resprints ?? '', $this->results, 'mesgs');
             return 1;
         }
+     
     }
 
     /**

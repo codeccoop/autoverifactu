@@ -97,6 +97,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
         // As far as i know, they have to be declared as invoices to the AEAT, it isn't?
         switch ($action) {
             case 'BILL_CREATE':
+
                 if (isset($object->context['createfromclone'])) {
                     $object->array_options['options_verifactu_tms'] = null;
                     $object->array_options['options_verifactu_hash'] = null;
@@ -182,7 +183,20 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                         }
                     }
                 }
-
+                
+          
+               //al crear una factura tipo rectificativa tenemos que borrar el hash y los demas campos 
+                if($object->type == Facture::TYPE_REPLACEMENT){
+                    $object->array_options['options_verifactu_tms'] = null;
+                    $object->array_options['options_verifactu_hash'] = null;
+                    $object->array_options['options_verifactu_error'] = null;
+                    $result = $object->insertExtraFields();
+                    if ($result < 0) {
+                        return $result;
+                    }
+                }
+          
+            
                 break;
             case 'BILL_CANCEL':
                 $trigger = $_GET['action'] ?? '';
@@ -208,19 +222,30 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                     $this->errors[] = $langs->trans('MaxInvoiceLinesError');
                     return -1;
                 }
+                //verificamos que el tiempo de espera a pasado 
+                // y si no lo incluimos en la lista de pendientes de envio
 
-                $result = autoverifactuRegisterInvoice($object, $action);
-
-                if ($result < 0) {
-                      if (!empty($object->errors)) {
-                         $this->errors = array_merge($this->errors, (array) $object->errors);
-                      }else{
-                        $this->errors[] = $langs->trans('RecordCreationFail');
-                      }
-                    
+                $now=new DateTimeImmutable('now',new DateTimeZone('Europe/Madrid'));
+                
+                if($now->getTimestamp()<getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0')){
+                  
+                    $object->array_options['options_verifactu_status'] = '3';
+                    $object->insertExtraFields();
+                    dol_syslog("VERI*FACTU: FACTURE ID ".$object->id." TEMPORARILY QUEUED.", LOG_DEBUG);
+                    return 1;
+                }else{
+                    $result = autoverifactuRegisterInvoice($object, $action);
+                    if ($result < 0) {
+                        if (!empty($object->errors)) {
+                            $this->errors = array_merge($this->errors, (array) $object->errors);
+                        }else{
+                            $this->errors[] = $langs->trans('RecordCreationFail');
+                        }
+                    }
+                    return $result;
                 }
 
-                return $result;
+                //exit();
             case 'BILL_UNVALIDATE':
             case 'BILL_UNPAYED':
                 if ($object->type <= Facture::TYPE_DEPOSIT) {
