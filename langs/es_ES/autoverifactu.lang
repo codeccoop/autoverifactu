@@ -272,3 +272,4 @@ NotValidTaxAmountEquivalenceSurcharge=El valor del Recargo de Equivalencia no es
 NotValidTaxAmount=Los valores de los impuestos no son válidos.
 NotValueTotal=El valor del total no son válidos.
 NotTypeIdentificationThirdparty=Cuando el tercero no es de la unión Europea (no tiene CIF Intra.), debe indicar que tipo de documento identificativo esta usando.
+maximumNumberOfTaxRates=Se ha sobrepasado el número máximo de tipos impositivos de una factura.

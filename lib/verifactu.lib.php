@@ -1242,6 +1242,10 @@ function autoverifactuLinesToBreakdown($invoice)
     }
     //creo la clase y las guardo en el arrray
     $breakdown = array();
+    if(count($grouped)>12){
+        $invoice->error[]="maximumNumberOfTaxRates";
+        return -1;
+    }
     foreach ($grouped as $group) {
         $details = new stdClass();
         $details->taxType = $group['taxType'];
