@@ -57,7 +57,11 @@ function autoverifactuIntegrityCheck($invoice)
     $record = autoverifactuInvoiceToRecord($invoice);
 
     $immutable = autoverifactuRecordFromLog($blockedlog);
-
+    /*
+    echo "<br><br>  <br>";
+    var_dump($record);
+    echo "<br>Inmutable<br> ";
+    var_dump($immutable);*/
 
     if (!$record || !$immutable) {
         return -1;
@@ -146,6 +150,7 @@ function autoverifactuCheckInvoiceImmutableXML($invoice, $type = 'alta')
     }
 
     if (!is_file($file)) {
+
         $bytes = file_put_contents($file, file_get_contents($hidden));
 
         $result = $result + intval($bytes > 0);
@@ -171,13 +176,18 @@ function autoverifactuCheckInvoiceImmutableXML($invoice, $type = 'alta')
 function autoverifactuInvoiceImmutableXMLPath($invoice, $type = 'alta')
 {
     global $conf;
+   //genero el archivo xml con fecha para que no se sobrescriban y tener un historial
+    $now=new DateTimeImmutable(
+        'now',
+        new DateTimeZone('Europe/Madrid'),
+    );
 
     $invoiceref = dol_sanitizeFileName($invoice->ref);
     $dir = $conf->facture->multidir_output[$invoice->entity ?? $conf->entity] . '/' . $invoiceref;
 
-    $file = $dir . '/' . $invoiceref . '-' . $type . '.xml';
-    $hidden = $dir . '/.verifactu-' . $type . '.xml';
-
+    $file = $dir . '/' . $invoiceref . '-' . $type .'-'.$now->format('Y-m-d_H-i-s').'.xml';
+    $hidden = $dir . '/.verifactu-' . $type .'-'.$now->format('Y-m-d_H-i-s').'.xml';
+        
     return array($file, $hidden);
 }
 
@@ -267,14 +277,17 @@ function autoverifactuRecordFromLog($blockedlog, $recordType = 'alta')
 
     foreach ($objectdata->invoiceline as $indice => $linedata) {
         $line = new FactureLigne($db);
+        
+        $line->localtax2_tx = $linedata->localtax2_tx;
+        $line->localtax1_tx =$linedata->localtax1_tx;
         $line->tva_tx = $linedata->tva_tx;
+        $line->total_localtax1 = $linedata->total_localtax1;
+        $line->total_localtax2 = $linedata->total_localtax2;
         $line->total_ht = $linedata->total_ht;
         $line->total_tva = $linedata->total_tva;
-        //si introducimos este valor hay que añadirlo en la funcion de validación
-        $line->array_options['options_verifactu_operation_type'] = 'validate';
+        $line->product_type=$linedata->product_type;        
         $lines[] = $line;
     }
-
     $blocked->lines = $lines;
 
     if (isset($objectdata->thirdparty) && $objectdata->thirdparty) {
@@ -286,7 +299,6 @@ function autoverifactuRecordFromLog($blockedlog, $recordType = 'alta')
     } else {
         $blocked->thirdparty = null;
     }
-
     return autoverifactuInvoiceToRecord($blocked, $recordType);
 }
 
@@ -303,17 +315,14 @@ function autoverifactuPkcs12Check($certpath, $password)
     if (!is_file($certpath)) {
         return 0;
     }
-
     $ext = strtolower(pathinfo($certpath)['extension'] ?? '');
     if (!in_array($ext, array('p12', 'pfx'), true)) {
         return 0;
     }
-
     $password = getDolGlobalString('AUTOVERIFACTU_PASSWORD');
     if (!$password) {
         return 0;
     }
-
     $content = file_get_contents($certpath);
     return (int) openssl_pkcs12_read($content, $_, $password);
 }
@@ -326,16 +335,13 @@ function autoverifactuPkcs12Check($certpath, $password)
 function autoverifactuSystemCheck()
 {
     global $conf, $mysoc;
-
     if (!function_exists('isValidTinForES')) {
         require_once DOL_DOCUMENT_ROOT . '/core/lib/profid.lib.php';
     }
-
     $certpath = DOL_DATA_ROOT . '/' . (getDolGlobalString('AUTOVERIFACTU_CERT') ?: 'nofile');
     if (!is_file($certpath)) {
         return 0;
     }
-
     return intval(
         $mysoc->nom && $mysoc->idprof1
         && isValidTinForES($mysoc->idprof1)
@@ -355,11 +361,9 @@ function autoverifactuEnabled()
 {
     $check = autoverifactuSystemCheck();
     $enabled = getDolGlobalInt('AUTOVERIFACTU_ENABLED');
-
     if (!$check && $enabled) {
         autoverifactu_set_const('AUTOVERIFACTU_ENABLED', false);
     }
-
     return $check && $enabled;
 }
 
@@ -367,19 +371,19 @@ function autoverifactuEnabled()
  * Performs record data validation.
  *
  * @param  stdClass $record Target record.
- *
+ * @param array $error error array
  * @return int              0 if validatio fail, 1 if succeed
  */
-function autoverifactuValidateRecord($record)
+function autoverifactuValidateRecord($record,&$error)
 {
-
-    $isValid = autoverifactuValidateRecordValues($record);
-  
+    $isValid = autoverifactuValidateRecordValues($record,$error);
+ 
     if (!$isValid) {
         return 0;
     }
-
+  
     if (!isset($record->breakdown, $record->totalTaxAmount, $record->totalAmount)) {
+        $error[]='NotValueNull'; //añado error 
         return 0;
     }
 
@@ -388,45 +392,77 @@ function autoverifactuValidateRecord($record)
         && count($record->recipients)
     ) {
         // If is simplified, it should not have recipients.
+        $error[]='NotValidateTypeF2F5NotRecipients';//añado error 
         return 0;
     }
 
     $isCorrective = preg_match('/R[0-5]/', $record->invoiceType);
     if ($isCorrective && !$record->correctiveType) {
+        $error[]='InvoceMustBeCorrectiveType';//añado error 
         return 0;
     } elseif (!$isCorrective && $record->correctiveType) {
+        $error[]='InvoceNotMustBeCorrectiveType';//añado error 
         return 0;
     } elseif (!$isCorrective && count($record->correctedInvoices)) {
+        $error[]='InvoceNotMustBeCorrectiveType';//añado error 
         return 0;
     }
 
     if ($record->correctiveType === 'S') {
         // If its corrective by diferrence it should have base and tax amounts.
         if (!$record->correctedBaseAmount || !$record->correctedTaxAmount) {
+            $error[]='CorrectiveTypeDiferrenceShouldHaveBaseTaxAmounts';//añado error 
             return 0;
         }
     } else {
         // If is corrective by substitution, it shouldn't.
         if ($record->correctedBaseAmount || $record->correctedTaxAmount) {
+            $error[]='CorrectiveTypeSubtitutionNotShouldHaveBaseTaxAmounts';//añado error 
             return 0;
         }
     }
 
     if ($record->invoiceType === 'F3' && count($record->replacedInvoices)) {
+        $error[]='NotValidateTypeF3RemplaceInvoice';//añado error 
         return 0;
     } elseif ($record->invoiceType !== 'F3' && count($record->replacedInvoices)) {
+        $error[]='NotValidateTypeNotF3RemplaceInvoice';//añado error 
         return 0;
     }
-
     $expectedTax = 0;
     $expectedBase = 0;
     foreach ($record->breakdown as $details) {
         if (!isset($details->taxAmount, $details->baseAmount, $details->taxRate)) {
+            $error[]='NotValueNull';//añado error 
             return 0;
         }
-
         $validTaxAmount = false;
-        $expectedLineTax = $details->baseAmount * $details->taxRate / 100;
+        $validTaxAmountEquivalenceSurcharge=false;
+        $expectedLineTax = (float) $details->baseAmount * $details->taxRate / 100;
+        if( isset( $details->equivalenceSurcharge)){
+            if($record->regimeType !=='18'){
+                $error[]="NotValidRegimeTypeEquivalenceSurcharge";//añado error 
+            }
+            $expectedLineEquivalenceSurcharge= $details->baseAmount * $details->equivalenceSurcharge->type / 100;
+            for ($t = -0.02; $t <= 0.02; $t += 0.01) {
+                $taxAmount = number_format($expectedLineEquivalenceSurcharge + $t, 2, '.', '');
+                /*var_dump($taxAmount);
+                echo "<br>";
+                var_dump($details->equivalenceSurcharge->total);
+                echo "<br>";
+                echo "<br>";
+                echo "<br>";*/
+                if ($details->equivalenceSurcharge->total === $taxAmount) {
+                    $validTaxAmountEquivalenceSurcharge = true;
+                    break;
+                }
+            }
+            if (!$validTaxAmountEquivalenceSurcharge) {
+                $error[]="NotValidTaxAmountEquivalenceSurcharge";//añado error 
+                return 0;
+            }
+            $expectedTax += $details->equivalenceSurcharge->total;
+        }
         for ($t = -0.02; $t <= 0.02; $t += 0.01) {
             $taxAmount = number_format($expectedLineTax + $t, 2, '.', '');
             if ($details->taxAmount === $taxAmount) {
@@ -434,29 +470,27 @@ function autoverifactuValidateRecord($record)
                 break;
             }
         }
-
         if (!$validTaxAmount) {
+            $error[]="NotValidTaxAmount";//añado error 
             return 0;
         }
-
         $expectedTax += $details->taxAmount;
         $expectedBase += $details->baseAmount;
     }
-
     $expectedTax = number_format($expectedTax, 2, '.', '');
     $expectedBase = number_format($expectedBase, 2, '.', '');
     $expectedTotal = number_format($expectedTax + $expectedBase, 2, '.', '');
-
     $isTotalValid = false;
     for ($t = -0.02; $t <= 0.02; $t += 0.01) {
         $total = number_format($expectedTotal + $t, 2, '.', '');
-        if ($record->totalAmount === $total) {
+        if ($record->totalAmount === $total ) {
             $isTotalValid = true;
             break;
         }
     }
-  
-
+    if((int)$isTotalValid){
+       $error[]='NotValueTotal';//añado error 
+    }
     return (int) $isTotalValid;
 }
 
@@ -470,7 +504,9 @@ function autoverifactuValidateRecord($record)
 function autoverifactuIsInvoiceRecorded($invoice)
 {
     $invoice->fetch_optionals();
-    return !!($invoice->array_options['options_verifactu_hash'] ?? false);
+   // return !!($invoice->array_options['options_verifactu_hash'] ?? false);
+   //ya pueden tener hash y tener que renviarlas en el caso de contener errores
+    return (!empty($invoice->array_options['options_verifactu_hash']) && !in_array( $invoice->array_options['options_verifactu_status'],array("2","4","5"), true));
 }
 
 /**
@@ -489,7 +525,6 @@ function autoverifactuIsPosInvoice($invoice)
             Facture::TYPE_CREDIT_NOTE
         )
     );
-
     if ($is_derived && $invoice->fk_facture_source) {
         global $db;
         $source = new Facture($db);
@@ -497,7 +532,6 @@ function autoverifactuIsPosInvoice($invoice)
 
         $invoice = $source;
     }
-
     return $invoice->module_source === 'takepos';
 }
 
@@ -505,61 +539,107 @@ function autoverifactuIsPosInvoice($invoice)
  * Performs validation checks to the record values.
  *
  * @param stdClass $record Invoice record object.
- *
+ * @param array $error array de errores 
  * @return bool
  */
-function autoverifactuValidateRecordValues($record)
+function autoverifactuValidateRecordValues($record ,&$error)
 {
-    $isValid = (
-        autoverifactuValidateRecordType($record->type)
-        && autoverifactuValidateInvoiceType($record->invoiceType)
-        && autoverifactuValidateDate($record->dateOperation, false)
-        && autoverifactuValidateAlphaNumber($record->description, 500)
-		//$record->invoiceNumber no existe es $record->invoiceId->invoiceNumber
-        && autoverifactuValidateAlphaNumber($record->invoiceId->invoiceNumber, 60)
-        && autoverifactuValidateNumber($record->factureTotalAmount, 12, 2)
-        && autoverifactuValidateNumber($record->factureTtc, 12, 2)
-        && $record->factureTotalAmount === $record->factureTtc
-        //estas pasando la variable tipo de factura correctiva I o S (Diferencia o Sustitución )
-        && autoverifactuValidateCorrectiveType($record->correctiveType, false)
-        && autoverifactuValidateNumber($record->correctedBaseAmount, 12, 2, false)
-        && autoverifactuValidateNumber($record->correctedTaxAmount, 12, 2, false)
-        && autoverifactuValidateNumber($record->totalTaxAmount, 12, 2)
-        && autoverifactuValidateNumber($record->totalAmount, 12, 2)
-    );
-
-
-
- 
-
-    if (!$isValid) {
+    if (!autoverifactuValidateRecordType($record->type)) {
+        $error[] = "NotRecordType";//añado error 
         return false;
     }
 
-    $l = count($record->correctedInvoices);
-    for ($i = 0; $i < $l; $i++) {
-        // añadir logica
+    if (!autoverifactuValidateInvoiceType($record->invoiceType)) {
+        $error[] = "NotRecordInvoiceType";//añado error 
+        return false;
     }
 
-    $l = count($record->replacedInvoices);
-    for ($i = 0; $i < $l; $i++) {
-        // añadir logica
+    if (!autoverifactuValidateDate($record->dateOperation, false)) {
+        $error[] = "NotRecordDateOperation";//añado error 
+        return false;
     }
 
-   
+    if (!autoverifactuValidateAlphaNumber($record->description, 500)) {
+        $error[] = "NotValidRecordDescription";//añado error 
+        return false;
+    }
+
+    if (!autoverifactuValidateAlphaNumber($record->invoiceId->invoiceNumber, 60)) {
+        $error[] = "NotValidRecordInvoice";//añado error 
+        return false;
+    }
+
+    if (!autoverifactuValidateNumber($record->factureTotalAmount, 12, 2)) {
+        $error[] = "NotValidRecordFactureTTC";//añado error 
+        return false;
+    }
+
+    if (!autoverifactuValidateNumber($record->factureTtc, 12, 2)) {
+        $error[] = "NotValidRecordTTC";//añado error 
+        return false;
+    }
+
+    if ($record->factureTotalAmount !== $record->factureTtc) {
+        $error[] = "NotEqualRecordTTCAndRecordFactureTTC";//añado error 
+        return false;
+    }
+
+    if (!autoverifactuValidateCorrectiveType($record->correctiveType, false)) {
+        $error[] = "NotValidRecordcorrectiveType";//añado error 
+        return false;
+    }
+
+    if (!autoverifactuValidateNumber($record->correctedBaseAmount, 12, 2, false)) {
+        $error[] = "NotValidCorrectedBaseAmount";//añado error 
+        return false;
+    }
+
+    if (!autoverifactuValidateNumber($record->correctedTaxAmount, 12, 2, false)) {
+        $error[] = "NotValidCorrectedTaxAmount";//añado error 
+        return false;
+    }
+
+    if (!autoverifactuValidateNumber($record->totalTaxAmount, 12, 2)) {
+        $error[] = "NotValidRecordTotalTaxAmount";//añado error 
+        return false;
+    }
+
+    if (!autoverifactuValidateNumber($record->totalAmount, 12, 2)) {
+        $error[] = "NotValidRecordTotalAmount";//añado error 
+        return false;
+    }
+
+    if(!autoverifactuValidateTotalAndTotalTax($record,$error)){
+        return false;
+    }
+    
     foreach ($record->breakdown as $breakdownDetails) {
-        $isValid = (
-            autoverifactuValidateTaxType($breakdownDetails->taxType)
-            && autoverifactuValidateRegimeType($breakdownDetails->regimeType)
-            && autoverifactuValidateOperationType($breakdownDetails->operationType)
-            && autoverifactuValidateNumber($breakdownDetails->taxRate, 4, 2)
-            && autoverifactuValidateNumber($breakdownDetails->baseAmount, 12, 2)
-            && autoverifactuValidateExcemptionCode($breakdownDetails->excemptionCode, false)
-        );
-
-        if (!$isValid) {
+     
+        if(!autoverifactuValidateTaxType($breakdownDetails->taxType)){
+            $error[]="NotValidateTaxType";//añado error 
             return false;
         }
+        if(!autoverifactuValidateRegimeType($breakdownDetails->regimeType)){
+            $error[]="NotValidateRegimeType";//añado error 
+            return false;
+        }
+        if(!autoverifactuValidateOperationType($breakdownDetails->operationType)){
+            $error[]="NotValidateOperationType";//añado error 
+            return false;
+        }
+        if( ! autoverifactuValidateNumber($breakdownDetails->taxRate, 4, 2)){
+            $error[]="NotValidateTaxRate";//añado error 
+            return false;
+        }
+        if( !autoverifactuValidateNumber($breakdownDetails->baseAmount, 12, 2)){
+            $error[]="NotValidateBaseAmount";//añado error 
+            return false;
+        }
+        if(!autoverifactuValidateExcemptionCode($breakdownDetails->excemptionCode, false)){
+            $error[]="NotValidateExcemptionCode";//añado error 
+            return false;
+        }
+
     }
 
     return true;
@@ -575,7 +655,8 @@ function autoverifactuValidateRecordValues($record)
  */
 function autoverifactuValidateRecordType($value, $required = true)
 {
-    $options = array('alta', 'anulación');
+
+    $options = array('alta', 'anulacion');
     return in_array($value, $options, true) || !$required && empty($value);
 }
 
@@ -613,7 +694,7 @@ function autoverifactuValidateDate($value, $required = true)
  */
 function autoverifactuValidateInvoiceType($value, $required = true)
 {
-    $options = array('F1', 'F2', 'F3', 'R1', 'R2', 'R3', 'R4', 'R5','validate');
+    $options = array('F1', 'F2', 'F3', 'R1', 'R2', 'R3', 'R4', 'R5');
     return in_array($value, $options, true) || !$required && empty($value);
 }
 
@@ -668,35 +749,25 @@ function autoverifactuValidateAlphaNumber($value, $length, $required = true)
  */
 function autoverifactuValidateNumber($value, $digits = 12, $decimals = 2, $required = true)
 {
-
     if (!$required && empty($value)) {
         return true;
     }
-
     if (!is_numeric($value)) {
         return false;
     }
-
     $abs = strval(abs($value));
-
     $parts = explode('.', $abs);
     $integers = $parts[0];
     //en versiones de php más extrictas $parts[1] ?? ''; al realizar la resta de $digits - $decimals da error al no ser un valor numérico, por eso asigno 0
     $decimalPart = $parts[1] ?? '';
-    
-
     $maxIntegers;
-    
     if ($decimalPart === '') {
         $maxIntegers = $digits;
     }else{
         $maxIntegers = $digits - $decimals;
     }
-
     $intCount = strlen($integers);
     $decCount = strlen($decimalPart);
-
-
     return (
         $intCount <= $maxIntegers
         && $decCount <= intval($decimals)
@@ -763,7 +834,7 @@ function autoverifactuValidateRegimeType($value, $required = true)
 function autoverifactuValidateOperationType($value, $required = true)
 {
     //hay que añadir la opcion de validate
-    $options = array('S1', 'S2', 'N1', 'N2','validate');
+    $options = array('S1', 'S2', 'N1', 'N2');
     return in_array($value, $options, true) || !$required && empty($value);
 }
 
@@ -779,4 +850,42 @@ function autoverifactuValidateExcemptionCode($value, $required = true)
 {
     $options = array('E1', 'E2', 'E3', 'E4', 'E5', 'E6');
     return in_array($value, $options, true) || !$required && empty($value);
+}
+
+/**
+ * Valida que las taxas y el total de la fectura y  calculado sean los mismos.
+ *  @param stdClass $record Invoice record object.
+ *
+ * @return bool
+ * 
+*/
+function autoverifactuValidateTotalAndTotalTax($record,&$error){
+    //valido que las taxas y las cuantias calculadas sean las mismas
+    $isTotalValid = false;
+    for ($t = -0.02; $t <= 0.02; $t += 0.01) {
+        $total = number_format($record->totalAmount + $t, 2, '.', '');
+            var_dump( $record->factureTtc );
+            var_dump($total);
+        if ( $record->factureTtc === $total ) {
+            $isTotalValid = true;
+            break;
+        }
+    }
+    if (!$isTotalValid) {
+        $error[] ="NotValidCalculatedTotal";//añado error 
+        return false;
+    }
+    $isTotalTaxAmountValid = false;
+    for ($t = -0.02; $t <= 0.02; $t += 0.01) {
+        $total = number_format($record->totalTaxAmount + $t, 2, '.', '');
+        if ( $record->factureTotalTaxAmount === $total ) {
+            $isTotalTaxAmountValid = true;
+            break;
+        }
+    }
+    if (!$isTotalTaxAmountValid) {
+        $error[] ="NotValidCalculatedRate";//añado error 
+        return false;
+    }
+    return true;
 }

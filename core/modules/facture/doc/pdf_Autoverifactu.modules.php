@@ -134,6 +134,8 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		// Translations
 		$langs->loadLangs(array("main", "bills"));
 
+
+	
 		$this->db = $db;
 		$this->name = "Autoverifactu";
 		$this->description = "Factura PDF plantilla Autoverifactu. Una plantilla compatible con el QR de Verifactu";
@@ -239,6 +241,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		// Load translation files required by the page
 		$outputlangs->loadLangs(array("main", "bills", "products", "dict", "companies"));
 
+	
 		// Show Draft Watermark
 		if ($object->statut == $object::STATUS_DRAFT && (getDolGlobalString('FACTURE_DRAFT_WATERMARK'))) {
 			$this->watermark = getDolGlobalString('FACTURE_DRAFT_WATERMARK');
@@ -564,11 +567,31 @@ class pdf_Autoverifactu extends ModelePDFFactures
 						}
 					}
 				}
-				// Extrafields in note
+				
+				//echo "<pre>";
+				
+				//verifactu_pdfLegalText
+				
+
+				if(isset($object->array_options["options_verifactu_pdfLegalText"] )){
+					$langs->load("autoverifactu@autoverifactu");
+					$LegalText="<strong>Texto Legal</strong> ";
+					$LegalText .= '<br> '.$object->array_options["options_verifactu_pdfLegalTextUser"] ;
+					$LegalTextArray = explode(',', $object->array_options["options_verifactu_pdfLegalText"]);
+
+					foreach ($LegalTextArray as  $value) {
+						$LegalText .= '<br> '.$langs->trans( $value) ;
+					}
+					$LegalText .= " <hr><br>";
+					$notetoshow = dol_concatdesc($notetoshow, $LegalText,false,true);
+				}
+				// Extrafields in noteº
 				$extranote = $this->getExtrafieldsInHtml($object, $outputlangs);
+				
 				if (!empty($extranote)) {
 					$notetoshow = dol_concatdesc($notetoshow, $extranote);
 				}
+	
 				if ($notetoshow) {
 					$tab_top -= 2;
 
@@ -1907,14 +1930,14 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			global $mysoc;
 
  			$testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
-			$base_url = $testMode ? VERIFACTU_TEST_VERIFICACION_BASE_URL : VERIFACTU_BASE_URL;
+			$base_url = $testMode ? VERIFACTU_TEST_COLLATION_BASE_URL : VERIFACTU_COLLATION_BASE_URL;
 			$endpoint = '/wlpl/TIKE-CONT/ValidarQR';
 			
 			$query = http_build_query(array(
                 'nif' => $mysoc->idprof1,
                 'numserie' => $object->ref,
                 'fecha' => date('d-m-Y', $object->date),
-                'importe' => number_format($object->total_ttc, 2, '.', ''),
+                'importe' => number_format($object->total_ttc - $object->total_localtax2, 2, '.', ''),
             ));
 			
 			$qr_width = 36;

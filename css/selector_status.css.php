@@ -51,6 +51,7 @@ td[data-key="facture.verifactu_status"] {
     box-sizing: border-box;
     border-radius: 4px;
     color: #ffffff !important;
+    height: auto !important;
 }
 
 /* --- VARIACIONES DE COLOR SEGÚN EL ESTADO DE VERI*FACTU --- */
