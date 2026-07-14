@@ -87,7 +87,12 @@ FetchSplitInvoicesError = Se ha producido un error al cargar la relación de fac
 MaxInvoiceLinesError = <b>Veri*Factu no permite facturas con más de 12 líneas</b>. Agrupa líneas por concepto o código CNAE, o emite facturas parciales en caso de no ser posible la agrupación
 MaxInvoiceLinesError = <b>Veri*Factu no permite facturas con más de 12 líneas. Una factura con más de 12 líneas no podrá ser validada.</b> Agrupa líneas por concepto o código CNAE, o emite facturas parciales en caso de no ser posible la agrupación
 MaxEntityLinesWarn = <b>Veri*Factu no permite facturas con más de 12 líneas.</b> Las facturas generadas a partir de este documento no podran ser validadas sin antes aplicar una agrupación de líneas de factura.
-
+NotEdit= <b>No se puede editar los campos asociados a Veri*Factu</b> 
+RectificationTypeRequired=Cuando una factura es de tipo rectificativa es obligatorio el campo factura rectificativa
+fixErrors= Corregir Errores de Veri*Factu
+notToDoList=Para corregir una factura con errores es necesario esperar %s segundos.
+Errorcode2001=Se ha detectado un error en el procesamiento del NIF ( %s) en Veri*Factu. Por favor, compruebe que no se trate de un error tipográfico o de una empresa extranjera. Para solucionar el error edite el tercero";
+ErrorCodeErrorAplication =Se han detectado un error en el procesamiento de la factura en Veri*Factu. Por favor, póngase en contacto soporte@oyr.es.
 #
 # Buttons
 #
@@ -96,6 +101,7 @@ DisabledBy = Deshabilitado por Veri*Factu
 UpdateDisabledBy = Actualización deshabilitada por Veri*Factu
 ThirdpartyIdProfRequired = Veri*Factu requiere que los destinatarios de las facturas dispongan de un NIF/CIF válido 
 MaxInvoiceLines = Veri*Factu no permite facturas con más de 12 líneas
+VerifactuResend= Reenviar a Veri*Factu
 
 #
 # Autodeclaration page
@@ -186,3 +192,84 @@ VerifactuDetailsTaxExcemptionE3 = Exenta por el artículo 22
 VerifactuDetailsTaxExcemptionE4 = Exenta por el artículo 23 y 24
 VerifactuDetailsTaxExcemptionE5 = Exenta por el artículo 25
 VerifactuDetailsTaxExcemptionE6 = Exenta por otros
+
+verifactuStatusSelect0=Pendiente de envío
+verifactuStatusSelect1=Registrado correctamente
+verifactuStatusSelect2=Rechazado
+verifactuStatusSelect3=En cola (Espera Temporal)
+verifactuStatusSelect4=Registrado correctamente pero con errores
+verifactuStatusSelect5=Registrado correctamente pero con errores múltiples veces
+verifactuStatusSelect6=Registrado anulado
+verifactuStatusSelect7=Registrado anulado con errores
+
+verifactuStatusDescription=Estado de la factura en Veri*Factu
+
+verifactu_pdfLegalTextUser=Incluir textos legales
+
+VerifactuLegalTextIRPF=Factura sujeta a retención del IRPF de conformidad con la normativa vigente.
+VerifactuLegalTextTaxExcemptionE1=Operación exenta de IVA en virtud del Artículo 20 de la Ley 37/1992 del IVA.
+VerifactuLegalTextTaxExcemptionE2=Operación exenta de IVA en virtud del Artículo 21 de la Ley 37/1992 del IVA.
+VerifactuLegalTextTaxExcemptionE3=Operación exenta de IVA en virtud del Artículo 22 de la Ley 37/1992 del IVA.
+VerifactuLegalTextTaxExcemptionE4=Operación exenta de IVA en virtud del Artículo 23 y 24 de la Ley 37/1992 del IVA.
+VerifactuLegalTextTaxExcemptionE5=Operación exenta de IVA en virtud del Artículo 25 de la Ley 37/1992 del IVA.<br>Operación exenta de IVA por aplicación del art. 25 de la Ley 37/1992 (Entrega intracomunitaria de bienes)" o "Operación localizada en la sede del destinatario según art. 69 de la Ley 37/1992 (Prestación de servicios intracomunitaria).
+VerifactuLegalTextTaxExcemptionE6=Operación exenta de IVA en virtud por otros motivos de la Ley 37/1992 del IVA.
+VerifactuLegalTextSujetoPasivo=Operación con inversión del sujeto pasivo conforme al artículo 84.Uno.2º de la Ley 37/1992 del IVA.
+VerifactuLegalTextCriterioCaja=Régimen especial del criterio de caja.
+
+VerifactuTax01=Impuesto IVA
+VerifactuTax02=Impuesto IPSI de Ceuta y Melilla
+VerifactuTax03=Impuesto IGIC de canarias
+VerifactuTax05=Otros
+VerifactuTaxDescription=Si no se informa este campose entenderá que el impuesto de aplicación es el IVA. Este campo es necesario porque contribuye a completar el detalle de la tipología de la factura.
+
+VerifactuIdentificationThirdparty02=NIF-IVA
+VerifactuIdentificationThirdparty03=Pasaporte
+VerifactuIdentificationThirdparty04=Documento oficial de identificación expedido por el país
+VerifactuIdentificationThirdparty05=Certificado de residencia
+VerifactuIdentificationThirdparty06=Otro documento probatorio
+VerifactuIdentificationThirdparty07=No censado
+VerifactuIdentificationThirdpartyDescription=Clave para establecer el tipo de identificación en el pais de residencia. Su valor por defecto es NIF-IVA
+
+#
+#Messages Error
+#
+NotExistInvoiceOutput=No existe el directorio factura en los documentos de Dolibarr.
+NotNIFThirdparty=El Tercero no tiene NIF.
+NotLinesFacure=No existen líneas de factura.
+NotCreateDirectoryVerifactu=No se ha podido crear el directorio veri*Factu en los documentos de Dolibarr.
+alradyRegisterInvoice=La factura ya ha sido validada en veri*factu.
+NotFoundSourceInvoiceCorrective=No se ha encontrado la factura de origen de la factura correctiva.
+NotRecordType=El tipo de registro no es válido (Alta o Anulación).
+NotRecordInvoiceType=El tipo de factura no es válido. (F1, F2, F3, R1, R2, R3, R4, R5).
+NotRecordDateOperation=La fecha de operación no es válida o tiene un formato incorrecto.
+NotValidRecordDescription=La descripción no es válida o supera los 500 caracteres.
+NotValidRecordInvoice=El número de factura no es válido o supera los 60 caracteres.
+NotValidRecordFactureTTC=El importe total de la factura no tiene un formato numérico válido.
+NotValidRecordTTC=El importe total de la factura no tiene un formato numérico válido.
+NotEqualRecordTTCAndRecordFactureTTC=El importe total de la factura no coincide con el importe total calculado.
+NotValidRecordcorrectiveType="El tipo de factura correctiva (I o S) no es válido."
+NotValidCorrectedBaseAmount=La base rectificada no es válida.
+NotValidCorrectedTaxAmount=La cuota rectificada no es válida.
+NotValidRecordTotalTaxAmount=El total de la cuota impositiva no es válido.
+NotValidRecordTotalAmount=El importe total no es válido.
+NotValidCalculatedTotal=El total y el total calculado no corresponden.
+NotValidCalculatedRate=El total de tasas y las tasas calculadas no corresponden.
+NotValidateTaxType=El tipo de impuesto no es válido (01, 02, 03 o 05).
+NotValidateRegimeType=El tipo de régimen no es válido.
+NotValidateOperationType=El tipo de operación no es Válida (S1,S2, N1 o N2).
+NotValidateTaxRate=El formato de porcentaje de impuestos no es válido.
+NotValidateExcemptionCode=El tipo de exceptción no es válida.
+NotValueNull=La impuesto total no puede ser nulo. 
+NotValidateTypeF2F5NotRecipients=Las facturas de tipo F2 y F5 no pueden tener destinatarios.
+InvoceMustBeCorrectiveType=La factura debe de ser tipo rectificativa.
+InvoceNotMustBeCorrectiveType=La factura no debe de ser tipo rectificativa.
+CorrectiveTypeDiferrenceShouldHaveBaseTaxAmounts=Si se trata de una factura rectificativa por Diferencia, debería incluir los importes de la base imponible y del impuesto.
+CorrectiveTypeSubtitutionNotShouldHaveBaseTaxAmounts=Si se trata de una factura rectificativa por substitución, no debería incluir los importes de la base imponible y del impuestos.
+NotValidateTypeF3RemplaceInvoice=Las facturas de tipo F3 deben de tener facturas simplificadas previas a las que va a reemplazar.
+NotValidateTypeNotF3RemplaceInvoice=Las facturas que no son de tipo F3 no deben de tener facturas simplificadas previas a las que va a reemplazar.
+NotValidRegimeTypeEquivalenceSurcharge=Cuando el existe un valor del impuesto de equivalencia el tipo de régimen debe de ser Régimen de recargo de equivalencia (18).
+NotValidTaxAmountEquivalenceSurcharge=El valor del Recargo de Equivalencia no es válido.
+NotValidTaxAmount=Los valores de los impuestos no son válidos.
+NotValueTotal=El valor del total no son válidos.
+NotTypeIdentificationThirdparty=Cuando el tercero no es de la unión Europea (no tiene CIF Intra.), debe indicar que tipo de documento identificativo esta usando.
+maximumNumberOfTaxRates=Se ha sobrepasado el número máximo de tipos impositivos de una factura.

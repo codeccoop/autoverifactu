@@ -71,12 +71,13 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
      */
     public function runTrigger($action, $object, $user, $langs, $conf)
     {
+
         if (!autoverifactuEnabled() && $action !== 'USER_LOGOUT') {
             return 0;
         }
 
         static $context;
-
+        $langs->load('autoverifactu@autoverifactu');
         /**
          * Tracked invoices types:
          *   0: Default ✓
@@ -97,11 +98,13 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
         // As far as i know, they have to be declared as invoices to the AEAT, it isn't?
         switch ($action) {
             case 'BILL_CREATE':
+
                 if (isset($object->context['createfromclone'])) {
                     $object->array_options['options_verifactu_tms'] = null;
                     $object->array_options['options_verifactu_hash'] = null;
                     $object->array_options['options_verifactu_error'] = null;
-
+                    $object->array_options['options_verifactu_pdfLegalText'] = null;
+                    $object->array_options['options_verifactu_status'] = 0;
                     $result = $object->insertExtraFields();
                     if ($result < 0) {
                         return $result;
@@ -182,40 +185,92 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                         }
                     }
                 }
+                
+          
+               //al crear una factura tipo rectificativa tenemos que borrar el hash y los demas campos 
+                if($object->type == Facture::TYPE_REPLACEMENT || $object->type == Facture::TYPE_CREDIT_NOTE){
+                    $object->array_options['options_verifactu_tms'] = null;
+                    $object->array_options['options_verifactu_hash'] = null;
+                    $object->array_options['options_verifactu_error'] = null;
+                    $object->array_options['options_verifactu_status'] = 0;
+                    $result = $object->insertExtraFields();
+                    if ($result < 0) {
+                        return $result;
+                    }
+                }
+          
 
                 break;
             case 'BILL_CANCEL':
+                //esto
                 $trigger = $_GET['action'] ?? '';
                 $facid = $_GET['facid'] ?? INF;
-
+                //?quizas hay que excluir las anulaciones por morosos, esta debe de acerse por una factura ¿Rectificativa?
                 // If it's triggered by a replacment invoice, skip the cancel record registration.
                 if ($trigger === 'confirm_valid' && $facid > $object->id) {
                     return 0;
                 }
-
-                $result = autoverifactuRegisterInvoice($object, $action);
-                if ($result < 0) {
-                    dol_syslog('Error while sending a cancel record to the Veri*Factu API', LOG_ERR);
-                    $this->errors[] = $langs->trans('CancelRecordFail');
+                //creación de facturas de anulacion
+                $now=new DateTimeImmutable('now',new DateTimeZone('Europe/Madrid'));
+                //Verifactu obliga a enviar peticiones a la api con unos tiempos de espera determinados enviados en la última respuesta
+                //en caso de que el tiempo del proximo envio no haya pasado
+                if($now->getTimestamp()<getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0')){
+                
+                    if(in_array( $object->array_options['options_verifactu_status'],array("7"), true)){
+                        $this->errors[] = $langs->trans('notToDoList',getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED')-$now->getTimestamp());
+                        return -1;
+                        
+                    }
+                }else{
+                    //en caso que el tiempo de envio a pasado
+                    $result = autoverifactuRegisterInvoice($object, $action);
+                    if ($result < 0) {
+                        dol_syslog('Error while sending a cancel record to the Veri*Factu API', LOG_ERR);
+                        $this->errors[] = $langs->trans('CancelRecordFail');
+                    }
                 }
-
                 return $result;
             case 'BILL_VALIDATE':
-            // case 'DON_VALIDATE':
-                $object->fetch_lines();
+
+                // case 'DON_VALIDATE':
+                /*              $object->fetch_lines();
                 if (is_array($object->lines) && count($object->lines) > 12) {
                     dol_syslog('Veri*Factu bans invoices with more than 12 lines', LOG_INFO);
                     $this->errors[] = $langs->trans('MaxInvoiceLinesError');
                     return -1;
+                } */
+                //verificamos que el tiempo de espera a pasado 
+                // y si no lo incluimos en la lista de pendientes de envio
+
+                $now=new DateTimeImmutable('now',new DateTimeZone('Europe/Madrid'));
+
+                if($now->getTimestamp()<getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0')){
+                    if(in_array( $object->array_options['options_verifactu_status'],array("2","4","5"), true)){
+                        //en caso de eser facturas con errores,
+                        //no las enviamos a la lista de espera ya que no sabemos si han sido arregladas o no
+                        $this->errors[] = $langs->trans('notToDoList',getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED')-$now->getTimestamp());
+                        return -1;
+                    }
+                    /*Para incluir la facturas anuladas en las acciones lista temporal habria que modificar
+                    la funcion autoverifactuRegisterInvoiceList y obtener de alguna forma la un identificador del tipo de factura de alta o anulacion */
+                    $object->array_options['options_verifactu_status'] = '3';
+                    $object->insertExtraFields();
+                    dol_syslog("VERI*FACTU: FACTURE ID ".$object->id." TEMPORARILY QUEUED.", LOG_DEBUG);
+                    return 1;
+                }else{
+                    //en caso de que el tiempo de espera haya pasado enviamos la factura
+                    $result = autoverifactuRegisterInvoice($object, $action);
+                    if ($result < 0) {
+                        if (!empty($object->errors)) {
+                            //si hay errores los enviamos
+                            $this->errors = array_merge($this->errors, (array) $object->errors);
+                        }else{
+                            $this->errors[] = $langs->trans('RecordCreationFail');
+                        }
+                    }
+                    return $result;
                 }
 
-                $result = autoverifactuRegisterInvoice($object, $action);
-
-                if ($result < 0) {
-                    $this->errors[] = $langs->trans('RecordCreationFail');
-                }
-
-                return $result;
             case 'BILL_UNVALIDATE':
             case 'BILL_UNPAYED':
                 if ($object->type <= Facture::TYPE_DEPOSIT) {
@@ -223,10 +278,9 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                     $this->errors[] = $langs->trans('ValidatedNotEditable');
                     return -1;
                 }
-
                 break;
             case 'BILL_DELETE':
-            // case 'DON_DELETE':
+                // case 'DON_DELETE':
                 if (
                     $object->status != Facture::STATUS_DRAFT
                     && $object->type <= Facture::TYPE_DEPOSIT
@@ -237,11 +291,11 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 }
 
                 break;
-            // TODO: Handle subsanaciones
-            // NOTE: El protocolo contempla la subsanación de facturas en los casos en los que no
-            // sea necesaria una emisión rectificativa.
+                // TODO: Handle subsanaciones
+                // NOTE: El protocolo contempla la subsanación de facturas en los casos en los que no
+                // sea necesaria una emisión rectificativa.
             case 'BILL_MODIFY':
-            // case 'DON_MODIFY':
+                // case 'DON_MODIFY':
                 if (
                     $object->status != Facture::STATUS_DRAFT
                     && $object->type <= Facture::TYPE_DEPOSIT
@@ -325,7 +379,7 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
                 autoverifactu_set_const('AUTOVERIFACTU_DISMISSED_NOTICES', '');
                 break;
         }
-
+      
         return 0;
     }
 }
