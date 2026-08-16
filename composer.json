@@ -6,6 +6,11 @@
   },
   "require-dev": {
     "caprel/dolibarr-stubs": "^18.0",
-    "squizlabs/php_codesniffer": "^3.13"
+    "squizlabs/php_codesniffer": "^3.13",
+    "26b/php-pre-commit": "^0.2.1"
+  },
+  "scripts": {
+    "post-install-cmd": "php-pre-commit",
+    "post-update-cmd": "php-pre-commit"
   }
 }
