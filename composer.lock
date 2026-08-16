@@ -4,9 +4,38 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e07207189027c776f16ff1e06816e456",
+    "content-hash": "7e1c1884b1fe05c7452f97b75c4f087e",
     "packages": [],
     "packages-dev": [
+        {
+            "name": "26b/php-pre-commit",
+            "version": "0.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/26B/php-pre-commit.git",
+                "reference": "a253fb1898c9a4152cc112c83b924e1d93888094"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/26B/php-pre-commit/zipball/a253fb1898c9a4152cc112c83b924e1d93888094",
+                "reference": "a253fb1898c9a4152cc112c83b924e1d93888094",
+                "shasum": ""
+            },
+            "bin": [
+                "php-pre-commit"
+            ],
+            "type": "scripts",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Pre-commit git hook for enforcing php standards.",
+            "support": {
+                "issues": "https://github.com/26B/php-pre-commit/issues",
+                "source": "https://github.com/26B/php-pre-commit/tree/0.2.1"
+            },
+            "time": "2022-08-11T16:23:46+00:00"
+        },
         {
             "name": "caprel/dolibarr-stubs",
             "version": "v18.0",
@@ -34,16 +63,16 @@
         },
         {
             "name": "squizlabs/php_codesniffer",
-            "version": "3.13.5",
+            "version": "3.13.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPCSStandards/PHP_CodeSniffer.git",
-                "reference": "0ca86845ce43291e8f5692c7356fccf3bcf02bf4"
+                "reference": "4c378e1a528ea066890fc2397cbdd2f94eb2fc91"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/0ca86845ce43291e8f5692c7356fccf3bcf02bf4",
-                "reference": "0ca86845ce43291e8f5692c7356fccf3bcf02bf4",
+                "url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/4c378e1a528ea066890fc2397cbdd2f94eb2fc91",
+                "reference": "4c378e1a528ea066890fc2397cbdd2f94eb2fc91",
                 "shasum": ""
             },
             "require": {
@@ -109,17 +138,17 @@
                     "type": "thanks_dev"
                 }
             ],
-            "time": "2025-11-04T16:30:35+00:00"
+            "time": "2026-08-06T00:17:32+00:00"
         }
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
         "php": ">=8.0"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
 }

@@ -23,25 +23,25 @@
  */
 
 if (!defined('NOTOKENRENEWAL')) {
-    define('NOTOKENRENEWAL', 1); // Disables token renewal
+	define('NOTOKENRENEWAL', 1); // Disables token renewal
 }
 if (!defined('NOREQUIREMENU')) {
-    define('NOREQUIREMENU', '1');
+	define('NOREQUIREMENU', '1');
 }
 if (!defined('NOREQUIREHTML')) {
-    define('NOREQUIREHTML', '1');
+	define('NOREQUIREHTML', '1');
 }
 if (!defined('NOREQUIREAJAX')) {
-    define('NOREQUIREAJAX', '1');
+	define('NOREQUIREAJAX', '1');
 }
 // if (!defined('NOREQUIRESOC')) {
 //     define('NOREQUIRESOC', '1');
 // }
 if (!defined('NOCSRFCHECK')) {
-    define('NOCSRFCHECK', '1');
+	define('NOCSRFCHECK', '1');
 }
 if (!defined('NOREQUIREHTML')) {
-    define('NOREQUIREHTML', '1');
+	define('NOREQUIREHTML', '1');
 }
 
 
@@ -49,20 +49,14 @@ require_once dirname(__DIR__) . '/env.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 require_once dirname(__DIR__) . '/lib/autoverifactu.lib.php';
 
-/**
- * @var Conf $conf
- * @var DoliDB $db
- * @var HookManager $hookmanager
- * @var Translate $langs
- * @var User $user
- */
+global $db, $user;
 
 $tag = trim(GETPOST('tag', 'alpha') ?: '');
 $entity = GETPOSTINT('entity') ?: 1;
 
 // Security check
 if (!$user->admin) {
-    accessforbidden();
+	accessforbidden();
 }
 
 /*
@@ -73,12 +67,12 @@ top_httphead();
 
 $dismissed = getDolGlobalString('AUTOVERIFACTU_DISMISSED_NOTICES', '');
 $dismissed = array_filter(array_map('trim', explode(',', $dismissed)), function ($t) use ($tag) {
-    return $t && $t !== $tag;
+	return $t && $t !== $tag;
 });
 
 if (!in_array($tag, $dismissed, true)) {
-    $dismissed[] = $tag;
-    autoverifactu_set_const('AUTOVERIFACTU_DISMISSED_NOTICES', implode(',', $dismissed), $entity);
+	$dismissed[] = $tag;
+	autoverifactu_set_const('AUTOVERIFACTU_DISMISSED_NOTICES', implode(',', $dismissed), $entity);
 }
 
 $db->close();

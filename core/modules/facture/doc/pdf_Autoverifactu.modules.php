@@ -34,20 +34,17 @@
  *	\brief      File of class to generate customers invoices from Verifactu model
  */
 
-require_once DOL_DOCUMENT_ROOT.'/core/modules/facture/modules_facture.php';
-require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/modules/facture/modules_facture.php';
+require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
 
-require_once dirname(__DIR__ , 4). '/lib/validation.lib.php';
-require_once dirname(__DIR__,4) . '/lib/autoverifactu.lib.php';
+require_once dirname(__DIR__, 4) . '/lib/validation.lib.php';
+require_once dirname(__DIR__, 4) . '/lib/autoverifactu.lib.php';
 
 
-//!importante 
 /*
-
-
 7. Ubicación del QR en la factura
 El QR debe ubicarse al principio de la factura, preferentemente en:
 
@@ -62,83 +59,92 @@ Para garantizar la legibilidad del código QR en cualquier factura, su tamaño d
 30x30 mm como mínimo
 40x40 mm como máximo
 Este rango asegura que el QR pueda ser escaneado correctamente por cualquier dispositivo.
-
- */
-
-
-
-
-
+*/
 
 /**
- *	Class to generate the customer invoice PDF with template Verifactu
+ * Class to generate the customer invoice PDF with template Verifactu
  */
 class pdf_Autoverifactu extends ModelePDFFactures
 {
 	/**
-	 * @var DoliDB Database handler
+	 * Database handler.
+	 *
+	 * @var DoliDB
 	 */
 	public $db;
 
 	/**
-	 * @var string model name
+	 * Model name.
+	 *
+	 * @var string
 	 */
 	public $name;
 
 	/**
-	 * @var string model description (short text)
+	 * Model description (short text)
+	 *
+	 * @var string
 	 */
 	public $description;
 
 	/**
-	 * @var int 	Save the name of generated file as the main doc when generating a doc with this template
+	 * Save the name of generated file as the main doc when generating a doc with this template
+	 *
+	 * @var int
 	 */
 	public $update_main_doc_field;
 
 	/**
-	 * @var string document type
+	 * Document type
+	 *
+	 * @var string
 	 */
 	public $type;
 
 	/**
 	 * Dolibarr version of the loaded document
+	 *
 	 * @var string
 	 */
 	public $version = 'dolibarr';
 
 	/**
-	 * @var bool Situation invoice type
+	 * Situation invoice type
+	 *
+	 * @var bool
 	 */
 	public $situationinvoice;
 
 	/**
-	 * @var float X position for the situation progress column
+	 * X position for the situation progress column
+	 *
+	 * @var float
 	 */
 	public $posxprogress;
 
 	/**
-	 * @var int Category of operation
+	 * Category of operation
+	 *
+	 * @var int
 	 */
 	public $categoryOfOperation = -1; // unknown by default
 
 
 	/**
-	 *	Constructor
+	 * Constructor
 	 *
-	 *  @param		DoliDB		$db      Database handler
+	 * @param DoliDB $db Database handler.
 	 */
 	public function __construct($db)
 	{
-		global $conf, $langs, $mysoc;
+		global $langs, $mysoc;
 
 		// Translations
-		$langs->loadLangs(array("main", "bills"));
+		$langs->loadLangs(array('main', 'bills'));
 
-
-	
 		$this->db = $db;
-		$this->name = "Autoverifactu";
-		$this->description = "Factura PDF plantilla Autoverifactu. Una plantilla compatible con el QR de Verifactu";
+		$this->name = 'Autoverifactu';
+		$this->description = 'Factura PDF plantilla Autoverifactu. Una plantilla compatible con el QR de Verifactu';
 		$this->update_main_doc_field = 1; // Save the name of generated file as the main doc when generating a doc with this template
 
 		// Dimension page
@@ -215,20 +221,21 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	/**
 	 *  Function to build pdf onto disk
 	 *
-	 *  @param		Facture		$object				Object to generate
-	 *  @param		Translate	$outputlangs		Lang output object
-	 *  @param		string		$srctemplatepath	Full path of source filename for generator using a template file
-	 *  @param		int			$hidedetails		Do not show line details
-	 *  @param		int			$hidedesc			Do not show desc
-	 *  @param		int			$hideref			Do not show ref
-	 *  @return     int         	    			1=OK, 0=KO
+	 *  @param Facture		$object				Object to generate
+	 *  @param Translate	$outputlangs		Lang output object
+	 *  @param string		$srctemplatepath	Full path of source filename for generator using a template file
+	 *  @param int			$hidedetails		Do not show line details
+	 *  @param int			$hidedesc			Do not show desc
+	 *  @param int			$hideref			Do not show ref
+	 *
+	 *  @return int         	    			1=OK, 0=KO
 	 */
 	public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 	{
 		// phpcs:enable
 		global $user, $langs, $conf, $mysoc, $hookmanager, $nblines;
 
-		dol_syslog("write_file outputlangs->defaultlang=".(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
+		dol_syslog('write_file outputlangs->defaultlang=' . (is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
 
 		if (!is_object($outputlangs)) {
 			$outputlangs = $langs;
@@ -239,9 +246,9 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		}
 
 		// Load translation files required by the page
-		$outputlangs->loadLangs(array("main", "bills", "products", "dict", "companies"));
+		$outputlangs->loadLangs(array('main', 'bills', 'products', 'dict', 'companies'));
 
-	
+
 		// Show Draft Watermark
 		if ($object->statut == $object::STATUS_DRAFT && (getDolGlobalString('FACTURE_DRAFT_WATERMARK'))) {
 			$this->watermark = getDolGlobalString('FACTURE_DRAFT_WATERMARK');
@@ -252,7 +259,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		if (getDolGlobalString('PDF_USE_ALSO_LANGUAGE_CODE') && $outputlangs->defaultlang != getDolGlobalString('PDF_USE_ALSO_LANGUAGE_CODE')) {
 			$outputlangsbis = new Translate('', $conf);
 			$outputlangsbis->setDefaultLang(getDolGlobalString('PDF_USE_ALSO_LANGUAGE_CODE'));
-			$outputlangsbis->loadLangs(array("main", "bills", "products", "dict", "companies"));
+			$outputlangsbis->loadLangs(array('main', 'bills', 'products', 'dict', 'companies'));
 		}
 
 		$nblines = count($object->lines);
@@ -268,14 +275,14 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				$objphoto = new Product($this->db);
 				$objphoto->fetch($object->lines[$i]->fk_product);
 
-				$pdir = get_exdir($object->lines[$i]->fk_product, 2, 0, 0, $objphoto, 'product').$object->lines[$i]->fk_product."/photos/";
-				$dir = $conf->product->dir_output.'/'.$pdir;
+				$pdir = get_exdir($object->lines[$i]->fk_product, 2, 0, 0, $objphoto, 'product') . $object->lines[$i]->fk_product . '/photos/';
+				$dir = $conf->product->dir_output . '/' . $pdir;
 
 				$realpath = '';
 				foreach ($objphoto->liste_photos($dir, 1) as $key => $obj) {
 					$filename = $obj['photo'];
 					//if ($obj['photo_vignette']) $filename='thumbs/'.$obj['photo_vignette'];
-					$realpath = $dir.$filename;
+					$realpath = $dir . $filename;
 					break;
 				}
 
@@ -291,22 +298,22 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		if ($conf->facture->dir_output) {
 			$object->fetch_thirdparty();
 
-			$deja_regle = $object->getSommePaiement((isModEnabled("multicurrency") && $object->multicurrency_tx != 1) ? 1 : 0);
-			$amount_credit_notes_included = $object->getSumCreditNotesUsed((isModEnabled("multicurrency") && $object->multicurrency_tx != 1) ? 1 : 0);
-			$amount_deposits_included = $object->getSumDepositsUsed((isModEnabled("multicurrency") && $object->multicurrency_tx != 1) ? 1 : 0);
+			$deja_regle = $object->getSommePaiement((isModEnabled('multicurrency') && $object->multicurrency_tx != 1) ? 1 : 0);
+			$amount_credit_notes_included = $object->getSumCreditNotesUsed((isModEnabled('multicurrency') && $object->multicurrency_tx != 1) ? 1 : 0);
+			$amount_deposits_included = $object->getSumDepositsUsed((isModEnabled('multicurrency') && $object->multicurrency_tx != 1) ? 1 : 0);
 
 			// Definition of $dir and $file
 			if ($object->specimen) {
 				$dir = empty($conf->facture->multidir_output[$object->entity]) ? $conf->facture->dir_output : $conf->facture->multidir_output[$object->entity];
-				$file = $dir."/SPECIMEN.pdf";
+				$file = $dir . '/SPECIMEN.pdf';
 			} else {
 				$objectref = dol_sanitizeFileName($object->ref);
-				$dir = (empty($conf->facture->multidir_output[$object->entity]) ? $conf->facture->dir_output : $conf->facture->multidir_output[$object->entity])."/".$objectref;
-				$file = $dir."/".$objectref.".pdf";
+				$dir = (empty($conf->facture->multidir_output[$object->entity]) ? $conf->facture->dir_output : $conf->facture->multidir_output[$object->entity]) . '/' . $objectref;
+				$file = $dir . '/' . $objectref . '.pdf';
 			}
 			if (!file_exists($dir)) {
 				if (dol_mkdir($dir) < 0) {
-					$this->error = $langs->transnoentities("ErrorCanNotCreateDir", $dir);
+					$this->error = $langs->transnoentities('ErrorCanNotCreateDir', $dir);
 					return 0;
 				}
 			}
@@ -314,7 +321,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			if (file_exists($dir)) {
 				// Add pdfgeneration hook
 				if (!is_object($hookmanager)) {
-					include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
+					include_once DOL_DOCUMENT_ROOT . '/core/class/hookmanager.class.php';
 					$hookmanager = new HookManager($this->db);
 				}
 				$hookmanager->initHooks(array('pdfgeneration'));
@@ -362,7 +369,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 					if (!empty($conf->mycompany->multidir_output[$object->entity])) {
 						$logodir = $conf->mycompany->multidir_output[$object->entity];
 					}
-					$pagecount = $pdf->setSourceFile($logodir.'/' . getDolGlobalString('MAIN_ADD_PDF_BACKGROUND'));
+					$pagecount = $pdf->setSourceFile($logodir . '/' . getDolGlobalString('MAIN_ADD_PDF_BACKGROUND'));
 					$tplidx = $pdf->importPage(1);
 				}
 
@@ -371,10 +378,10 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				$pdf->SetDrawColor(128, 128, 128);
 
 				$pdf->SetTitle($outputlangs->convToOutputCharset($object->ref));
-				$pdf->SetSubject($outputlangs->transnoentities("PdfInvoiceTitle"));
-				$pdf->SetCreator("Dolibarr ".DOL_VERSION);
-				$pdf->SetAuthor($mysoc->name.($user->id > 0 ? ' - '.$outputlangs->convToOutputCharset($user->getFullName($outputlangs)) : ''));
-				$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref)." ".$outputlangs->transnoentities("PdfInvoiceTitle")." ".$outputlangs->convToOutputCharset($object->thirdparty->name));
+				$pdf->SetSubject($outputlangs->transnoentities('PdfInvoiceTitle'));
+				$pdf->SetCreator('Dolibarr ' . DOL_VERSION);
+				$pdf->SetAuthor($mysoc->name . ($user->id > 0 ? ' - ' . $outputlangs->convToOutputCharset($user->getFullName($outputlangs)) : ''));
+				$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref) . ' ' . $outputlangs->transnoentities('PdfInvoiceTitle') . ' ' . $outputlangs->convToOutputCharset($object->thirdparty->name));
 				if (getDolGlobalString('MAIN_DISABLE_PDF_COMPRESSION')) {
 					$pdf->SetCompression(false);
 				}
@@ -511,7 +518,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 						if ($object->fk_account > 0 || $object->fk_bank > 0 || getDolGlobalInt('FACTURE_RIB_NUMBER')) {
 							$pdf->SetXY($this->marge_gauche + 30, $pdf->GetY() - 15);
 							$pdf->SetFont('', '', $default_font_size - 4);
-							$pdf->MultiCell(40, 3, $langs->transnoentitiesnoconv("INVOICE_ADD_EPC_QR_CODEPay"), 0, 'L', 0);
+							$pdf->MultiCell(40, 3, $langs->transnoentitiesnoconv('INVOICE_ADD_EPC_QR_CODEPay'), 0, 'L', 0);
 						}
 					}
 
@@ -567,31 +574,31 @@ class pdf_Autoverifactu extends ModelePDFFactures
 						}
 					}
 				}
-				
-				//echo "<pre>";
-				
-				//verifactu_pdfLegalText
-				
 
-				if(isset($object->array_options["options_verifactu_pdfLegalText"] )){
-					$langs->load("autoverifactu@autoverifactu");
-					$LegalText="<strong>Texto Legal</strong> ";
-					$LegalText .= '<br> '.$object->array_options["options_verifactu_pdfLegalTextUser"] ;
-					$LegalTextArray = explode(',', $object->array_options["options_verifactu_pdfLegalText"]);
+				//echo "<pre>";
+
+				//verifactu_pdfLegalText
+
+
+				if (isset($object->array_options['options_verifactu_pdfLegalText'])) {
+					$langs->load('autoverifactu@autoverifactu');
+					$LegalText = '<strong>Texto Legal</strong> ';
+					$LegalText .= '<br> ' . $object->array_options['options_verifactu_pdfLegalTextUser'] ;
+					$LegalTextArray = explode(',', $object->array_options['options_verifactu_pdfLegalText']);
 
 					foreach ($LegalTextArray as  $value) {
-						$LegalText .= '<br> '.$langs->trans( $value) ;
+						$LegalText .= '<br> ' . $langs->trans($value);
 					}
-					$LegalText .= " <hr><br>";
-					$notetoshow = dol_concatdesc($notetoshow, $LegalText,false,true);
+					$LegalText .= ' <hr><br>';
+					$notetoshow = dol_concatdesc($notetoshow, $LegalText, false, true);
 				}
 				// Extrafields in noteº
 				$extranote = $this->getExtrafieldsInHtml($object, $outputlangs);
-				
+
 				if (!empty($extranote)) {
 					$notetoshow = dol_concatdesc($notetoshow, $extranote);
 				}
-	
+
 				if ($notetoshow) {
 					$tab_top -= 2;
 
@@ -774,13 +781,13 @@ class pdf_Autoverifactu extends ModelePDFFactures
 					// Collection of totals by value of VAT in $this->tva["taux"]=total_tva
 					$prev_progress = $object->lines[$i]->get_prev_progress($object->id);
 					if ($prev_progress > 0 && !empty($object->lines[$i]->situation_percent)) { // Compute progress from previous situation
-						if (isModEnabled("multicurrency") && $object->multicurrency_tx != 1) {
+						if (isModEnabled('multicurrency') && $object->multicurrency_tx != 1) {
 							$tvaligne = $sign * $object->lines[$i]->multicurrency_total_tva * ($object->lines[$i]->situation_percent - $prev_progress) / $object->lines[$i]->situation_percent;
 						} else {
 							$tvaligne = $sign * $object->lines[$i]->total_tva * ($object->lines[$i]->situation_percent - $prev_progress) / $object->lines[$i]->situation_percent;
 						}
 					} else {
-						if (isModEnabled("multicurrency") && $object->multicurrency_tx != 1) {
+						if (isModEnabled('multicurrency') && $object->multicurrency_tx != 1) {
 							$tvaligne = $sign * $object->lines[$i]->multicurrency_total_tva;
 						} else {
 							$tvaligne = $sign * $object->lines[$i]->total_tva;
@@ -841,10 +848,10 @@ class pdf_Autoverifactu extends ModelePDFFactures
 					}
 					$this->tva[$vatrate] += $tvaligne;	// ->tva is abandoned, we use now ->tva_array that is more complete
 					$vatcode = $object->lines[$i]->vat_src_code;
-					if (empty($this->tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')]['amount'])) {
-						$this->tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')]['amount'] = 0;
+					if (empty($this->tva_array[$vatrate . ($vatcode ? ' (' . $vatcode . ')' : '')]['amount'])) {
+						$this->tva_array[$vatrate . ($vatcode ? ' (' . $vatcode . ')' : '')]['amount'] = 0;
 					}
-					$this->tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')] = array('vatrate' => $vatrate, 'vatcode' => $vatcode, 'amount' => $this->tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')]['amount'] + $tvaligne);
+					$this->tva_array[$vatrate . ($vatcode ? ' (' . $vatcode . ')' : '')] = array('vatrate' => $vatrate, 'vatcode' => $vatcode, 'amount' => $this->tva_array[$vatrate . ($vatcode ? ' (' . $vatcode . ')' : '')]['amount'] + $tvaligne);
 
 					if ($posYAfterImage > $posYAfterDescription) {
 						$nexY = $posYAfterImage;
@@ -909,7 +916,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 					$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforinfotot - $heightforfreetext - $heightforfooter, 0, $outputlangs, 1, 0, $object->multicurrency_code);
 					$bottomlasttab = $this->page_hauteur - $heightforinfotot - $heightforfreetext - $heightforfooter + 1;
 				}
-				dol_syslog("bottomlasttab=".$bottomlasttab." this->page_hauteur=".$this->page_hauteur." heightforinfotot=".$heightforinfotot." heightforfreetext=".$heightforfreetext." heightforfooter=".$heightforfooter);
+				dol_syslog('bottomlasttab=' . $bottomlasttab . ' this->page_hauteur=' . $this->page_hauteur . ' heightforinfotot=' . $heightforinfotot . ' heightforfreetext=' . $heightforfreetext . ' heightforfooter=' . $heightforfooter);
 
 				// Display info area
 				$posy = $this->_tableau_info($pdf, $object, $bottomlasttab, $outputlangs, $outputlangsbis);
@@ -955,11 +962,11 @@ class pdf_Autoverifactu extends ModelePDFFactures
 
 				return 1; // No error
 			} else {
-				$this->error = $langs->transnoentities("ErrorCanNotCreateDir", $dir);
+				$this->error = $langs->transnoentities('ErrorCanNotCreateDir', $dir);
 				return 0;
 			}
 		} else {
-			$this->error = $langs->transnoentities("ErrorConstantNotDefined", "FAC_OUTPUTDIR");
+			$this->error = $langs->transnoentities('ErrorConstantNotDefined', 'FAC_OUTPUTDIR');
 			return 0;
 		}
 	}
@@ -970,11 +977,12 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	/**
 	 *  Show payments table
 	 *
-	 *  @param	TCPDF		$pdf            	Object PDF
-	 *  @param  Facture		$object         	Object invoice
-	 *  @param  int			$posy           	Position y in PDF
-	 *  @param  Translate	$outputlangs    	Object langs for output
-	 *  @param  int			$heightforfooter 	Height for footer
+	 *  @param TCPDF		$pdf            	Object PDF
+	 *  @param Facture		$object         	Object invoice
+	 *  @param int			$posy           	Position y in PDF
+	 *  @param Translate	$outputlangs    	Object langs for output
+	 *  @param int			$heightforfooter 	Height for footer
+	 *
 	 *  @return int             				Return integer <0 if KO, >0 if OK
 	 */
 	protected function _tableau_versements(&$pdf, $object, $posy, $outputlangs, $heightforfooter = 0)
@@ -1005,11 +1013,11 @@ class pdf_Autoverifactu extends ModelePDFFactures
 
 
 		// Loop on each discount available (deposits and credit notes and excess of payment included)
-		$sql = "SELECT re.rowid, re.amount_ht, re.multicurrency_amount_ht, re.amount_tva, re.multicurrency_amount_tva,  re.amount_ttc, re.multicurrency_amount_ttc,";
-		$sql .= " re.description, re.fk_facture_source,";
-		$sql .= " f.type, f.datef";
-		$sql .= " FROM ".MAIN_DB_PREFIX."societe_remise_except as re, ".MAIN_DB_PREFIX."facture as f";
-		$sql .= " WHERE re.fk_facture_source = f.rowid AND re.fk_facture = ".((int) $object->id);
+		$sql = 'SELECT re.rowid, re.amount_ht, re.multicurrency_amount_ht, re.amount_tva, re.multicurrency_amount_tva,  re.amount_ttc, re.multicurrency_amount_ttc,';
+		$sql .= ' re.description, re.fk_facture_source,';
+		$sql .= ' f.type, f.datef';
+		$sql .= ' FROM ' . MAIN_DB_PREFIX . 'societe_remise_except as re, ' . MAIN_DB_PREFIX . 'facture as f';
+		$sql .= ' WHERE re.fk_facture_source = f.rowid AND re.fk_facture = ' . ((int) $object->id);
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
@@ -1035,13 +1043,13 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				$obj = $this->db->fetch_object($resql);
 
 				if ($obj->type == 2) {
-					$text = $outputlangs->transnoentities("CreditNote");
+					$text = $outputlangs->transnoentities('CreditNote');
 				} elseif ($obj->type == 3) {
-					$text = $outputlangs->transnoentities("Deposit");
+					$text = $outputlangs->transnoentities('Deposit');
 				} elseif ($obj->type == 0) {
-					$text = $outputlangs->transnoentities("ExcessReceived");
+					$text = $outputlangs->transnoentities('ExcessReceived');
 				} else {
-					$text = $outputlangs->transnoentities("UnknownType");
+					$text = $outputlangs->transnoentities('UnknownType');
 				}
 
 				$invoice->fetch($obj->fk_facture_source);
@@ -1049,7 +1057,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				$pdf->SetXY($tab3_posx, $tab3_top + $y);
 				$pdf->MultiCell(20, 3, dol_print_date($this->db->jdate($obj->datef), 'day', false, $outputlangs, true), 0, 'L', 0);
 				$pdf->SetXY($tab3_posx + 21, $tab3_top + $y);
-				$pdf->MultiCell(20, 3, price((isModEnabled("multicurrency") && $object->multicurrency_tx != 1) ? $obj->multicurrency_amount_ttc : $obj->amount_ttc, 0, $outputlangs), 0, 'L', 0);
+				$pdf->MultiCell(20, 3, price((isModEnabled('multicurrency') && $object->multicurrency_tx != 1) ? $obj->multicurrency_amount_ttc : $obj->amount_ttc, 0, $outputlangs), 0, 'L', 0);
 				$pdf->SetXY($tab3_posx + 40, $tab3_top + $y);
 				$pdf->MultiCell(20, 3, $text, 0, 'L', 0);
 				$pdf->SetXY($tab3_posx + 58, $tab3_top + $y);
@@ -1066,13 +1074,13 @@ class pdf_Autoverifactu extends ModelePDFFactures
 
 		// Loop on each payment
 		// TODO Call getListOfPaymentsgetListOfPayments instead of hard coded sql
-		$sql = "SELECT p.datep as date, p.fk_paiement, p.num_paiement as num, pf.amount as amount, pf.multicurrency_amount,";
-		$sql .= " cp.code";
-		$sql .= " FROM ".MAIN_DB_PREFIX."paiement_facture as pf, ".MAIN_DB_PREFIX."paiement as p";
-		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."c_paiement as cp ON p.fk_paiement = cp.id";
-		$sql .= " WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = ".((int) $object->id);
+		$sql = 'SELECT p.datep as date, p.fk_paiement, p.num_paiement as num, pf.amount as amount, pf.multicurrency_amount,';
+		$sql .= ' cp.code';
+		$sql .= ' FROM ' . MAIN_DB_PREFIX . 'paiement_facture as pf, ' . MAIN_DB_PREFIX . 'paiement as p';
+		$sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_paiement as cp ON p.fk_paiement = cp.id';
+		$sql .= ' WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = ' . ((int) $object->id);
 		//$sql.= " WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = 1";
-		$sql .= " ORDER BY p.datep";
+		$sql .= ' ORDER BY p.datep';
 
 		$resql = $this->db->query($sql);
 		if ($resql) {
@@ -1101,9 +1109,9 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				$pdf->SetXY($tab3_posx, $tab3_top + $y);
 				$pdf->MultiCell(20, 3, dol_print_date($this->db->jdate($row->date), 'day', false, $outputlangs, true), 0, 'L', 0);
 				$pdf->SetXY($tab3_posx + 21, $tab3_top + $y);
-				$pdf->MultiCell(20, 3, price($sign * ((isModEnabled("multicurrency") && $object->multicurrency_tx != 1) ? $row->multicurrency_amount : $row->amount), 0, $outputlangs), 0, 'L', 0);
+				$pdf->MultiCell(20, 3, price($sign * ((isModEnabled('multicurrency') && $object->multicurrency_tx != 1) ? $row->multicurrency_amount : $row->amount), 0, $outputlangs), 0, 'L', 0);
 				$pdf->SetXY($tab3_posx + 40, $tab3_top + $y);
-				$oper = $outputlangs->transnoentitiesnoconv("PaymentTypeShort".$row->code);
+				$oper = $outputlangs->transnoentitiesnoconv('PaymentTypeShort' . $row->code);
 
 				$pdf->MultiCell(20, 3, $oper, 0, 'L', 0);
 				$maxY = max($pdf->GetY() - $tab3_top - 3, $maxY);
@@ -1135,14 +1143,15 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	 * @param int 			$tab3_top			pos y
 	 * @param int 			$tab3_width			width
 	 * @param int 			$tab3_height		height
+	 *
 	 * @return void
 	 */
 	protected function _tableau_versements_header($pdf, $object, $outputlangs, $default_font_size, $tab3_posx, $tab3_top, $tab3_width, $tab3_height)
 	{
 		// phpcs:enable
-		$title = $outputlangs->transnoentities("PaymentsAlreadyDone");
+		$title = $outputlangs->transnoentities('PaymentsAlreadyDone');
 		if ($object->type == 2) {
-			$title = $outputlangs->transnoentities("PaymentsBackAlreadyDone");
+			$title = $outputlangs->transnoentities('PaymentsBackAlreadyDone');
 		}
 
 		$pdf->SetFont('', '', $default_font_size - 3);
@@ -1153,13 +1162,13 @@ class pdf_Autoverifactu extends ModelePDFFactures
 
 		$pdf->SetFont('', '', $default_font_size - 4);
 		$pdf->SetXY($tab3_posx, $tab3_top);
-		$pdf->MultiCell(20, 3, $outputlangs->transnoentities("Payment"), 0, 'L', 0);
+		$pdf->MultiCell(20, 3, $outputlangs->transnoentities('Payment'), 0, 'L', 0);
 		$pdf->SetXY($tab3_posx + 21, $tab3_top);
-		$pdf->MultiCell(20, 3, $outputlangs->transnoentities("Amount"), 0, 'L', 0);
+		$pdf->MultiCell(20, 3, $outputlangs->transnoentities('Amount'), 0, 'L', 0);
 		$pdf->SetXY($tab3_posx + 40, $tab3_top);
-		$pdf->MultiCell(20, 3, $outputlangs->transnoentities("Type"), 0, 'L', 0);
+		$pdf->MultiCell(20, 3, $outputlangs->transnoentities('Type'), 0, 'L', 0);
 		$pdf->SetXY($tab3_posx + 58, $tab3_top);
-		$pdf->MultiCell(20, 3, $outputlangs->transnoentities("Num"), 0, 'L', 0);
+		$pdf->MultiCell(20, 3, $outputlangs->transnoentities('Num'), 0, 'L', 0);
 
 		$pdf->line($tab3_posx, $tab3_top - 1 + $tab3_height, $tab3_posx + $tab3_width, $tab3_top - 1 + $tab3_height);
 	}
@@ -1169,12 +1178,13 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	/**
 	 *   Show miscellaneous information (payment mode, payment term, ...)
 	 *
-	 *   @param		TCPDF		$pdf     		Object PDF
-	 *   @param		Facture		$object			Object to show
-	 *   @param		int			$posy			Y
-	 *   @param		Translate	$outputlangs	Langs object
-	 *   @param  	Translate	$outputlangsbis	Object lang for output bis
-	 *   @return	int							Pos y
+	 *   @param TCPDF		$pdf     		Object PDF
+	 *   @param Facture		$object			Object to show
+	 *   @param int			$posy			Y
+	 *   @param Translate	$outputlangs	Langs object
+	 *   @param Translate	$outputlangsbis	Object lang for output bis
+	 *
+	 *   @return int							Pos y
 	 */
 	protected function _tableau_info(&$pdf, $object, $posy, $outputlangs, $outputlangsbis)
 	{
@@ -1190,9 +1200,9 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			$pdf->SetFont('', 'B', $default_font_size - 2);
 			$pdf->SetXY($this->marge_gauche, $posy);
 			if ($mysoc->forme_juridique_code == 92) {
-				$pdf->MultiCell(100, 3, $outputlangs->transnoentities("VATIsNotUsedForInvoiceAsso"), 0, 'L', 0);
+				$pdf->MultiCell(100, 3, $outputlangs->transnoentities('VATIsNotUsedForInvoiceAsso'), 0, 'L', 0);
 			} else {
-				$pdf->MultiCell(100, 3, $outputlangs->transnoentities("VATIsNotUsedForInvoice"), 0, 'L', 0);
+				$pdf->MultiCell(100, 3, $outputlangs->transnoentities('VATIsNotUsedForInvoice'), 0, 'L', 0);
 			}
 
 			$posy = $pdf->GetY() + 4;
@@ -1208,12 +1218,12 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		if ($object->type != 2 && ($object->cond_reglement_code || $object->cond_reglement)) {
 			$pdf->SetFont('', 'B', $default_font_size - 2);
 			$pdf->SetXY($this->marge_gauche, $posy);
-			$titre = $outputlangs->transnoentities("PaymentConditions").':';
+			$titre = $outputlangs->transnoentities('PaymentConditions') . ':';
 			$pdf->MultiCell(43, 4, $titre, 0, 'L');
 
 			$pdf->SetFont('', '', $default_font_size - 2);
 			$pdf->SetXY($posxval, $posy);
-			$lib_condition_paiement = ($outputlangs->transnoentities("PaymentCondition".$object->cond_reglement_code) != 'PaymentCondition'.$object->cond_reglement_code) ? $outputlangs->transnoentities("PaymentCondition".$object->cond_reglement_code) : $outputlangs->convToOutputCharset($object->cond_reglement_doc ? $object->cond_reglement_doc : $object->cond_reglement_label);
+			$lib_condition_paiement = ($outputlangs->transnoentities('PaymentCondition' . $object->cond_reglement_code) != 'PaymentCondition' . $object->cond_reglement_code) ? $outputlangs->transnoentities('PaymentCondition' . $object->cond_reglement_code) : $outputlangs->convToOutputCharset($object->cond_reglement_doc ? $object->cond_reglement_doc : $object->cond_reglement_label);
 			$lib_condition_paiement = str_replace('\n', "\n", $lib_condition_paiement);
 			$pdf->MultiCell(67, 4, $lib_condition_paiement, 0, 'L');
 
@@ -1224,12 +1234,12 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		if (getDolGlobalInt('INVOICE_CATEGORY_OF_OPERATION') == 2 && $this->categoryOfOperation >= 0) {
 			$pdf->SetFont('', 'B', $default_font_size - 2);
 			$pdf->SetXY($this->marge_gauche, $posy);
-			$categoryOfOperationTitle = $outputlangs->transnoentities("MentionCategoryOfOperations").' : ';
+			$categoryOfOperationTitle = $outputlangs->transnoentities('MentionCategoryOfOperations') . ' : ';
 			$pdf->MultiCell($posxval - $this->marge_gauche, 4, $categoryOfOperationTitle, 0, 'L');
 
 			$pdf->SetFont('', '', $default_font_size - 2);
 			$pdf->SetXY($posxval, $posy);
-			$categoryOfOperationLabel = $outputlangs->transnoentities("MentionCategoryOfOperations" . $this->categoryOfOperation);
+			$categoryOfOperationLabel = $outputlangs->transnoentities('MentionCategoryOfOperations' . $this->categoryOfOperation);
 			$pdf->MultiCell($posxend - $posxval, 4, $categoryOfOperationLabel, 0, 'L');
 
 			$posy = $pdf->GetY() + 3; // for 2 lines
@@ -1240,16 +1250,16 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			if (empty($object->mode_reglement_code)
 			&& !getDolGlobalInt('FACTURE_CHQ_NUMBER')
 			&& !getDolGlobalInt('FACTURE_RIB_NUMBER')) {
-				$this->error = $outputlangs->transnoentities("ErrorNoPaiementModeConfigured");
+				$this->error = $outputlangs->transnoentities('ErrorNoPaiementModeConfigured');
 			} elseif (($object->mode_reglement_code == 'CHQ' && !getDolGlobalInt('FACTURE_CHQ_NUMBER') && empty($object->fk_account) && empty($object->fk_bank))
 				|| ($object->mode_reglement_code == 'VIR' && !getDolGlobalInt('FACTURE_RIB_NUMBER') && empty($object->fk_account) && empty($object->fk_bank))) {
 				// Avoid having any valid PDF with setup that is not complete
-				$outputlangs->load("errors");
+				$outputlangs->load('errors');
 
 				$pdf->SetXY($this->marge_gauche, $posy);
 				$pdf->SetTextColor(200, 0, 0);
 				$pdf->SetFont('', 'B', $default_font_size - 2);
-				$this->error = $outputlangs->transnoentities("ErrorPaymentModeDefinedToWithoutSetup", $object->mode_reglement_code);
+				$this->error = $outputlangs->transnoentities('ErrorPaymentModeDefinedToWithoutSetup', $object->mode_reglement_code);
 				$pdf->MultiCell(80, 3, $this->error, 0, 'L', 0);
 				$pdf->SetTextColor(0, 0, 0);
 
@@ -1262,20 +1272,20 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			&& $object->mode_reglement_code != 'VIR') {
 				$pdf->SetFont('', 'B', $default_font_size - 2);
 				$pdf->SetXY($this->marge_gauche, $posy);
-				$titre = $outputlangs->transnoentities("PaymentMode").':';
+				$titre = $outputlangs->transnoentities('PaymentMode') . ':';
 				$pdf->MultiCell(80, 5, $titre, 0, 'L');
 
 				$pdf->SetFont('', '', $default_font_size - 2);
 				$pdf->SetXY($posxval, $posy);
-				$lib_mode_reg = $outputlangs->transnoentities("PaymentType".$object->mode_reglement_code) != 'PaymentType'.$object->mode_reglement_code ? $outputlangs->transnoentities("PaymentType".$object->mode_reglement_code) : $outputlangs->convToOutputCharset($object->mode_reglement);
+				$lib_mode_reg = $outputlangs->transnoentities('PaymentType' . $object->mode_reglement_code) != 'PaymentType' . $object->mode_reglement_code ? $outputlangs->transnoentities('PaymentType' . $object->mode_reglement_code) : $outputlangs->convToOutputCharset($object->mode_reglement);
 				//#21654: add account number used for the debit
-				if ($object->mode_reglement_code == "PRE") {
-					require_once DOL_DOCUMENT_ROOT.'/societe/class/companybankaccount.class.php';
+				if ($object->mode_reglement_code == 'PRE') {
+					require_once DOL_DOCUMENT_ROOT . '/societe/class/companybankaccount.class.php';
 					$bac = new CompanyBankAccount($this->db);
 					// @phan-suppress-next-line PhanPluginSuspiciousParamPosition
 					$bac->fetch(0, '', $object->thirdparty->id);
-					$iban = $bac->iban.(($bac->iban && $bac->bic) ? ' / ' : '').$bac->bic;
-					$lib_mode_reg .= ' '.$outputlangs->trans("PaymentTypePREdetails", dol_trunc($iban, 6, 'right', 'UTF-8', 1));
+					$iban = $bac->iban . (($bac->iban && $bac->bic) ? ' / ' : '') . $bac->bic;
+					$lib_mode_reg .= ' ' . $outputlangs->trans('PaymentTypePREdetails', dol_trunc($iban, 6, 'right', 'UTF-8', 1));
 				}
 				$pdf->MultiCell(80, 5, $lib_mode_reg, 0, 'L');
 
@@ -1288,7 +1298,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			if ($this->emetteur->country_code == 'FR') {
 				if (getDolGlobalInt('TAX_MODE') == 1) {
 					$pdf->SetXY($this->marge_gauche, $posy);
-					$pdf->writeHTMLCell(80, 5, '', '', $outputlangs->transnoentities("MentionVATDebitOptionIsOn"), 0, 1);
+					$pdf->writeHTMLCell(80, 5, '', '', $outputlangs->transnoentities('MentionVATDebitOptionIsOn'), 0, 1);
 
 					$posy = $pdf->GetY() + 1;
 				}
@@ -1300,19 +1310,19 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				if (getDolGlobalString('PDF_SHOW_LINK_TO_ONLINE_PAYMENT')) {
 					// Show online payment link
 					// The list can be complete by the hook 'doValidatePayment' executed inside getValidOnlinePaymentMethods()
-					include_once DOL_DOCUMENT_ROOT.'/core/lib/payments.lib.php';
+					include_once DOL_DOCUMENT_ROOT . '/core/lib/payments.lib.php';
 					$validpaymentmethod = getValidOnlinePaymentMethods('');
 					$useonlinepayment = count($validpaymentmethod);
 				}
 
 				if ($object->statut != Facture::STATUS_DRAFT && $useonlinepayment) {
-					require_once DOL_DOCUMENT_ROOT.'/core/lib/payments.lib.php';
+					require_once DOL_DOCUMENT_ROOT . '/core/lib/payments.lib.php';
 					global $langs;
 
 					$langs->loadLangs(array('payment', 'paybox', 'stripe'));
 					$servicename = $langs->transnoentities('Online');
 					$paiement_url = getOnlinePaymentUrl('', 'invoice', $object->ref, '', '', '');
-					$linktopay = $langs->trans("ToOfferALinkForOnlinePayment", $servicename).' <a href="'.$paiement_url.'">'.$outputlangs->transnoentities("ClickHere").'</a>';
+					$linktopay = $langs->trans('ToOfferALinkForOnlinePayment', $servicename) . ' <a href="' . $paiement_url . '">' . $outputlangs->transnoentities('ClickHere') . '</a>';
 
 					$pdf->SetXY($this->marge_gauche, $posy);
 					$pdf->writeHTMLCell(80, 5, '', '', dol_htmlentitiesbr($linktopay), 0, 1);
@@ -1388,12 +1398,13 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	/**
 	 *	Show total to pay
 	 *
-	 *	@param	TCPDF		$pdf            Object PDF
-	 *	@param  Facture		$object         Object invoice
-	 *	@param  int			$deja_regle     Amount already paid (in the currency of invoice)
-	 *	@param	int			$posy			Position depart
-	 *	@param	Translate	$outputlangs	Object langs
-	 *  @param  Translate	$outputlangsbis	Object lang for output bis
+	 *	@param TCPDF		$pdf            Object PDF
+	 *	@param Facture		$object         Object invoice
+	 *	@param int			$deja_regle     Amount already paid (in the currency of invoice)
+	 *	@param int			$posy			Position depart
+	 *	@param Translate	$outputlangs	Object langs
+	 *  @param Translate	$outputlangsbis	Object lang for output bis
+	 *
 	 *	@return int							Position pour suite
 	 */
 	protected function _tableau_tot(&$pdf, $object, $deja_regle, $posy, $outputlangs, $outputlangsbis)
@@ -1412,7 +1423,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		if (getDolGlobalString('PDF_USE_ALSO_LANGUAGE_CODE') && $outputlangs->defaultlang != getDolGlobalString('PDF_USE_ALSO_LANGUAGE_CODE')) {
 			$outputlangsbis = new Translate('', $conf);
 			$outputlangsbis->setDefaultLang(getDolGlobalString('PDF_USE_ALSO_LANGUAGE_CODE'));
-			$outputlangsbis->loadLangs(array("main", "dict", "companies", "bills", "products", "propal"));
+			$outputlangsbis->loadLangs(array('main', 'dict', 'companies', 'bills', 'products', 'propal'));
 			$default_font_size--;
 		}
 
@@ -1435,16 +1446,16 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		// Total HT
 		$pdf->SetFillColor(255, 255, 255);
 		$pdf->SetXY($col1x, $tab2_top);
-		$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities(!getDolGlobalString('MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT') ? "TotalHT" : "Total").(is_object($outputlangsbis) ? ' / '.$outputlangsbis->transnoentities(!getDolGlobalString('MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT') ? "TotalHT" : "Total") : ''), 0, 'L', 1);
+		$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities(!getDolGlobalString('MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT') ? 'TotalHT' : 'Total') . (is_object($outputlangsbis) ? ' / ' . $outputlangsbis->transnoentities(!getDolGlobalString('MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT') ? 'TotalHT' : 'Total') : ''), 0, 'L', 1);
 
-		$total_ht = ((isModEnabled("multicurrency") && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? $object->multicurrency_total_ht : $object->total_ht);
+		$total_ht = ((isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? $object->multicurrency_total_ht : $object->total_ht);
 		$pdf->SetXY($col2x, $tab2_top);
 		$pdf->MultiCell($largcol2, $tab2_hl, price($sign * ($total_ht + (!empty($object->remise) ? $object->remise : 0)), 0, $outputlangs), 0, 'R', 1);
 
 		// Show VAT by rates and total
 		$pdf->SetFillColor(248, 248, 248);
 
-		$total_ttc = (isModEnabled("multicurrency") && $object->multicurrency_tx != 1) ? $object->multicurrency_total_ttc : $object->total_ttc;
+		$total_ttc = (isModEnabled('multicurrency') && $object->multicurrency_tx != 1) ? $object->multicurrency_total_ttc : $object->total_ttc;
 
 		$this->atleastoneratenotnull = 0;
 		if (!getDolGlobalString('MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT')) {
@@ -1468,21 +1479,21 @@ class pdf_Autoverifactu extends ModelePDFFactures
 							$tvacompl = '';
 							if (preg_match('/\*/', (string) $tvakey)) {
 								$tvakey = str_replace('*', '', (string) $tvakey);
-								$tvacompl = " (".$outputlangs->transnoentities("NonPercuRecuperable").")";
+								$tvacompl = ' (' . $outputlangs->transnoentities('NonPercuRecuperable') . ')';
 							}
 
-							$totalvat = $outputlangs->transcountrynoentities("TotalLT1", $mysoc->country_code).(is_object($outputlangsbis) ? ' / '.$outputlangsbis->transcountrynoentities("TotalLT1", $mysoc->country_code) : '');
+							$totalvat = $outputlangs->transcountrynoentities('TotalLT1', $mysoc->country_code) . (is_object($outputlangsbis) ? ' / ' . $outputlangsbis->transcountrynoentities('TotalLT1', $mysoc->country_code) : '');
 							$totalvat .= ' ';
 
 							if (getDolGlobalString('PDF_LOCALTAX1_LABEL_IS_CODE_OR_RATE') == 'nocodenorate') {
 								$totalvat .= $tvacompl;
 							} else {
-								$totalvat .= vatrate(abs($tvakey), 1).$tvacompl;
+								$totalvat .= vatrate(abs($tvakey), 1) . $tvacompl;
 							}
 
 							$pdf->MultiCell($col2x - $col1x, $tab2_hl, $totalvat, 0, 'L', 1);
 
-							$total_localtax = ((isModEnabled("multicurrency") && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? price2num($tvaval * $object->multicurrency_tx, 'MT') : $tvaval);
+							$total_localtax = ((isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? price2num($tvaval * $object->multicurrency_tx, 'MT') : $tvaval);
 
 							$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
 							$pdf->MultiCell($largcol2, $tab2_hl, price($total_localtax, 0, $outputlangs), 0, 'R', 1);
@@ -1506,20 +1517,20 @@ class pdf_Autoverifactu extends ModelePDFFactures
 							$tvacompl = '';
 							if (preg_match('/\*/', (string) $tvakey)) {
 								$tvakey = str_replace('*', '', (string) $tvakey);
-								$tvacompl = " (".$outputlangs->transnoentities("NonPercuRecuperable").")";
+								$tvacompl = ' (' . $outputlangs->transnoentities('NonPercuRecuperable') . ')';
 							}
-							$totalvat = $outputlangs->transcountrynoentities("TotalLT2", $mysoc->country_code).(is_object($outputlangsbis) ? ' / '.$outputlangsbis->transcountrynoentities("TotalLT2", $mysoc->country_code) : '');
+							$totalvat = $outputlangs->transcountrynoentities('TotalLT2', $mysoc->country_code) . (is_object($outputlangsbis) ? ' / ' . $outputlangsbis->transcountrynoentities('TotalLT2', $mysoc->country_code) : '');
 							$totalvat .= ' ';
 
 							if (getDolGlobalString('PDF_LOCALTAX2_LABEL_IS_CODE_OR_RATE') == 'nocodenorate') {
 								$totalvat .= $tvacompl;
 							} else {
-								$totalvat .= vatrate(abs($tvakey), 1).$tvacompl;
+								$totalvat .= vatrate(abs($tvakey), 1) . $tvacompl;
 							}
 
 							$pdf->MultiCell($col2x - $col1x, $tab2_hl, $totalvat, 0, 'L', 1);
 
-							$total_localtax = ((isModEnabled("multicurrency") && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? price2num($tvaval * $object->multicurrency_tx, 'MT') : $tvaval);
+							$total_localtax = ((isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? price2num($tvaval * $object->multicurrency_tx, 'MT') : $tvaval);
 
 							$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
 							$pdf->MultiCell($largcol2, $tab2_hl, price($total_localtax, 0, $outputlangs), 0, 'R', 1);
@@ -1538,18 +1549,18 @@ class pdf_Autoverifactu extends ModelePDFFactures
 						$tvacompl = '';
 						if (preg_match('/\*/', $tvakey)) {
 							$tvakey = str_replace('*', '', $tvakey);
-							$tvacompl = " (".$outputlangs->transnoentities("NonPercuRecuperable").")";
+							$tvacompl = ' (' . $outputlangs->transnoentities('NonPercuRecuperable') . ')';
 						}
-						$totalvat = $outputlangs->transcountrynoentities("TotalVAT", $mysoc->country_code).(is_object($outputlangsbis) ? ' / '.$outputlangsbis->transcountrynoentities("TotalVAT", $mysoc->country_code) : '');
+						$totalvat = $outputlangs->transcountrynoentities('TotalVAT', $mysoc->country_code) . (is_object($outputlangsbis) ? ' / ' . $outputlangsbis->transcountrynoentities('TotalVAT', $mysoc->country_code) : '');
 						$totalvat .= ' ';
 						if (getDolGlobalString('PDF_VAT_LABEL_IS_CODE_OR_RATE') == 'rateonly') {
-							$totalvat .= vatrate($tvaval['vatrate'], 1).$tvacompl;
+							$totalvat .= vatrate($tvaval['vatrate'], 1) . $tvacompl;
 						} elseif (getDolGlobalString('PDF_VAT_LABEL_IS_CODE_OR_RATE') == 'codeonly') {
-							$totalvat .= $tvaval['vatcode'].$tvacompl;
+							$totalvat .= $tvaval['vatcode'] . $tvacompl;
 						} elseif (getDolGlobalString('PDF_VAT_LABEL_IS_CODE_OR_RATE') == 'nocodenorate') {
 							$totalvat .= $tvacompl;
 						} else {
-							$totalvat .= vatrate($tvaval['vatrate'], 1).($tvaval['vatcode'] ? ' ('.$tvaval['vatcode'].')' : '').$tvacompl;
+							$totalvat .= vatrate($tvaval['vatrate'], 1) . ($tvaval['vatcode'] ? ' (' . $tvaval['vatcode'] . ')' : '') . $tvacompl;
 						}
 						$pdf->MultiCell($col2x - $col1x, $tab2_hl, $totalvat, 0, 'L', 1);
 
@@ -1574,19 +1585,19 @@ class pdf_Autoverifactu extends ModelePDFFactures
 							$tvacompl = '';
 							if (preg_match('/\*/', (string) $tvakey)) {
 								$tvakey = str_replace('*', '', (string) $tvakey);
-								$tvacompl = " (".$outputlangs->transnoentities("NonPercuRecuperable").")";
+								$tvacompl = ' (' . $outputlangs->transnoentities('NonPercuRecuperable') . ')';
 							}
-							$totalvat = $outputlangs->transcountrynoentities("TotalLT1", $mysoc->country_code).' ';
+							$totalvat = $outputlangs->transcountrynoentities('TotalLT1', $mysoc->country_code) . ' ';
 
 							if (getDolGlobalString('PDF_LOCALTAX1_LABEL_IS_CODE_OR_RATE') == 'nocodenorate') {
 								$totalvat .= $tvacompl;
 							} else {
-								$totalvat .= vatrate(abs($tvakey), 1).$tvacompl;
+								$totalvat .= vatrate(abs($tvakey), 1) . $tvacompl;
 							}
 
 							$pdf->MultiCell($col2x - $col1x, $tab2_hl, $totalvat, 0, 'L', 1);
 
-							$total_localtax = ((isModEnabled("multicurrency") && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? price2num($tvaval * $object->multicurrency_tx, 'MT') : $tvaval);
+							$total_localtax = ((isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? price2num($tvaval * $object->multicurrency_tx, 'MT') : $tvaval);
 
 							$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
 							$pdf->MultiCell($largcol2, $tab2_hl, price($total_localtax, 0, $outputlangs), 0, 'R', 1);
@@ -1609,19 +1620,19 @@ class pdf_Autoverifactu extends ModelePDFFactures
 						$tvacompl = '';
 						if (preg_match('/\*/', (string) $tvakey)) {
 							$tvakey = str_replace('*', '', (string) $tvakey);
-							$tvacompl = " (".$outputlangs->transnoentities("NonPercuRecuperable").")";
+							$tvacompl = ' (' . $outputlangs->transnoentities('NonPercuRecuperable') . ')';
 						}
-						$totalvat = $outputlangs->transcountrynoentities("TotalLT2", $mysoc->country_code).' ';
+						$totalvat = $outputlangs->transcountrynoentities('TotalLT2', $mysoc->country_code) . ' ';
 
 						if (getDolGlobalString('PDF_LOCALTAX2_LABEL_IS_CODE_OR_RATE') == 'nocodenorate') {
 							$totalvat .= $tvacompl;
 						} else {
-							$totalvat .= vatrate(abs($tvakey), 1).$tvacompl;
+							$totalvat .= vatrate(abs($tvakey), 1) . $tvacompl;
 						}
 
 						$pdf->MultiCell($col2x - $col1x, $tab2_hl, $totalvat, 0, 'L', 1);
 
-						$total_localtax = ((isModEnabled("multicurrency") && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? price2num($tvaval * $object->multicurrency_tx, 'MT') : $tvaval);
+						$total_localtax = ((isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? price2num($tvaval * $object->multicurrency_tx, 'MT') : $tvaval);
 
 						$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
 						$pdf->MultiCell($largcol2, $tab2_hl, price($total_localtax, 0, $outputlangs), 0, 'R', 1);
@@ -1632,7 +1643,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				if (price2num($object->revenuestamp, 'MT') != 0) {
 					$index++;
 					$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
-					$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities("RevenueStamp"), $useborder, 'L', 1);
+					$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities('RevenueStamp'), $useborder, 'L', 1);
 
 					$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
 					$pdf->MultiCell($largcol2, $tab2_hl, price($sign * $object->revenuestamp), $useborder, 'R', 1);
@@ -1643,7 +1654,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
 				$pdf->SetTextColor(0, 0, 60);
 				$pdf->SetFillColor(224, 224, 224);
-				$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities("TotalTTC"), $useborder, 'L', 1);
+				$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities('TotalTTC'), $useborder, 'L', 1);
 
 				$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
 				$pdf->MultiCell($largcol2, $tab2_hl, price($sign * $total_ttc, 0, $outputlangs), $useborder, 'R', 1);
@@ -1659,7 +1670,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 					// Billed - retained warranty
 					$index++;
 					$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
-					$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities("ToPayOn", dol_print_date($object->date_lim_reglement, 'day')), $useborder, 'L', 1);
+					$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities('ToPayOn', dol_print_date($object->date_lim_reglement, 'day')), $useborder, 'L', 1);
 
 					$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
 					$pdf->MultiCell($largcol2, $tab2_hl, price($billedWithRetainedWarranty), $useborder, 'R', 1);
@@ -1668,8 +1679,8 @@ class pdf_Autoverifactu extends ModelePDFFactures
 					$index++;
 					$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
 
-					$retainedWarrantyToPayOn = $outputlangs->transnoentities("RetainedWarranty").' ('.$object->retained_warranty.'%)';
-					$retainedWarrantyToPayOn .= !empty($object->retained_warranty_date_limit) ? ' '.$outputlangs->transnoentities("toPayOn", dol_print_date($object->retained_warranty_date_limit, 'day')) : '';
+					$retainedWarrantyToPayOn = $outputlangs->transnoentities('RetainedWarranty') . ' (' . $object->retained_warranty . '%)';
+					$retainedWarrantyToPayOn .= !empty($object->retained_warranty_date_limit) ? ' ' . $outputlangs->transnoentities('toPayOn', dol_print_date($object->retained_warranty_date_limit, 'day')) : '';
 
 					$pdf->MultiCell($col2x - $col1x, $tab2_hl, $retainedWarrantyToPayOn, $useborder, 'L', 1);
 					$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
@@ -1679,8 +1690,8 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		}
 
 		$pdf->SetTextColor(0, 0, 0);
-		$creditnoteamount = $object->getSumCreditNotesUsed((isModEnabled("multicurrency") && $object->multicurrency_tx != 1) ? 1 : 0); // Warning, this also include excess received
-		$depositsamount = $object->getSumDepositsUsed((isModEnabled("multicurrency") && $object->multicurrency_tx != 1) ? 1 : 0);
+		$creditnoteamount = $object->getSumCreditNotesUsed((isModEnabled('multicurrency') && $object->multicurrency_tx != 1) ? 1 : 0); // Warning, this also include excess received
+		$depositsamount = $object->getSumDepositsUsed((isModEnabled('multicurrency') && $object->multicurrency_tx != 1) ? 1 : 0);
 		//print "x".$creditnoteamount."-".$depositsamount;exit;
 		$resteapayer = price2num($total_ttc - $deja_regle - $creditnoteamount - $depositsamount, 'MT');
 		if (!empty($object->paye)) {
@@ -1691,13 +1702,13 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			// Already paid + Deposits
 			$index++;
 			$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
-			$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities("Paid"), 0, 'L', 0);
+			$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities('Paid'), 0, 'L', 0);
 			$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
 			$pdf->MultiCell($largcol2, $tab2_hl, price($deja_regle + $depositsamount, 0, $outputlangs), 0, 'R', 0);
 
 			// Credit note
 			if ($creditnoteamount) {
-				$labeltouse = ($outputlangs->transnoentities("CreditNotesOrExcessReceived") != "CreditNotesOrExcessReceived") ? $outputlangs->transnoentities("CreditNotesOrExcessReceived") : $outputlangs->transnoentities("CreditNotes");
+				$labeltouse = ($outputlangs->transnoentities('CreditNotesOrExcessReceived') != 'CreditNotesOrExcessReceived') ? $outputlangs->transnoentities('CreditNotesOrExcessReceived') : $outputlangs->transnoentities('CreditNotes');
 				$index++;
 				$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
 				$pdf->MultiCell($col2x - $col1x, $tab2_hl, $labeltouse, 0, 'L', 0);
@@ -1711,7 +1722,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				$pdf->SetFillColor(255, 255, 255);
 
 				$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
-				$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities("EscompteOfferedShort"), $useborder, 'L', 1);
+				$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities('EscompteOfferedShort'), $useborder, 'L', 1);
 				$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
 				$pdf->MultiCell($largcol2, $tab2_hl, price($object->total_ttc - $deja_regle - $creditnoteamount - $depositsamount, 0, $outputlangs), $useborder, 'R', 1);
 
@@ -1722,7 +1733,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			$pdf->SetTextColor(0, 0, 60);
 			$pdf->SetFillColor(224, 224, 224);
 			$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
-			$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities("RemainderToPay"), $useborder, 'L', 1);
+			$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities('RemainderToPay'), $useborder, 'L', 1);
 			$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
 			$pdf->MultiCell($largcol2, $tab2_hl, price($resteapayer, 0, $outputlangs), $useborder, 'R', 1);
 
@@ -1732,7 +1743,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 
 		$index++;
 
-		if (getDolGlobalString("BILL_TEXT_TOTAL_FOOTER")) {
+		if (getDolGlobalString('BILL_TEXT_TOTAL_FOOTER')) {
 			$index++;
 			$index++;
 			$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
@@ -1746,15 +1757,16 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	/**
 	 *   Show table for lines
 	 *
-	 *   @param		TCPDF		$pdf     		Object PDF
-	 *   @param		float|int	$tab_top		Top position of table
-	 *   @param		float|int	$tab_height		Height of table (rectangle)
-	 *   @param		int			$nexY			Y (not used)
-	 *   @param		Translate	$outputlangs	Langs object
-	 *   @param		int			$hidetop		1=Hide top bar of array and title, 0=Hide nothing, -1=Hide only title
-	 *   @param		int			$hidebottom		Hide bottom bar of array
-	 *   @param		string		$currency		Currency code
-	 *   @return	void
+	 *   @param TCPDF		$pdf     		Object PDF
+	 *   @param float|int	$tab_top		Top position of table
+	 *   @param float|int	$tab_height		Height of table (rectangle)
+	 *   @param int			$nexY			Y (not used)
+	 *   @param Translate	$outputlangs	Langs object
+	 *   @param int			$hidetop		1=Hide top bar of array and title, 0=Hide nothing, -1=Hide only title
+	 *   @param int			$hidebottom		Hide bottom bar of array
+	 *   @param string		$currency		Currency code
+	 *
+	 *   @return void
 	 */
 	protected function _tableau(&$pdf, $tab_top, $tab_height, $nexY, $outputlangs, $hidetop = 0, $hidebottom = 0, $currency = '')
 	{
@@ -1776,12 +1788,12 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		if (empty($hidetop)) {
 			// Show category of operations
 			if (getDolGlobalInt('INVOICE_CATEGORY_OF_OPERATION') == 1 && $this->categoryOfOperation >= 0) {
-				$categoryOfOperations = $outputlangs->transnoentities("MentionCategoryOfOperations") . ' : ' . $outputlangs->transnoentities("MentionCategoryOfOperations" . $this->categoryOfOperation);
+				$categoryOfOperations = $outputlangs->transnoentities('MentionCategoryOfOperations') . ' : ' . $outputlangs->transnoentities('MentionCategoryOfOperations' . $this->categoryOfOperation);
 				$pdf->SetXY($this->marge_gauche, $tab_top - 4);
 				$pdf->MultiCell(($pdf->GetStringWidth($categoryOfOperations)) + 4, 2, $categoryOfOperations);
 			}
 
-			$titre = $outputlangs->transnoentities("AmountInCurrency", $outputlangs->transnoentitiesnoconv("Currency".$currency));
+			$titre = $outputlangs->transnoentities('AmountInCurrency', $outputlangs->transnoentitiesnoconv('Currency' . $currency));
 			$pdf->SetXY($this->page_largeur - $this->marge_droite - ($pdf->GetStringWidth($titre) + 3), $tab_top - 4);
 			$pdf->MultiCell(($pdf->GetStringWidth($titre) + 3), 2, $titre);
 
@@ -1801,7 +1813,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			$pdf->line($this->marge_gauche, $tab_top + 5, $this->page_largeur - $this->marge_droite, $tab_top + 5); // line takes a position y in 2nd parameter and 4th parameter
 
 			$pdf->SetXY($this->posxdesc - 1, $tab_top + 1);
-			$pdf->MultiCell(108, 2, $outputlangs->transnoentities("Designation"), '', 'L');
+			$pdf->MultiCell(108, 2, $outputlangs->transnoentities('Designation'), '', 'L');
 		}
 
 		if (getDolGlobalString('MAIN_GENERATE_INVOICES_WITH_PICTURE')) {
@@ -1816,27 +1828,27 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			$pdf->line($this->posxtva - 1, $tab_top, $this->posxtva - 1, $tab_top + $tab_height);
 			if (empty($hidetop)) {
 				$pdf->SetXY($this->posxtva - 3, $tab_top + 1);
-				$pdf->MultiCell($this->posxup - $this->posxtva + 3, 2, $outputlangs->transnoentities("VAT"), '', 'C');
+				$pdf->MultiCell($this->posxup - $this->posxtva + 3, 2, $outputlangs->transnoentities('VAT'), '', 'C');
 			}
 		}
 
 		$pdf->line($this->posxup - 1, $tab_top, $this->posxup - 1, $tab_top + $tab_height);
 		if (empty($hidetop)) {
 			$pdf->SetXY($this->posxup - 1, $tab_top + 1);
-			$pdf->MultiCell($this->posxqty - $this->posxup - 1, 2, $outputlangs->transnoentities("PriceUHT"), '', 'C');
+			$pdf->MultiCell($this->posxqty - $this->posxup - 1, 2, $outputlangs->transnoentities('PriceUHT'), '', 'C');
 		}
 
 		$pdf->line($this->posxqty - 1, $tab_top, $this->posxqty - 1, $tab_top + $tab_height);
 		if (empty($hidetop)) {
 			$pdf->SetXY($this->posxqty - 1, $tab_top + 1);
-			$pdf->MultiCell($this->posxunit - $this->posxqty - 1, 2, $outputlangs->transnoentities("Qty"), '', 'C');
+			$pdf->MultiCell($this->posxunit - $this->posxqty - 1, 2, $outputlangs->transnoentities('Qty'), '', 'C');
 		}
 
 		if (getDolGlobalInt('PRODUCT_USE_UNITS')) {
 			$pdf->line($this->posxunit - 1, $tab_top, $this->posxunit - 1, $tab_top + $tab_height);
 			if (empty($hidetop)) {
 				$pdf->SetXY($this->posxunit - 1, $tab_top + 1);
-				$pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities("Unit"), '', 'C');
+				$pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities('Unit'), '', 'C');
 			}
 		}
 
@@ -1844,7 +1856,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			$pdf->line($this->posxdiscount - 1, $tab_top, $this->posxdiscount - 1, $tab_top + $tab_height);
 			if (empty($hidetop)) {
 				$pdf->SetXY($this->posxdiscount - 1, $tab_top + 1);
-				$pdf->MultiCell($this->posxprogress - $this->posxdiscount + 1, 2, $outputlangs->transnoentities("ReductionShort"), '', 'C');
+				$pdf->MultiCell($this->posxprogress - $this->posxdiscount + 1, 2, $outputlangs->transnoentities('ReductionShort'), '', 'C');
 			}
 		}
 
@@ -1852,14 +1864,14 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			$pdf->line($this->posxprogress - 1, $tab_top, $this->posxprogress - 1, $tab_top + $tab_height);
 			if (empty($hidetop)) {
 				$pdf->SetXY($this->posxprogress, $tab_top + 1);
-				$pdf->MultiCell($this->postotalht - $this->posxprogress, 2, $outputlangs->transnoentities("ProgressShort"), '', 'C');
+				$pdf->MultiCell($this->postotalht - $this->posxprogress, 2, $outputlangs->transnoentities('ProgressShort'), '', 'C');
 			}
 		}
 
 		$pdf->line($this->postotalht, $tab_top, $this->postotalht, $tab_top + $tab_height);
 		if (empty($hidetop)) {
 			$pdf->SetXY($this->postotalht - 1, $tab_top + 1);
-			$pdf->MultiCell(30, 2, $outputlangs->transnoentities("TotalHTShort"), '', 'C');
+			$pdf->MultiCell(30, 2, $outputlangs->transnoentities('TotalHTShort'), '', 'C');
 		}
 	}
 
@@ -1867,11 +1879,12 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	/**
 	 *  Show top header of page.
 	 *
-	 *  @param	TCPDF		$pdf     		Object PDF
-	 *  @param  Facture		$object     	Object to show
-	 *  @param  int	    	$showaddress    0=no, 1=yes
-	 *  @param  Translate	$outputlangs	Object lang for output
-	 *  @param  Translate	$outputlangsbis	Object lang for output bis
+	 *  @param TCPDF		$pdf     		Object PDF
+	 *  @param Facture		$object     	Object to show
+	 *  @param int	    	$showaddress    0=no, 1=yes
+	 *  @param Translate	$outputlangs	Object lang for output
+	 *  @param Translate	$outputlangsbis	Object lang for output bis
+	 *
 	 *  @return	float|int                   Return topshift value
 	 */
 	protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs, $outputlangsbis = null)
@@ -1880,12 +1893,12 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		global $conf, $langs;
 
 		$ltrdirection = 'L';
-		if ($outputlangs->trans("DIRECTION") == 'rtl') {
+		if ($outputlangs->trans('DIRECTION') == 'rtl') {
 			$ltrdirection = 'R';
 		}
 
 		// Load traductions files required by page
-		$outputlangs->loadLangs(array("main", "bills", "propal", "companies"));
+		$outputlangs->loadLangs(array('main', 'bills', 'propal', 'companies'));
 
 		$default_font_size = pdf_getPDFFontSize($outputlangs);
 
@@ -1893,18 +1906,18 @@ class pdf_Autoverifactu extends ModelePDFFactures
 
 
 
-		
+
 				/*				7. Ubicación del QR en la factura
-			
+
 
 			Si se utiliza un formato de orientación vertical para organizar y disponer el contenido de la factura, el código «QR»
 			se situará arriba de esta, próximo al margen superior, preferiblemente centrado respecto a los márgenes izquierdo y
-			derecho de la factura.La presentación del código «QR» incluirá también un texto que siempre deberá ir precediéndolo: 
-			«QR tributario:», y que se situará encima del propio código «QR» (preferiblemente centrado con respecto a este), 
-			de manera que sirva para identificarlo y distinguirlo de otros posibles códigos «QR» que pudiera contener 
+			derecho de la factura.La presentación del código «QR» incluirá también un texto que siempre deberá ir precediéndolo:
+			«QR tributario:», y que se situará encima del propio código «QR» (preferiblemente centrado con respecto a este),
+			de manera que sirva para identificarlo y distinguirlo de otros posibles códigos «QR» que pudiera contener
 			la factura para otros cometidos.
-			Además, en el caso de facturas expedidas por sistemas que emiten facturas verificables, 
-			justo debajo del código «QR» deberá aparecer la frase «Factura verificable en la sede electrónica de la AEAT» 
+			Además, en el caso de facturas expedidas por sistemas que emiten facturas verificables,
+			justo debajo del código «QR» deberá aparecer la frase «Factura verificable en la sede electrónica de la AEAT»
 			o «VERI*FACTU», preferiblemente centrada con respecto al código «QR». Si no cabe toda la frase en una sola línea,
 			podrán utilizarse varias líneas hasta completarla.Tanto el texto que siempre debe preceder al código «QR», como, en su caso,
 			la frase que habrán de incluir los sistemas «VERI*FACTU» deberán tener un tipo de letra y tamaño legibles, siempre iguales o
@@ -1914,62 +1927,62 @@ class pdf_Autoverifactu extends ModelePDFFactures
 
 			1. El código «QR» deberá tener un tamaño entre 30x30 y 40x40 milímetros y seguir las especificaciones de la norma
 			ISO/IEC 18004:2015.Este rango asegura que el QR pueda ser escaneado correctamente por cualquier dispositivo.
-			
+
 			A este respecto, se deben mantener como mínimo 2 milímetros de espacio vacío (en blanco) alrededor de los cuatro lados
-			del código «QR», recomendándose que sean 6 milímetros.La presentación del código «QR» incluirá también un texto que 
-			siempre deberá ir precediéndolo: «QR tributario:»,Además, en el caso de facturas expedidas por sistemas que emiten 
-			facturas verificables, justo debajo del código «QR» deberá aparecer la frase «Factura verificable en la sede 
+			del código «QR», recomendándose que sean 6 milímetros.La presentación del código «QR» incluirá también un texto que
+			siempre deberá ir precediéndolo: «QR tributario:»,Además, en el caso de facturas expedidas por sistemas que emiten
+			facturas verificables, justo debajo del código «QR» deberá aparecer la frase «Factura verificable en la sede
 			electrónica de la AEAT» o «VERI*FACTU», preferiblemente centrada con respecto al código «QR».
 			*/
 		if (
-            $object->element === 'facture'
-            && $object->status > Facture::STATUS_DRAFT
-            && $object->type <= Facture::TYPE_DEPOSIT
-            && autoverifactuEnabled()
-        ) {
+			$object->element === 'facture'
+			&& $object->status > Facture::STATUS_DRAFT
+			&& $object->type <= Facture::TYPE_DEPOSIT
+			&& autoverifactuEnabled()
+		) {
 			global $mysoc;
 
- 			$testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
+			$testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
 			$base_url = $testMode ? VERIFACTU_TEST_COLLATION_BASE_URL : VERIFACTU_COLLATION_BASE_URL;
 			$endpoint = '/wlpl/TIKE-CONT/ValidarQR';
-			
+
 			$query = http_build_query(array(
-                'nif' => $mysoc->idprof1,
-                'numserie' => $object->ref,
-                'fecha' => date('d-m-Y', $object->date),
-                'importe' => number_format($object->total_ttc - $object->total_localtax2, 2, '.', ''),
-            ));
-			
+				'nif' => $mysoc->idprof1,
+				'numserie' => $object->ref,
+				'fecha' => date('d-m-Y', $object->date),
+				'importe' => number_format($object->total_ttc - $object->total_localtax2, 2, '.', ''),
+			));
+
 			$qr_width = 36;
 			$qr_x = ($this->page_largeur - $qr_width) / 2;
 			$qr_y = 8;
-			
-			$pdf->SetXY($qr_x+1,3);
-			$pdf->SetFont('', '', $default_font_size );   
 
-            $pdf->MultiCell(30, 10, 'QR tributario:', 0, 'C', 0, 1);
+			$pdf->SetXY($qr_x + 1, 3);
+			$pdf->SetFont('', '', $default_font_size);
+
+			$pdf->MultiCell(30, 10, 'QR tributario:', 0, 'C', 0, 1);
 
 			$pdf->write2DBarcode(
-                $base_url . $endpoint . '?' . $query,
-                'QRCODE,M',
-                $qr_x,
-                $qr_y,
-                $qr_width,
-                $qr_width,
-                array(
-                    'border' => false,
-                    'padding' => 6,
-                    'fgcolor' => array(25, 25, 25),
-                   	'bgcolor' => array(255, 255, 255),
-                    'module_width' => 1,
-                    'module_height' => 1,
-                ),
-                25,
-            );
-			
-			$pdf->SetXY($qr_x+1, $qr_y + $qr_width );
-            $pdf->MultiCell(30, 10, 'VERI*FACTU', 0, 'C', 0, 1);
-		} 
+				$base_url . $endpoint . '?' . $query,
+				'QRCODE,M',
+				$qr_x,
+				$qr_y,
+				$qr_width,
+				$qr_width,
+				array(
+					'border' => false,
+					'padding' => 6,
+					'fgcolor' => array(25, 25, 25),
+					'bgcolor' => array(255, 255, 255),
+					'module_width' => 1,
+					'module_height' => 1,
+				),
+				25,
+			);
+
+			$pdf->SetXY($qr_x + 1, $qr_y + $qr_width);
+			$pdf->MultiCell(30, 10, 'VERI*FACTU', 0, 'C', 0, 1);
+		}
 
 		$pdf->SetTextColor(0, 0, 60);
 		$pdf->SetFont('', 'B', $default_font_size + 2);
@@ -1989,18 +2002,17 @@ class pdf_Autoverifactu extends ModelePDFFactures
 					$logodir = $conf->mycompany->multidir_output[$object->entity];
 				}
 				if (!getDolGlobalInt('MAIN_PDF_USE_LARGE_LOGO')) {
-					$logo = $logodir.'/logos/thumbs/'.$this->emetteur->logo_small;
+					$logo = $logodir . '/logos/thumbs/' . $this->emetteur->logo_small;
 				} else {
-					$logo = $logodir.'/logos/'.$this->emetteur->logo;
+					$logo = $logodir . '/logos/' . $this->emetteur->logo;
 				}
 				if (is_readable($logo)) {
-		
 					$pdf->Image($logo, $this->marge_gauche, $posy, 0, $height); // width=0 (auto)
 				} else {
 					$pdf->SetTextColor(200, 0, 0);
 					$pdf->SetFont('', 'B', $default_font_size - 2);
-					$pdf->MultiCell($w, 3, $outputlangs->transnoentities("ErrorLogoFileNotFound", $logo), 0, 'L');
-					$pdf->MultiCell($w, 3, $outputlangs->transnoentities("ErrorGoToGlobalSetup"), 0, 'L');
+					$pdf->MultiCell($w, 3, $outputlangs->transnoentities('ErrorLogoFileNotFound', $logo), 0, 'L');
+					$pdf->MultiCell($w, 3, $outputlangs->transnoentities('ErrorGoToGlobalSetup'), 0, 'L');
 				}
 			} else {
 				$text = $this->emetteur->name;
@@ -2011,22 +2023,22 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		$pdf->SetFont('', 'B', $default_font_size + 3);
 		$pdf->SetXY($posx, $posy);
 		$pdf->SetTextColor(0, 0, 60);
-		$title = $outputlangs->transnoentities("PdfInvoiceTitle");
+		$title = $outputlangs->transnoentities('PdfInvoiceTitle');
 		if ($object->type == 1) {
-			$title = $outputlangs->transnoentities("InvoiceReplacement");
+			$title = $outputlangs->transnoentities('InvoiceReplacement');
 		}
 		if ($object->type == 2) {
-			$title = $outputlangs->transnoentities("InvoiceAvoir");
+			$title = $outputlangs->transnoentities('InvoiceAvoir');
 		}
 		if ($object->type == 3) {
-			$title = $outputlangs->transnoentities("InvoiceDeposit");
+			$title = $outputlangs->transnoentities('InvoiceDeposit');
 		}
 		if ($object->type == 4) {
-			$title = $outputlangs->transnoentities("InvoiceProForma");
+			$title = $outputlangs->transnoentities('InvoiceProForma');
 		}
 		if ($this->situationinvoice) {
-			$langs->loadLangs(array("other"));
-			$title = $outputlangs->transnoentities("PDFInvoiceSituation") . " " . $outputlangs->transnoentities("NumberingShort") . $object->situation_counter . " -";
+			$langs->loadLangs(array('other'));
+			$title = $outputlangs->transnoentities('PDFInvoiceSituation') . ' ' . $outputlangs->transnoentities('NumberingShort') . $object->situation_counter . ' -';
 		}
 
 
@@ -2034,32 +2046,24 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			$title .= ' - ';
 			if ($object->type == 0) {
 				if ($this->situationinvoice) {
-					$title .= $outputlangsbis->transnoentities("PDFInvoiceSituation");
+					$title .= $outputlangsbis->transnoentities('PDFInvoiceSituation');
 				}
-				$title .= $outputlangsbis->transnoentities("PdfInvoiceTitle");
+				$title .= $outputlangsbis->transnoentities('PdfInvoiceTitle');
 			} elseif ($object->type == 1) {
-				$title .= $outputlangsbis->transnoentities("InvoiceReplacement");
+				$title .= $outputlangsbis->transnoentities('InvoiceReplacement');
 			} elseif ($object->type == 2) {
-				$title .= $outputlangsbis->transnoentities("InvoiceAvoir");
+				$title .= $outputlangsbis->transnoentities('InvoiceAvoir');
 			} elseif ($object->type == 3) {
-				$title .= $outputlangsbis->transnoentities("InvoiceDeposit");
+				$title .= $outputlangsbis->transnoentities('InvoiceDeposit');
 			} elseif ($object->type == 4) {
-				$title .= $outputlangsbis->transnoentities("InvoiceProForma");
+				$title .= $outputlangsbis->transnoentities('InvoiceProForma');
 			}
 		}
 
-		
-
-		
-	
-	
-
-
-
-		$title .= ' '.$outputlangs->convToOutputCharset($object->ref);
+		$title .= ' ' . $outputlangs->convToOutputCharset($object->ref);
 		if ($object->statut == $object::STATUS_DRAFT) {
 			$pdf->SetTextColor(128, 0, 0);
-			$title .= ' - '.$outputlangs->transnoentities("NotValidated");
+			$title .= ' - ' . $outputlangs->transnoentities('NotValidated');
 		}
 
 		$pdf->MultiCell($w, 3, $title, '', 'R');
@@ -2084,7 +2088,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			$posy += 4;
 			$pdf->SetXY($posx, $posy);
 			$pdf->SetTextColor(0, 0, 60);
-			$pdf->MultiCell($w, 3, $outputlangs->transnoentities("RefCustomer")." : ".$outputlangs->convToOutputCharset($object->ref_customer), '', 'R');
+			$pdf->MultiCell($w, 3, $outputlangs->transnoentities('RefCustomer') . ' : ' . $outputlangs->convToOutputCharset($object->ref_customer), '', 'R');
 		}
 
 		if (getDolGlobalString('PDF_SHOW_PROJECT_TITLE')) {
@@ -2093,18 +2097,18 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				$posy += 3;
 				$pdf->SetXY($posx, $posy);
 				$pdf->SetTextColor(0, 0, 60);
-				$pdf->MultiCell($w, 3, $outputlangs->transnoentities("Project")." : ".(empty($object->project->title) ? '' : $object->project->title), '', 'R');
+				$pdf->MultiCell($w, 3, $outputlangs->transnoentities('Project') . ' : ' . (empty($object->project->title) ? '' : $object->project->title), '', 'R');
 			}
 		}
 
 		if (getDolGlobalString('PDF_SHOW_PROJECT')) {
 			$object->fetch_projet();
 			if (!empty($object->project->ref)) {
-				$outputlangs->load("projects");
+				$outputlangs->load('projects');
 				$posy += 3;
 				$pdf->SetXY($posx, $posy);
 				$pdf->SetTextColor(0, 0, 60);
-				$pdf->MultiCell($w, 3, $outputlangs->transnoentities("RefProject")." : ".(empty($object->project->ref) ? '' : $object->project->ref), '', 'R');
+				$pdf->MultiCell($w, 3, $outputlangs->transnoentities('RefProject') . ' : ' . (empty($object->project->ref) ? '' : $object->project->ref), '', 'R');
 			}
 		}
 
@@ -2116,7 +2120,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			$posy += 3;
 			$pdf->SetXY($posx, $posy);
 			$pdf->SetTextColor(0, 0, 60);
-			$pdf->MultiCell($w, 3, $outputlangs->transnoentities("ReplacementByInvoice").' : '.$outputlangs->convToOutputCharset($objectreplacing->ref), '', 'R');
+			$pdf->MultiCell($w, 3, $outputlangs->transnoentities('ReplacementByInvoice') . ' : ' . $outputlangs->convToOutputCharset($objectreplacing->ref), '', 'R');
 		}
 		if ($object->type == 1) {
 			$objectreplaced = new Facture($this->db);
@@ -2125,7 +2129,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			$posy += 4;
 			$pdf->SetXY($posx, $posy);
 			$pdf->SetTextColor(0, 0, 60);
-			$pdf->MultiCell($w, 3, $outputlangs->transnoentities("ReplacementInvoice").' : '.$outputlangs->convToOutputCharset($objectreplaced->ref), '', 'R');
+			$pdf->MultiCell($w, 3, $outputlangs->transnoentities('ReplacementInvoice') . ' : ' . $outputlangs->convToOutputCharset($objectreplaced->ref), '', 'R');
 		}
 		if ($object->type == 2 && !empty($object->fk_facture_source)) {
 			$objectreplaced = new Facture($this->db);
@@ -2134,41 +2138,41 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			$posy += 3;
 			$pdf->SetXY($posx, $posy);
 			$pdf->SetTextColor(0, 0, 60);
-			$pdf->MultiCell($w, 3, $outputlangs->transnoentities("CorrectionInvoice").' : '.$outputlangs->convToOutputCharset($objectreplaced->ref), '', 'R');
+			$pdf->MultiCell($w, 3, $outputlangs->transnoentities('CorrectionInvoice') . ' : ' . $outputlangs->convToOutputCharset($objectreplaced->ref), '', 'R');
 		}
 
 		$posy += 4;
 		$pdf->SetXY($posx, $posy);
 		$pdf->SetTextColor(0, 0, 60);
-		$title = $outputlangs->transnoentities("DateInvoice");
+		$title = $outputlangs->transnoentities('DateInvoice');
 		if (getDolGlobalString('PDF_USE_ALSO_LANGUAGE_CODE') && is_object($outputlangsbis)) {
-			$title .= ' - '.$outputlangsbis->transnoentities("DateInvoice");
+			$title .= ' - ' . $outputlangsbis->transnoentities('DateInvoice');
 		}
-		$pdf->MultiCell($w, 3, $title." : ".dol_print_date($object->date, "day", false, $outputlangs, true), '', 'R');
+		$pdf->MultiCell($w, 3, $title . ' : ' . dol_print_date($object->date, 'day', false, $outputlangs, true), '', 'R');
 
 		if (getDolGlobalString('INVOICE_POINTOFTAX_DATE')) {
 			$posy += 4;
 			$pdf->SetXY($posx, $posy);
 			$pdf->SetTextColor(0, 0, 60);
-			$pdf->MultiCell($w, 3, $outputlangs->transnoentities("DatePointOfTax")." : ".dol_print_date($object->date_pointoftax, "day", false, $outputlangs), '', 'R');
+			$pdf->MultiCell($w, 3, $outputlangs->transnoentities('DatePointOfTax') . ' : ' . dol_print_date($object->date_pointoftax, 'day', false, $outputlangs), '', 'R');
 		}
 
 		if ($object->type != 2) {
 			$posy += 3;
 			$pdf->SetXY($posx, $posy);
 			$pdf->SetTextColor(0, 0, 60);
-			$title = $outputlangs->transnoentities("DateDue");
+			$title = $outputlangs->transnoentities('DateDue');
 			if (getDolGlobalString('PDF_USE_ALSO_LANGUAGE_CODE') && is_object($outputlangsbis)) {
-				$title .= ' - '.$outputlangsbis->transnoentities("DateDue");
+				$title .= ' - ' . $outputlangsbis->transnoentities('DateDue');
 			}
-			$pdf->MultiCell($w, 3, $title." : ".dol_print_date($object->date_lim_reglement, "day", false, $outputlangs, true), '', 'R');
+			$pdf->MultiCell($w, 3, $title . ' : ' . dol_print_date($object->date_lim_reglement, 'day', false, $outputlangs, true), '', 'R');
 		}
 
 		if (!getDolGlobalString('MAIN_PDF_HIDE_CUSTOMER_CODE') && $object->thirdparty->code_client) {
 			$posy += 3;
 			$pdf->SetXY($posx, $posy);
 			$pdf->SetTextColor(0, 0, 60);
-			$pdf->MultiCell($w, 3, $outputlangs->transnoentities("CustomerCode")." : ".$outputlangs->transnoentities($object->thirdparty->code_client), '', 'R');
+			$pdf->MultiCell($w, 3, $outputlangs->transnoentities('CustomerCode') . ' : ' . $outputlangs->transnoentities($object->thirdparty->code_client), '', 'R');
 		}
 
 		// Get contact
@@ -2180,7 +2184,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				$posy += 4;
 				$pdf->SetXY($posx, $posy);
 				$pdf->SetTextColor(0, 0, 60);
-				$pdf->MultiCell($w, 3, $outputlangs->transnoentities("SalesRepresentative")." : ".$usertmp->getFullName($langs), '', 'R');
+				$pdf->MultiCell($w, 3, $outputlangs->transnoentities('SalesRepresentative') . ' : ' . $usertmp->getFullName($langs), '', 'R');
 			}
 		}
 
@@ -2201,8 +2205,8 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			$arrayidcontact = $object->getIdContact('internal', 'BILLING');
 			if (count($arrayidcontact) > 0) {
 				$object->fetch_user($arrayidcontact[0]);
-				$labelbeforecontactname = ($outputlangs->transnoentities("FromContactName") != 'FromContactName' ? $outputlangs->transnoentities("FromContactName") : $outputlangs->transnoentities("Name"));
-				$carac_emetteur .= ($carac_emetteur ? "\n" : '').$labelbeforecontactname." ".$outputlangs->convToOutputCharset($object->user->getFullName($outputlangs));
+				$labelbeforecontactname = ($outputlangs->transnoentities('FromContactName') != 'FromContactName' ? $outputlangs->transnoentities('FromContactName') : $outputlangs->transnoentities('Name'));
+				$carac_emetteur .= ($carac_emetteur ? "\n" : '') . $labelbeforecontactname . ' ' . $outputlangs->convToOutputCharset($object->user->getFullName($outputlangs));
 				$carac_emetteur .= "\n";
 			}
 
@@ -2225,10 +2229,10 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				$pdf->SetTextColor(0, 0, 0);
 				$pdf->SetFont('', '', $default_font_size - 2);
 				$pdf->SetXY($posx, $posy - 5);
-				$pdf->MultiCell($widthrecbox, 5, $outputlangs->transnoentities("BillFrom"), 0, $ltrdirection);
+				$pdf->MultiCell($widthrecbox, 5, $outputlangs->transnoentities('BillFrom'), 0, $ltrdirection);
 				$pdf->SetXY($posx, $posy);
 				$pdf->SetFillColor(230, 230, 230);
-				$pdf->MultiCell($widthrecbox, $hautcadre, "", 0, 'R', 1);
+				$pdf->MultiCell($widthrecbox, $hautcadre, '', 0, 'R', 1);
 				$pdf->SetTextColor(0, 0, 60);
 			}
 
@@ -2283,7 +2287,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				$pdf->SetTextColor(0, 0, 0);
 				$pdf->SetFont('', '', $default_font_size - 2);
 				$pdf->SetXY($posx + 2, $posy - 5);
-				$pdf->MultiCell($widthrecbox - 2, 5, $outputlangs->transnoentities("BillTo"), 0, $ltrdirection);
+				$pdf->MultiCell($widthrecbox - 2, 5, $outputlangs->transnoentities('BillTo'), 0, $ltrdirection);
 				$pdf->Rect($posx, $posy, $widthrecbox, $hautcadre);
 			}
 
@@ -2350,24 +2354,25 @@ class pdf_Autoverifactu extends ModelePDFFactures
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.PublicUnderscore
 	/**
-	 *   	Show footer of page. Need this->emetteur object
-	 *   	@param	TCPDF		$pdf     			PDF
-	 * 		@param	Facture		$object				Object to show
-	 *      @param	Translate	$outputlangs		Object lang for output
-	 *      @param	int			$hidefreetext		1=Hide free text
-	 *      @param	int			$heightforqrinvoice	Height for QR invoices
-	 *      @return	int								Return height of bottom margin including footer text
+	 * Show footer of page. Need this->emetteur object
+	 *
+	 * @param TCPDF     $pdf                PDF
+	 * @param Facture   $object             Object to show
+	 * @param Translate $outputlangs        Object lang for output
+	 * @param int       $hidefreetext       1=Hide free text
+	 * @param int       $heightforqrinvoice Height for QR invoices
+	 *
+	 * @return int                          Return height of bottom margin including footer text
 	 */
 	protected function _pagefoot(&$pdf, $object, $outputlangs, $hidefreetext = 0, $heightforqrinvoice = 0)
 	{
-	
-	$showdetails = getDolGlobalInt('MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS', 0);
 
+		$showdetails = getDolGlobalInt('MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS', 0);
 
-	$text="En cumplimiento de la normativa de Protección de Datos le informamos que el RESPONSABLE del tratamiento de los mismos es OYR SOLUTIONS S.L.
+		$text = 'En cumplimiento de la normativa de Protección de Datos le informamos que el RESPONSABLE del tratamiento de los mismos es OYR SOLUTIONS S.L.
 gestionados con la FINALIDAD de expedir un presupuesto o la correspondiente factura por la compra de un presto  o la prestación de alguno de nuestros servicios. La LEGITIMACIÓN se basa en la existencia de una relación comercial de compra de productos o contractual para la prestación de un servicio. Serán DESTINATARIOS de sus datos aquellas organizaciones o entidades directamente relacionadas con el Responsable, así como las Administraciones Públicas con competencia en la materia. El plazo de CONSERVACIÓN de sus datos será hasta el fin de la prestación del servicio, y una vez finalizado, hasta que se solicite su supresión por parte del interesado. Entre sus DERECHOS se encuentra el de acceder, rectificar y suprimir, así como el de oposición, limitación y portabilidad.
 
-Si tiene alguna pregunta relacionada con el cumplimiento del RGPD o la protección de datos, póngase en contacto con nuestro Responsable de Protección de Datos en el correo security@oyr.es";
+Si tiene alguna pregunta relacionada con el cumplimiento del RGPD o la protección de datos, póngase en contacto con nuestro Responsable de Protección de Datos en el correo security@oyr.es';
 
 		return pdf_pagefoot($pdf, $outputlangs, 'INVOICE_FREE_TEXT', $this->emetteur, $heightforqrinvoice + $this->marge_basse, $this->marge_gauche, $this->page_hauteur, $object, $showdetails, $hidefreetext, $this->page_largeur, $this->watermark);
 	}

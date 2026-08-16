@@ -9,9 +9,13 @@ permissions:
   contents: "write"
 
 jobs:
+  tests:
+    name: Release tests
+    uses: ./.github/workflows/tests.yml
+
   release:
     name: Release pushed tag
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     env:
       TAG: ${{ github.ref_name }}
     steps:

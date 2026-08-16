@@ -36,639 +36,639 @@ include_once DOL_DOCUMENT_ROOT . '/core/modules/DolibarrModules.class.php';
  */
 class modAutoverifactu extends DolibarrModules
 {
-    /**
-     * Constructor. Define names, constants, directories, boxes, permissions.
-     *
-     * @param DoliDB $db Database handler.
-     */
-    public function __construct($db)
-    {
-        global $conf;
+	/**
+	 * Constructor. Define names, constants, directories, boxes, permissions.
+	 *
+	 * @param DoliDB $db Database handler.
+	 */
+	public function __construct($db)
+	{
+		global $conf;
 
-        $this->db = $db;
+		$this->db = $db;
 
-        // Id for module (must be unique).
-        // Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
-        $this->numero = 409904;
+		// Id for module (must be unique).
+		// Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
+		$this->numero = 409904;
 
-        // Key text used to identify module (for permissions, menus, etc...)
-        $this->rights_class = 'autoverifactu';
+		// Key text used to identify module (for permissions, menus, etc...)
+		$this->rights_class = 'autoverifactu';
 
-        // Family can be 'base' (core modules),'crm','financial','hr','projects','products','ecm','technic' (transverse modules),'interface' (link with external tools),'other','...'
-        // It is used to group modules by family in module setup page
-        $this->family = 'financial';
+		// Family can be 'base' (core modules),'crm','financial','hr','projects','products','ecm','technic' (transverse modules),'interface' (link with external tools),'other','...'
+		// It is used to group modules by family in module setup page
+		$this->family = 'financial';
 
-        // Module position in the family on 2 digits ('01', '10', '20', ...)
-        $this->module_position = '90';
+		// Module position in the family on 2 digits ('01', '10', '20', ...)
+		$this->module_position = '90';
 
-        // Gives the possibility for the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
-        //$this->familyinfo = array('myownfamily' => array('position' => '01', 'label' => $langs->trans("MyOwnFamily")));
-        // Module label (no space allowed), used if translation string 'ModuleAutoverifactuName' not found (Autoverifactu is name of module).
-        $this->name = preg_replace('/^mod/i', '', get_class($this));
+		// Gives the possibility for the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
+		//$this->familyinfo = array('myownfamily' => array('position' => '01', 'label' => $langs->trans("MyOwnFamily")));
+		// Module label (no space allowed), used if translation string 'ModuleAutoverifactuName' not found (Autoverifactu is name of module).
+		$this->name = preg_replace('/^mod/i', '', get_class($this));
 
-        // DESCRIPTION_FLAG
-        // Module description, used if translation string 'ModuleAutoverifactuDesc' not found (Autoverifactu is name of module).
-        $this->description = 'Bridge Dolibarr bills to the vVeri*Factu system';
-        // Used only if file README.md and README-LL.md not found.
-        $this->descriptionlong = 'With this module activated, each validated bill will be immediatly sent to the verifactu system and freezed';
+		// DESCRIPTION_FLAG
+		// Module description, used if translation string 'ModuleAutoverifactuDesc' not found (Autoverifactu is name of module).
+		$this->description = 'Bridge Dolibarr bills to the vVeri*Factu system';
+		// Used only if file README.md and README-LL.md not found.
+		$this->descriptionlong = 'With this module activated, each validated bill will be immediatly sent to the verifactu system and freezed';
 
-        // Author
-        $this->editor_name = 'Còdec';
-        $this->editor_url = 'https://www.codeccoop.org';      // Must be an external online web site
-        $this->editor_squarred_logo = 'logo-codec.png@autoverifactu';                   // Must be image filename into the module/img directory followed with @modulename. Example: 'myimage.png@autoverifactu'
+		// Author
+		$this->editor_name = 'Còdec';
+		$this->editor_url = 'https://www.codeccoop.org';      // Must be an external online web site
+		$this->editor_squarred_logo = 'logo-codec.png@autoverifactu';                   // Must be image filename into the module/img directory followed with @modulename. Example: 'myimage.png@autoverifactu'
 
-        // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated', 'experimental_deprecated' or a version string like 'x.y.z'
-        $this->version = '0.0.12';
-        // Url to the file with your last numberversion of this module
-        //$this->url_last_version = 'http://www.example.com/versionmodule.txt';
+		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated', 'experimental_deprecated' or a version string like 'x.y.z'
+		$this->version = '0.0.12';
+		// Url to the file with your last numberversion of this module
+		//$this->url_last_version = 'http://www.example.com/versionmodule.txt';
 
-        // Key used in llx_const table to save module status enabled/disabled (where AUTOVERIFACTU is value of property name of module in uppercase)
-        $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
+		// Key used in llx_const table to save module status enabled/disabled (where AUTOVERIFACTU is value of property name of module in uppercase)
+		$this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
 
-        // Name of image file used for this module.
-        // If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
-        // If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
-        // To use a supported fa-xxx css style of font awesome, use this->picto='xxx'
-        $this->picto = 'fa-receipt';
+		// Name of image file used for this module.
+		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
+		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
+		// To use a supported fa-xxx css style of font awesome, use this->picto='xxx'
+		$this->picto = 'fa-receipt';
 
-        // Define some features supported by module (triggers, login, substitutions, menus, css, etc...)
-        $this->module_parts = array(
-            // Set this to 1 if module has its own trigger directory (core/triggers)
-            'triggers' => 1,
-            // Set this to 1 if module has its own login method file (core/login)
-            'login' => 0,
-            // Set this to 1 if module has its own substitution function file (core/substitutions)
-            'substitutions' => 0,
-            // Set this to 1 if module has its own menus handler directory (core/menus)
-            'menus' => 0,
-            // Set this to 1 if module overwrite template dir (core/tpl)
-            'tpl' => 0,
-            // Set this to 1 if module has its own barcode directory (core/modules/barcode)
-            'barcode' => 0,
-            // Set this to 1 if module has its own models directory (core/modules/xxx)
-            'models' => 1,
-            // Set this to 1 if module has its own printing directory (core/modules/printing)
-            'printing' => 0,
-            // Set this to 1 if module has its own theme directory (theme)
-            'theme' => 0,
-            // Set this to relative path of css file if module has its own css file
-            'css' => array(
-                '/autoverifactu/css/admin.css.php',
-            ),
-            // Set this to relative path of js file if module must load a js on all pages
-            'js' => array(
-                '/autoverifactu/js/autoverifactu.js.php',
-            ),
-            // Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context to 'all'
-            /* BEGIN MODULEBUILDER HOOKSCONTEXTS */
-            'hooks' => array(
-                'admincompany',
-                'invoicecard',
-                'propalcard',
-                'ordercard',
-                'contractcard',
-                'interventioncard',
-                'expeditioncard',
-                'pdfgeneration',
-                'invoicelist', //para añadir estilos al listado de facturas
-            ),
-            /* END MODULEBUILDER HOOKSCONTEXTS */
-            // Set this to 1 if features of module are opened to external users
-            'moduleforexternal' => 0,
-            // Set this to 1 if the module provides a website template into doctemplates/websites/website_template-mytemplate
-            'websitetemplates' => 0,
-            // Set this to 1 if the module provides a captcha driver
-            'captcha' => 0
-        );
+		// Define some features supported by module (triggers, login, substitutions, menus, css, etc...)
+		$this->module_parts = array(
+			// Set this to 1 if module has its own trigger directory (core/triggers)
+			'triggers' => 1,
+			// Set this to 1 if module has its own login method file (core/login)
+			'login' => 0,
+			// Set this to 1 if module has its own substitution function file (core/substitutions)
+			'substitutions' => 0,
+			// Set this to 1 if module has its own menus handler directory (core/menus)
+			'menus' => 0,
+			// Set this to 1 if module overwrite template dir (core/tpl)
+			'tpl' => 0,
+			// Set this to 1 if module has its own barcode directory (core/modules/barcode)
+			'barcode' => 0,
+			// Set this to 1 if module has its own models directory (core/modules/xxx)
+			'models' => 1,
+			// Set this to 1 if module has its own printing directory (core/modules/printing)
+			'printing' => 0,
+			// Set this to 1 if module has its own theme directory (theme)
+			'theme' => 0,
+			// Set this to relative path of css file if module has its own css file
+			'css' => array(
+				'/autoverifactu/css/admin.css.php',
+			),
+			// Set this to relative path of js file if module must load a js on all pages
+			'js' => array(
+				'/autoverifactu/js/autoverifactu.js.php',
+			),
+			// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context to 'all'
+			/* BEGIN MODULEBUILDER HOOKSCONTEXTS */
+			'hooks' => array(
+				'admincompany',
+				'invoicecard',
+				'propalcard',
+				'ordercard',
+				'contractcard',
+				'interventioncard',
+				'expeditioncard',
+				'pdfgeneration',
+				'invoicelist', //para añadir estilos al listado de facturas
+			),
+			/* END MODULEBUILDER HOOKSCONTEXTS */
+			// Set this to 1 if features of module are opened to external users
+			'moduleforexternal' => 0,
+			// Set this to 1 if the module provides a website template into doctemplates/websites/website_template-mytemplate
+			'websitetemplates' => 0,
+			// Set this to 1 if the module provides a captcha driver
+			'captcha' => 0
+		);
 
-        // Data directories to create when module is enabled.
-        // Example: this->dirs = array("/autoverifactu/temp","/autoverifactu/subdir");
-        $this->dirs = array('/autoverifactu/temp');
+		// Data directories to create when module is enabled.
+		// Example: this->dirs = array("/autoverifactu/temp","/autoverifactu/subdir");
+		$this->dirs = array('/autoverifactu/temp');
 
-        // Config pages. Put here list of php page, stored into autoverifactu/admin directory, to use to setup module.
-        $this->config_page_url = array('setup.php@autoverifactu');
+		// Config pages. Put here list of php page, stored into autoverifactu/admin directory, to use to setup module.
+		$this->config_page_url = array('setup.php@autoverifactu');
 
-        // Dependencies
-        // A condition to hide module
-        $this->hidden = getDolGlobalInt('MODULE_AUTOVERIFACTU_DISABLED'); // A condition to disable module;
-        // List of module class names that must be enabled if this module is enabled. Example: array('always'=>array('modModuleToEnable1','modModuleToEnable2'), 'FR'=>array('modModuleToEnableFR')...)
-        $this->depends = array('modFacture', 'modBlockedLog');
-        // List of module class names to disable if this one is disabled. Example: array('modModuleToDisable1', ...)
-        $this->requiredby = array();
-        // List of module class names this module is in conflict with. Example: array('modModuleToDisable1', ...)
-        $this->conflictwith = array();
+		// Dependencies
+		// A condition to hide module
+		$this->hidden = getDolGlobalInt('MODULE_AUTOVERIFACTU_DISABLED'); // A condition to disable module;
+		// List of module class names that must be enabled if this module is enabled. Example: array('always'=>array('modModuleToEnable1','modModuleToEnable2'), 'FR'=>array('modModuleToEnableFR')...)
+		$this->depends = array('modFacture', 'modBlockedLog');
+		// List of module class names to disable if this one is disabled. Example: array('modModuleToDisable1', ...)
+		$this->requiredby = array();
+		// List of module class names this module is in conflict with. Example: array('modModuleToDisable1', ...)
+		$this->conflictwith = array();
 
-        // The language file dedicated to your module
-        $this->langfiles = array('autoverifactu@autoverifactu');
+		// The language file dedicated to your module
+		$this->langfiles = array('autoverifactu@autoverifactu');
 
-        // Prerequisites
-        $this->phpmin = array(8, 0); // Minimum version of PHP required by module
-        // $this->phpmax = array(8, 0); // Maximum version of PHP required by module
-        $this->need_dolibarr_version = array(20, -3); // Minimum version of Dolibarr required by module
-        // $this->max_dolibarr_version = array(19, -3); // Maximum version of Dolibarr required by module
-        $this->need_javascript_ajax = 1;
+		// Prerequisites
+		$this->phpmin = array(8, 0); // Minimum version of PHP required by module
+		// $this->phpmax = array(8, 0); // Maximum version of PHP required by module
+		$this->need_dolibarr_version = array(20, -3); // Minimum version of Dolibarr required by module
+		// $this->max_dolibarr_version = array(19, -3); // Maximum version of Dolibarr required by module
+		$this->need_javascript_ajax = 1;
 
-        // Messages at activation
-        $this->warnings_activation = array();       // Warning to show when we activate module. array('always'='text') or array('FR'='textfr','MX'='textmx'...)
-        $this->warnings_activation_ext = array();   // Warning to show when we activate an external module. array('always'='text') or array('FR'='textfr','MX'='textmx'...)
-        $this->warnings_unactivation = array();     // array('ES' => 'BlockedLogAreRequiredByYourCountryLegislation');
+		// Messages at activation
+		$this->warnings_activation = array();       // Warning to show when we activate module. array('always'='text') or array('FR'='textfr','MX'='textmx'...)
+		$this->warnings_activation_ext = array();   // Warning to show when we activate an external module. array('always'='text') or array('FR'='textfr','MX'='textmx'...)
+		$this->warnings_unactivation = array();     // array('ES' => 'BlockedLogAreRequiredByYourCountryLegislation');
 
-        // $this->automatic_activation = array('ES'=>'AutoverifactuWasAutomaticallyActivatedBecauseOfYourCountryChoice');
+		// $this->automatic_activation = array('ES'=>'AutoverifactuWasAutomaticallyActivatedBecauseOfYourCountryChoice');
 
-        // $this->always_enabled = (isModEnabled('autoverifactu')
-        //     && getDolGlobalString('AUTOVERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY')
-        //     && in_array((empty($mysoc->country_code) ? '' : $mysoc->country_code), explode(',', getDolGlobalString('AUTOVERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY')))
-        //     && $this->alreadyUsed());
+		// $this->always_enabled = (isModEnabled('autoverifactu')
+		//     && getDolGlobalString('AUTOVERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY')
+		//     && in_array((empty($mysoc->country_code) ? '' : $mysoc->country_code), explode(',', getDolGlobalString('AUTOVERIFACTU_DISABLE_NOT_ALLOWED_FOR_COUNTRY')))
+		//     && $this->alreadyUsed());
 
-        /* Constants */
-        // List of particular constants to add when module is enabled (key, 'chaine',
-        // value, desc, visible, 'current' or 'allentities', deleteonunactive).
+		/* Constants */
+		// List of particular constants to add when module is enabled (key, 'chaine',
+		// value, desc, visible, 'current' or 'allentities', deleteonunactive).
 
 
-        // Some keys to add into the overwriting translation tables
-        /*$this->overwrite_translation = array(
-            'en_US:ParentCompany'=>'Parent company or reseller',
-            'fr_FR:ParentCompany'=>'Maison mère ou revendeur'
-        )*/
+		// Some keys to add into the overwriting translation tables
+		/*$this->overwrite_translation = array(
+			'en_US:ParentCompany'=>'Parent company or reseller',
+			'fr_FR:ParentCompany'=>'Maison mère ou revendeur'
+		)*/
 
-        if (!isModEnabled('autoverifactu')) {
-            $conf->autoverifactu = new stdClass();
-            $conf->autoverifactu->enabled = 0;
-        }
+		if (!isModEnabled('autoverifactu')) {
+			$conf->autoverifactu = new stdClass();
+			$conf->autoverifactu->enabled = 0;
+		}
 
-        // Array to add new pages in new tabs
-        /* BEGIN MODULEBUILDER TABS */
-        // Don't forget to deactivate/reactivate your module to test your changes
-        $this->tabs = array();
+		// Array to add new pages in new tabs
+		/* BEGIN MODULEBUILDER TABS */
+		// Don't forget to deactivate/reactivate your module to test your changes
+		$this->tabs = array();
 
-        $this->dictionaries = array();
+		$this->dictionaries = array();
 
-        // Boxes/Widgets
-        // Add here list of php file(s) stored in autoverifactu/core/boxes that contains a class to show a widget.
-        $this->boxes = array();
+		// Boxes/Widgets
+		// Add here list of php file(s) stored in autoverifactu/core/boxes that contains a class to show a widget.
+		$this->boxes = array();
 
-      
-        // creo crontab para ejecutar las facturas en cola
-        $this->cronjobs = array(
-            array(
-                'label' => 'Procesar cola de envíos VERI*FACTU', 
-                'jobtype' => 'method',                           
-                'class' => '/autoverifactu/class/verifactuqueue.class.php', 
-                'objectname' => 'VerifactuQueue',                
-                'method' => 'processMassiveQueue',            
-                'parameters' => '',                              
-                'comment' => 'Revisa las facturas en cola y las envía agrupadas respetando los tiempos de la AEAT',
-                'frequency' => 1,                               
-                'unitfrequency' => 60,                          
-                'status' => 1,                                   
-                'test' => 'isModEnabled("autoverifactu")',
-                'priority' => 1,      
-            )
-        );
 
-        // Permissions provided by this module
-        $this->rights = array();
+		// creo crontab para ejecutar las facturas en cola
+		$this->cronjobs = array(
+			array(
+				'label' => 'Procesar cola de envíos VERI*FACTU',
+				'jobtype' => 'method',
+				'class' => '/autoverifactu/class/verifactuqueue.class.php',
+				'objectname' => 'VerifactuQueue',
+				'method' => 'processMassiveQueue',
+				'parameters' => '',
+				'comment' => 'Revisa las facturas en cola y las envía agrupadas respetando los tiempos de la AEAT',
+				'frequency' => 1,
+				'unitfrequency' => 60,
+				'status' => 1,
+				'test' => 'isModEnabled("autoverifactu")',
+				'priority' => 1,
+			)
+		);
 
-        // Main menu entries to add
-        $this->menu = array();
-        // $r = 0;
-        // Add here entries to declare new menus
-        // $this->menu[$r++] = array(
-        //     'fk_menu' => '', // Will be stored into mainmenu + leftmenu. Use '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-        //     'type' => 'top', // This is a Top menu entry
-        //     'titre' => 'Autoverifactu',
-        //     'prefix' => img_picto('', $this->picto, 'class="pictofixedwidth valignmiddle"'),
-        //     'mainmenu' => 'autoverifactu',
-        //     'leftmenu' => '',
-        //     'url' => '/autoverifactu/autoverifactuindex.php',
-        //     'langs' => 'autoverifactu@autoverifactu', // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-        //     'position' => 1000 + $r,
-        //     'enabled' => 'isModEnabled("autoverifactu")', // Define condition to show or hide menu entry. Use 'isModEnabled("autoverifactu")' if entry must be visible if module is enabled.
-        //     'perms' => '1', // Use 'perms'=>'$user->hasRight("autoverifactu", "myobject", "read")' if you want your menu with a permission rules
-        //     'target' => '',
-        //     'user' => 0, // 0=Menu for internal users, 1=external users, 2=both
-        // );
-    }
+		// Permissions provided by this module
+		$this->rights = array();
 
-    /**
-     *  Function called when module is enabled.
-     *  The init function add constants, boxes, permissions and menus (defined in constructor) into Dolibarr database.
-     *  It also creates data directories.
-     *
-     *  @param      string  $options    Options when enabling module ('', 'noboxes').
-     *
-     *  @return     int<-1,1>           1 if OK, <=0 if KO.
-     */
-    public function init($options = '')
-    {
-        global $db, $langs; // , $conf;
-        $langs->loadLangs(array('autoverifactu@autoverifactu'));
-        $now=new DateTimeImmutable(
-            'now',
-            new DateTimeZone('Europe/Madrid'),
-        );
-        dolibarr_set_const($db, 'FAC_FORCE_DATE_VALIDATION', '1', 'chaine', 0, '', 0);
-        dolibarr_set_const($db, 'VERIFACTU_NEXT_DELIVERY_ALLOWED', $now->getTimestamp(), 'chaine', 0, '', 0);
+		// Main menu entries to add
+		$this->menu = array();
+		// $r = 0;
+		// Add here entries to declare new menus
+		// $this->menu[$r++] = array(
+		//     'fk_menu' => '', // Will be stored into mainmenu + leftmenu. Use '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+		//     'type' => 'top', // This is a Top menu entry
+		//     'titre' => 'Autoverifactu',
+		//     'prefix' => img_picto('', $this->picto, 'class="pictofixedwidth valignmiddle"'),
+		//     'mainmenu' => 'autoverifactu',
+		//     'leftmenu' => '',
+		//     'url' => '/autoverifactu/autoverifactuindex.php',
+		//     'langs' => 'autoverifactu@autoverifactu', // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+		//     'position' => 1000 + $r,
+		//     'enabled' => 'isModEnabled("autoverifactu")', // Define condition to show or hide menu entry. Use 'isModEnabled("autoverifactu")' if entry must be visible if module is enabled.
+		//     'perms' => '1', // Use 'perms'=>'$user->hasRight("autoverifactu", "myobject", "read")' if you want your menu with a permission rules
+		//     'target' => '',
+		//     'user' => 0, // 0=Menu for internal users, 1=external users, 2=both
+		// );
+	}
 
-        // Create tables of module at module activation
-        // $result = $this->_load_tables('/autoverifactu/sql/');
-        // if ($result < 0) {
-        //     // Do not activate module if error 'not allowed' returned when loading module SQL queries
-        //     // (the _load_table run sql with run_sql with the error allowed parameter set to 'default').
-        //     return -1;
-        // }
+	/**
+	 *  Function called when module is enabled.
+	 *  The init function add constants, boxes, permissions and menus (defined in constructor) into Dolibarr database.
+	 *  It also creates data directories.
+	 *
+	 *  @param string  $options    Options when enabling module ('', 'noboxes').
+	 *
+	 *  @return int<-1,1>           1 if OK, <=0 if KO.
+	 */
+	public function init($options = '')
+	{
+		global $db, $langs; // , $conf;
+		$langs->loadLangs(array('autoverifactu@autoverifactu'));
+		$now = new DateTimeImmutable(
+			'now',
+			new DateTimeZone('Europe/Madrid'),
+		);
+		dolibarr_set_const($db, 'FAC_FORCE_DATE_VALIDATION', '1', 'chaine', 0, '', 0);
+		dolibarr_set_const($db, 'VERIFACTU_NEXT_DELIVERY_ALLOWED', $now->getTimestamp(), 'chaine', 0, '', 0);
 
-        // Create extrafields during init
-        include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
-        $extrafields = new ExtraFields($this->db);
-        //----------------------------------------Invoice ----------------------------------------
-        // Tipo de rectificación en caso de que la factura sea rectificativa.
-        $extrafields->addExtraField(
-            'verifactu_rectification_type',
-            'VerifactuRectificationType',
-            'select',
-            1,
-            2,
-            'facture',
-            0,
-            0,
-            '',
-            array(
-                'options' => array(
-                    'R1' => $langs->trans('VerifactuRectificationTypeR1'),
-                    'R2' => $langs->trans('VerifactuRectificationTypeR2'),
-                    'R3' => $langs->trans('VerifactuRectificationTypeR3'),
-                    'R4' => $langs->trans('VerifactuRectificationTypeR4'),
-                    // 'R5' => $langs->trans('VerifactuRectificationTypeR5')
-                ),
-            ),
-            0,
-            '',
-            '3',
-            $langs->trans('VerifactuRectificationTypeDescription'),
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );   
-        // Fecha de operación
-        $extrafields->addExtraField(
-            'verifactu_date_operation',
-            'VerifactuDateOperation',
-            'date',
-            2,
-            2,
-            'facture',
-            0,
-            0,
-            '',
-            '',
-            0,
-            '',
-            '3',
-            $langs->trans('VerifactuDateOperiationDescription'),
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-        // Campo para el almacenamiento de los textos legales para el pdf
-        // de la factura por el usuario.
-        $extrafields->addExtraField(
-            'verifactu_pdfLegalTextUser',
-            'pdfLegalTextUser',
-            'text',
-            3,
-            1500,
-            'facture',
-            0,
-            0,
-            '',
-            '',
-            1,
-            '',
-            3,
-            '',
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-        // Estado de los envios a verifactu en funcion de si esta permitio o no hacer una peticion a la API
-        $extrafields->addExtraField(
-            'verifactu_status',                  
-            'Estado VERI*FACTU', 
-            'select',                
-            4,
-            1,
-            'facture',
-            0,
-            0,
-            '0',
-            array(
-                'options' => array(
-                    '0' => $langs->trans('verifactuStatusSelect0'),
-                    '1' => $langs->trans('verifactuStatusSelect1'),
-                    '2' => $langs->trans('verifactuStatusSelect2'),
-                    '3' => $langs->trans('verifactuStatusSelect3'),
-                    '4' => $langs->trans('verifactuStatusSelect4'),
-                    '5' => $langs->trans('verifactuStatusSelect5'),
-                    '6' => $langs->trans('verifactuStatusSelect6'),
-                    '7' => $langs->trans('verifactuStatusSelect7'),
+		// Create tables of module at module activation
+		// $result = $this->_load_tables('/autoverifactu/sql/');
+		// if ($result < 0) {
+		//     // Do not activate module if error 'not allowed' returned when loading module SQL queries
+		//     // (the _load_table run sql with run_sql with the error allowed parameter set to 'default').
+		//     return -1;
+		// }
 
-                ),
-            ),
-            0,
-            '',
-            '1',
-            $langs->trans('verifactuStatusDescription'),
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-        // campo para el almacenamiento de errores  de validación de la factura.
-        $extrafields->addExtraField(
-            'verifactu_error',
-            'VerifactuError',
-            'text',
-            5,
-            510,
-            'facture',
-            0,
-            0,
-            '',
-            '',
-            0,
-            '',
-            3,
-            '',
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-        //campo para el almacenamiento de los codigos de errores de validación de la factura.
-        $extrafields->addExtraField(
-            'verifactu_error_code',
-            'VerifactuErrorcode',
-            'varchar',
-            6,
-            4,
-            'facture',
-            0,
-            0,
-            '',
-            '',
-            0,
-            '',
-            0,
-            '',
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-        // hash verifactu
-        $extrafields->addExtraField(
-            'verifactu_hash',
-            'VerifactuHash',
-            'varchar',
-            10,
-            255,
-            'facture',
-            0,
-            0,
-            '',
-            '',
-            0,
-            '',
-            0,
-            '',
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-        // Campo para el almacenamiento de los textos legales para el pdf de la factura.
-        $extrafields->addExtraField(
-            'verifactu_pdfLegalText',
-            'pdfLegalText',
-            'text',
-            11,
-            1500,
-            'facture',
-            0,
-            0,
-            '',
-            '',
-            0,
-            '',
-            0,
-            '',
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-        // Timestamp de validación de la factura.
-        $extrafields->addExtraField(
-            'verifactu_tms',
-            'VerifactuTimeStamp',
-            'int',
-            12,
-            15,
-            'facture',
-            0,
-            0,
-            '0',
-            '',
-            0,
-            '',
-            0,
-            '',
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-//----------------------------------------line ----------------------------------------
-        // regimen de facturación de la línea de factura
-        $extrafields->addExtraField(
-            'verifactu_regime_type',
-            'VerifactuDetailsRegimeType',
-            'select',
-            1,
-            2,
-            'facturedet',
-            0,
-            0,
-            '01',
-            array(
-                'options' => array(
-                    '01' => $langs->trans('VerifactuDetailsRegimeType01'),
-                    '02' => $langs->trans('VerifactuDetailsRegimeType02'),
-                    '03' => $langs->trans('VerifactuDetailsRegimeType03'),
-                    '04' => $langs->trans('VerifactuDetailsRegimeType04'),
-                    '05' => $langs->trans('VerifactuDetailsRegimeType05'),
-                    '06' => $langs->trans('VerifactuDetailsRegimeType06'),
-                    '07' => $langs->trans('VerifactuDetailsRegimeType07'),
-                    '08' => $langs->trans('VerifactuDetailsRegimeType08'),
-                    '09' => $langs->trans('VerifactuDetailsRegimeType09'),
-                    '10' => $langs->trans('VerifactuDetailsRegimeType10'),
-                    '11' => $langs->trans('VerifactuDetailsRegimeType11'),
-                    '14' => $langs->trans('VerifactuDetailsRegimeType14'),
-                    '15' => $langs->trans('VerifactuDetailsRegimeType15'),
-                    '17' => $langs->trans('VerifactuDetailsRegimeType17'),
-                    '18' => $langs->trans('VerifactuDetailsRegimeType18'),
-                    '19' => $langs->trans('VerifactuDetailsRegimeType19'),
-                    '20' => $langs->trans('VerifactuDetailsRegimeType20'),
-                ),
-            ),
-            0,
-            '',
-            '3',
-            $langs->trans('VerifactuDetailsRegimeTypeDescription'),
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-        //type of tax of the line of invoice
-           $extrafields->addExtraField(
-            'Verifactu_Tax',
-            'VerifactuTax',
-            'select',
-            2,
-            2,
-            'facturedet',
-            0,
-            0,
-            '01',
-            array(
-                'options' => array(
-                    '01' => $langs->trans('VerifactuTax01'),
-                    '02' => $langs->trans('VerifactuTax02'),
-                    '03' => $langs->trans('VerifactuTax03'),
-                    '05' => $langs->trans('VerifactuTax05'),
-                ),
-            ),
-            0,
-            '',
-            '3',
-            $langs->trans('VerifactuTaxDescription'),
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-        // tipo de operación de la línea de factura
-        $extrafields->addExtraField(
-            'verifactu_operation_type',
-            'VerifactuDetailsOperationType',
-            'select',
-            3,
-            2,
-            'facturedet',
-            0,
-            0,
-            'S1',
-            array(
-                'options' => array(
-                    'S1' => $langs->trans('VerifactuDetailsOperationTypeS1'),
-                    'S2' => $langs->trans('VerifactuDetailsOperationTypeS2'),
-                    'N1' => $langs->trans('VerifactuDetailsOperationTypeN1'),
-                    'N2' => $langs->trans('VerifactuDetailsOperationTypeN2'),
-                ),
-            ),
-            0,
-            '',
-            '3',
-            $langs->trans('VerifactuDetailsOperationTypeDescription'),
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-        // Tipos de excepción
-        $extrafields->addExtraField(
-            'verifactu_tax_excemption',
-            'VerifactuDetailsTaxExcemption',
-            'select',
-            4,
-            2,
-            'facturedet',
-            0,
-            0,
-            '',
-            array(
-                'options' => array(
-                    'E1' => $langs->trans('VerifactuDetailsTaxExcemptionE1'),
-                    'E2' => $langs->trans('VerifactuDetailsTaxExcemptionE2'),
-                    'E3' => $langs->trans('VerifactuDetailsTaxExcemptionE3'),
-                    'E4' => $langs->trans('VerifactuDetailsTaxExcemptionE4'),
-                    'E5' => $langs->trans('VerifactuDetailsTaxExcemptionE5'),
-                    'E6' => $langs->trans('VerifactuDetailsTaxExcemptionE6'),
-                ),
-            ),
-            0,
-            '',
-            '3',
-            $langs->trans('VerifactuDetailsTaxExcemptionDescription'),
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-//----------------------------------------thirdparty----------------------------------------
-        // tipo de identificacion fiscal del tercero
-        $extrafields->addExtraField(
-            'verifactu_identification_thirdparty',
-            'VerifactuIdentificationThirdparty',
-            'select',
-            1,
-            2,
-            'societe',
-            0,
-            0,
-            '02',
-            array(
-                'options' => array(
-                    '02' => $langs->trans('VerifactuIdentificationThirdparty02'),
-                    '03' => $langs->trans('VerifactuIdentificationThirdparty03'),
-                    '04' => $langs->trans('VerifactuIdentificationThirdparty04'),
-                    '05' => $langs->trans('VerifactuIdentificationThirdparty05'),
-                    '06' => $langs->trans('VerifactuIdentificationThirdparty06'),
-                    '07' => $langs->trans('VerifactuIdentificationThirdparty07'),
-                ),
-            ),
-            1,
-            '',
-            '3',
-            $langs->trans('VerifactuIdentificationThirdpartyDescription'),
-            '',
-            '',
-            'autoverifactu@autoverifactu',
-            'isModEnabled("autoverifactu")',
-        );
-        // Permissions
-        $this->remove($options);
-        $sql = array();
-        return $this->_init($sql, $options);
-    }
+		// Create extrafields during init
+		include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+		$extrafields = new ExtraFields($this->db);
+		//----------------------------------------Invoice ----------------------------------------
+		// Tipo de rectificación en caso de que la factura sea rectificativa.
+		$extrafields->addExtraField(
+			'verifactu_rectification_type',
+			'VerifactuRectificationType',
+			'select',
+			1,
+			2,
+			'facture',
+			0,
+			0,
+			'',
+			array(
+				'options' => array(
+					'R1' => $langs->trans('VerifactuRectificationTypeR1'),
+					'R2' => $langs->trans('VerifactuRectificationTypeR2'),
+					'R3' => $langs->trans('VerifactuRectificationTypeR3'),
+					'R4' => $langs->trans('VerifactuRectificationTypeR4'),
+					// 'R5' => $langs->trans('VerifactuRectificationTypeR5')
+				),
+			),
+			0,
+			'',
+			'3',
+			$langs->trans('VerifactuRectificationTypeDescription'),
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		// Fecha de operación
+		$extrafields->addExtraField(
+			'verifactu_date_operation',
+			'VerifactuDateOperation',
+			'date',
+			2,
+			2,
+			'facture',
+			0,
+			0,
+			'',
+			'',
+			0,
+			'',
+			'3',
+			$langs->trans('VerifactuDateOperiationDescription'),
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		// Campo para el almacenamiento de los textos legales para el pdf
+		// de la factura por el usuario.
+		$extrafields->addExtraField(
+			'verifactu_pdfLegalTextUser',
+			'pdfLegalTextUser',
+			'text',
+			3,
+			1500,
+			'facture',
+			0,
+			0,
+			'',
+			'',
+			1,
+			'',
+			3,
+			'',
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		// Estado de los envios a verifactu en funcion de si esta permitio o no hacer una peticion a la API
+		$extrafields->addExtraField(
+			'verifactu_status',
+			'Estado VERI*FACTU',
+			'select',
+			4,
+			1,
+			'facture',
+			0,
+			0,
+			'0',
+			array(
+				'options' => array(
+					'0' => $langs->trans('verifactuStatusSelect0'),
+					'1' => $langs->trans('verifactuStatusSelect1'),
+					'2' => $langs->trans('verifactuStatusSelect2'),
+					'3' => $langs->trans('verifactuStatusSelect3'),
+					'4' => $langs->trans('verifactuStatusSelect4'),
+					'5' => $langs->trans('verifactuStatusSelect5'),
+					'6' => $langs->trans('verifactuStatusSelect6'),
+					'7' => $langs->trans('verifactuStatusSelect7'),
 
-    /**
-     *  Function called when module is disabled.
-     *  Remove from database constants, boxes and permissions from Dolibarr database.
-     *  Data directories are not deleted
-     *
-     *  @param  string      $options    Options when enabling module ('', 'noboxes')
-     *
-     *  @return int<-1,1>               1 if OK, <=0 if KO
-     */
-    public function remove($options = '')
-    {
-        $sql = array();
-        return $this->_remove($sql, $options);
-    }
+				),
+			),
+			0,
+			'',
+			'1',
+			$langs->trans('verifactuStatusDescription'),
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		// campo para el almacenamiento de errores  de validación de la factura.
+		$extrafields->addExtraField(
+			'verifactu_error',
+			'VerifactuError',
+			'text',
+			5,
+			510,
+			'facture',
+			0,
+			0,
+			'',
+			'',
+			0,
+			'',
+			3,
+			'',
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		//campo para el almacenamiento de los codigos de errores de validación de la factura.
+		$extrafields->addExtraField(
+			'verifactu_error_code',
+			'VerifactuErrorcode',
+			'varchar',
+			6,
+			4,
+			'facture',
+			0,
+			0,
+			'',
+			'',
+			0,
+			'',
+			0,
+			'',
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		// hash verifactu
+		$extrafields->addExtraField(
+			'verifactu_hash',
+			'VerifactuHash',
+			'varchar',
+			10,
+			255,
+			'facture',
+			0,
+			0,
+			'',
+			'',
+			0,
+			'',
+			0,
+			'',
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		// Campo para el almacenamiento de los textos legales para el pdf de la factura.
+		$extrafields->addExtraField(
+			'verifactu_pdfLegalText',
+			'pdfLegalText',
+			'text',
+			11,
+			1500,
+			'facture',
+			0,
+			0,
+			'',
+			'',
+			0,
+			'',
+			0,
+			'',
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		// Timestamp de validación de la factura.
+		$extrafields->addExtraField(
+			'verifactu_tms',
+			'VerifactuTimeStamp',
+			'int',
+			12,
+			15,
+			'facture',
+			0,
+			0,
+			'0',
+			'',
+			0,
+			'',
+			0,
+			'',
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		//----------------------------------------line ----------------------------------------
+		// regimen de facturación de la línea de factura
+		$extrafields->addExtraField(
+			'verifactu_regime_type',
+			'VerifactuDetailsRegimeType',
+			'select',
+			1,
+			2,
+			'facturedet',
+			0,
+			0,
+			'01',
+			array(
+				'options' => array(
+					'01' => $langs->trans('VerifactuDetailsRegimeType01'),
+					'02' => $langs->trans('VerifactuDetailsRegimeType02'),
+					'03' => $langs->trans('VerifactuDetailsRegimeType03'),
+					'04' => $langs->trans('VerifactuDetailsRegimeType04'),
+					'05' => $langs->trans('VerifactuDetailsRegimeType05'),
+					'06' => $langs->trans('VerifactuDetailsRegimeType06'),
+					'07' => $langs->trans('VerifactuDetailsRegimeType07'),
+					'08' => $langs->trans('VerifactuDetailsRegimeType08'),
+					'09' => $langs->trans('VerifactuDetailsRegimeType09'),
+					'10' => $langs->trans('VerifactuDetailsRegimeType10'),
+					'11' => $langs->trans('VerifactuDetailsRegimeType11'),
+					'14' => $langs->trans('VerifactuDetailsRegimeType14'),
+					'15' => $langs->trans('VerifactuDetailsRegimeType15'),
+					'17' => $langs->trans('VerifactuDetailsRegimeType17'),
+					'18' => $langs->trans('VerifactuDetailsRegimeType18'),
+					'19' => $langs->trans('VerifactuDetailsRegimeType19'),
+					'20' => $langs->trans('VerifactuDetailsRegimeType20'),
+				),
+			),
+			0,
+			'',
+			'3',
+			$langs->trans('VerifactuDetailsRegimeTypeDescription'),
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		//type of tax of the line of invoice
+		$extrafields->addExtraField(
+			'Verifactu_Tax',
+			'VerifactuTax',
+			'select',
+			2,
+			2,
+			'facturedet',
+			0,
+			0,
+			'01',
+			array(
+				'options' => array(
+					'01' => $langs->trans('VerifactuTax01'),
+					'02' => $langs->trans('VerifactuTax02'),
+					'03' => $langs->trans('VerifactuTax03'),
+					'05' => $langs->trans('VerifactuTax05'),
+				),
+			),
+			0,
+			'',
+			'3',
+			$langs->trans('VerifactuTaxDescription'),
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		// tipo de operación de la línea de factura
+		$extrafields->addExtraField(
+			'verifactu_operation_type',
+			'VerifactuDetailsOperationType',
+			'select',
+			3,
+			2,
+			'facturedet',
+			0,
+			0,
+			'S1',
+			array(
+				'options' => array(
+					'S1' => $langs->trans('VerifactuDetailsOperationTypeS1'),
+					'S2' => $langs->trans('VerifactuDetailsOperationTypeS2'),
+					'N1' => $langs->trans('VerifactuDetailsOperationTypeN1'),
+					'N2' => $langs->trans('VerifactuDetailsOperationTypeN2'),
+				),
+			),
+			0,
+			'',
+			'3',
+			$langs->trans('VerifactuDetailsOperationTypeDescription'),
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		// Tipos de excepción
+		$extrafields->addExtraField(
+			'verifactu_tax_excemption',
+			'VerifactuDetailsTaxExcemption',
+			'select',
+			4,
+			2,
+			'facturedet',
+			0,
+			0,
+			'',
+			array(
+				'options' => array(
+					'E1' => $langs->trans('VerifactuDetailsTaxExcemptionE1'),
+					'E2' => $langs->trans('VerifactuDetailsTaxExcemptionE2'),
+					'E3' => $langs->trans('VerifactuDetailsTaxExcemptionE3'),
+					'E4' => $langs->trans('VerifactuDetailsTaxExcemptionE4'),
+					'E5' => $langs->trans('VerifactuDetailsTaxExcemptionE5'),
+					'E6' => $langs->trans('VerifactuDetailsTaxExcemptionE6'),
+				),
+			),
+			0,
+			'',
+			'3',
+			$langs->trans('VerifactuDetailsTaxExcemptionDescription'),
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		//----------------------------------------thirdparty----------------------------------------
+		// tipo de identificacion fiscal del tercero
+		$extrafields->addExtraField(
+			'verifactu_identification_thirdparty',
+			'VerifactuIdentificationThirdparty',
+			'select',
+			1,
+			2,
+			'societe',
+			0,
+			0,
+			'02',
+			array(
+				'options' => array(
+					'02' => $langs->trans('VerifactuIdentificationThirdparty02'),
+					'03' => $langs->trans('VerifactuIdentificationThirdparty03'),
+					'04' => $langs->trans('VerifactuIdentificationThirdparty04'),
+					'05' => $langs->trans('VerifactuIdentificationThirdparty05'),
+					'06' => $langs->trans('VerifactuIdentificationThirdparty06'),
+					'07' => $langs->trans('VerifactuIdentificationThirdparty07'),
+				),
+			),
+			1,
+			'',
+			'3',
+			$langs->trans('VerifactuIdentificationThirdpartyDescription'),
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+		// Permissions
+		$this->remove($options);
+		$sql = array();
+		return $this->_init($sql, $options);
+	}
+
+	/**
+	 *  Function called when module is disabled.
+	 *  Remove from database constants, boxes and permissions from Dolibarr database.
+	 *  Data directories are not deleted
+	 *
+	 *  @param string      $options    Options when enabling module ('', 'noboxes')
+	 *
+	 *  @return int<-1,1>               1 if OK, <=0 if KO
+	 */
+	public function remove($options = '')
+	{
+		$sql = array();
+		return $this->_remove($sql, $options);
+	}
 }

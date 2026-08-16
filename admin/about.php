@@ -34,7 +34,7 @@ $langs->loadLangs(array('errors', 'admin', 'autoverifactu@autoverifactu'));
 
 // Access control
 if (!$user->admin) {
-    accessforbidden();
+	accessforbidden();
 }
 
 // Parameters
@@ -58,7 +58,7 @@ $title = 'AutoverifactuAbout';
 llxHeader('', $langs->trans($title), $help_url, '', 0, 0, '', '', '', 'mod-autoverifactu page-admin_about');
 
 // Subheader
-$linkback = '<a href="'.($backtopage ? $backtopage : DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1').'">'.$langs->trans("BackToModuleList").'</a>';
+$linkback = '<a href="' . ($backtopage ? $backtopage : DOL_URL_ROOT . '/admin/modules.php?restore_lastsearch_values=1') . '">' . $langs->trans('BackToModuleList') . '</a>';
 
 echo load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 
@@ -66,11 +66,11 @@ echo load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 $head = autoverifactuAdminPrepareHead();
 
 echo dol_get_fiche_head(
-    $head,
-    'about',
-    $langs->trans($title),
-    0,
-    'autoverifactu@autoverifactu'
+	$head,
+	'about',
+	$langs->trans($title),
+	0,
+	'autoverifactu@autoverifactu'
 );
 
 // About page goes here

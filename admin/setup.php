@@ -34,42 +34,43 @@ require_once dirname(__DIR__) . '/lib/setup.lib.php';
 require_once dirname(__DIR__) . '/lib/validation.lib.php';
 
 /**
+ * Global variables.
+ *
  * @var Conf $conf
  * @var DoliDB $db
  * @var HookManager $hookmanager
  * @var Translate $langs
  * @var User $user
  */
-
 global $db, $langs, $conf;
 
-// Translations
+/* Translations */
 $langs->loadLangs(array('admin', 'autoverifactu@autoverifactu'));
 
-// Initialize a technical object to manage hooks of page. Note that conf->hooks_modules contains an array of hook context
-/** @var HookManager $hookmanager */
+// Initialize a technical object to manage hooks of page. Note that conf->hooks_modules
+// contains an array of hook context.
 $hookmanager->initHooks(array('autoverifactusetup', 'globalsetup'));
 
-// Parameters
+/* Parameters */
 $action = GETPOST('action', 'aZ09');
 
 $error = 0;
 $setupnotempty = 0;
 
-// Access control
+/* Access control */
 if (!$user->admin) {
-    accessforbidden();
+	accessforbidden();
 }
 
 // Set this to 1 to use the factory to manage constants. Warning, the generated module will be compatible with version v15+ only
 $useFormSetup = 1;
 
 if (!class_exists('FormSetup')) {
-    require_once DOL_DOCUMENT_ROOT . '/core/class/html.formsetup.class.php';
+	require_once DOL_DOCUMENT_ROOT . '/core/class/html.formsetup.class.php';
 }
 
 if (!class_exists('FormFile')) {
-    require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
+	require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
 }
 
 $formSetup = new FormSetup($db);
@@ -85,28 +86,28 @@ $is_responsible = !!getDolGlobalString('AUTOVERIFACTU_RESPONSABILITY');
 ob_start();
 ?>
 <div style="opacity:0.4">
-    <div
-        id="confirm_AUTOVERIFACTU_ENABLED"
-        title=""
-        style="display: none"
-        aria-hidden="true"
-    ></div>
-    <span
-        id="set_AUTOVERIFACTU_ENABLED"
-        class="valignmiddle inline-block linkobject"
-        style="cursor: default; display: <?php echo ($is_responsible ? 'none' : 'inline') ?>"
-        aria-hidden="<?php echo ($is_responsible ? 'false' : 'true') ?>"
-    >
-        <span class="fas fa-toggle-off" style=" color: #999;" title="Disabled"></span>
-    </span>
-    <span
-        id="del_AUTOVERIFACTU_ENABLED"
-        class="valignmiddle inline-block linkobject hideobject"
-        style="cursor: default; display: <?php echo ($is_responsible ? 'inline' : 'none') ?>"
-        aria-hidden="<?php echo ($is_responsible ? 'true' : 'false') ?>"
-    >
-        <span class="fas fa-toggle-on font-status4" style="" title="Enabled"></span>
-    </span>
+	<div
+		id="confirm_AUTOVERIFACTU_ENABLED"
+		title=""
+		style="display: none"
+		aria-hidden="true"
+	></div>
+	<span
+		id="set_AUTOVERIFACTU_ENABLED"
+		class="valignmiddle inline-block linkobject"
+		style="cursor: default; display: <?php echo ($is_responsible ? 'none' : 'inline') ?>"
+		aria-hidden="<?php echo ($is_responsible ? 'false' : 'true') ?>"
+	>
+		<span class="fas fa-toggle-off" style=" color: #999;" title="Disabled"></span>
+	</span>
+	<span
+		id="del_AUTOVERIFACTU_ENABLED"
+		class="valignmiddle inline-block linkobject hideobject"
+		style="cursor: default; display: <?php echo ($is_responsible ? 'inline' : 'none') ?>"
+		aria-hidden="<?php echo ($is_responsible ? 'true' : 'false') ?>"
+	>
+		<span class="fas fa-toggle-on font-status4" style="" title="Enabled"></span>
+	</span>
 </div>
 <?php
 
@@ -145,18 +146,18 @@ $pass_field->fieldParams['isMandatory'] = 1;
 $pass_field->fieldAttr['type'] = 'password';
 $pass_field->fieldAttr['required'] = 1;
 $pass_field->fieldAttr['error'] = !autoverifactuPkcs12Check(
-    DOL_DATA_ROOT . '/' . $cert_field->fieldValue,
-    getDolGlobalString('AUTOVERIFACTU_PASSWORD')
+	DOL_DATA_ROOT . '/' . $cert_field->fieldValue,
+	getDolGlobalString('AUTOVERIFACTU_PASSWORD')
 );
 $invalid = $invalid || $pass_field->fieldAttr['error'];
 
 $formSetup->newItem('FISCAL_SECTION_TITLE')->setAsTitle();
 
 $taxes = array(
-    '01' => 'IVA',
-    '02' => 'IPSI',
-    '03' => 'IGIC',
-    '05' => $langs->trans('Others'),
+	'01' => 'IVA',
+	'02' => 'IPSI',
+	'03' => 'IGIC',
+	'05' => $langs->trans('Others'),
 );
 
 $taxField = $formSetup->newItem('AUTOVERIFACTU_TAX')->setAsSelect($taxes);
@@ -164,23 +165,23 @@ $taxField->fieldParams['isMandatory'] = 1;
 $taxField->defaultFieldValue = '01';
 
 $regimes = array(
-    '01' => $langs->trans('VerifactuDetailsRegimeType01'),
-    '02' => $langs->trans('VerifactuDetailsRegimeType02'),
-    '03' => $langs->trans('VerifactuDetailsRegimeType03'),
-    '04' => $langs->trans('VerifactuDetailsRegimeType04'),
-    '05' => $langs->trans('VerifactuDetailsRegimeType05'),
-    '06' => $langs->trans('VerifactuDetailsRegimeType06'),
-    '07' => $langs->trans('VerifactuDetailsRegimeType07'),
-    '08' => $langs->trans('VerifactuDetailsRegimeType08'),
-    '09' => $langs->trans('VerifactuDetailsRegimeType09'),
-    '10' => $langs->trans('VerifactuDetailsRegimeType10'),
-    '11' => $langs->trans('VerifactuDetailsRegimeType11'),
-    '14' => $langs->trans('VerifactuDetailsRegimeType14'),
-    '15' => $langs->trans('VerifactuDetailsRegimeType15'),
-    '17' => $langs->trans('VerifactuDetailsRegimeType17'),
-    '18' => $langs->trans('VerifactuDetailsRegimeType18'),
-    '19' => $langs->trans('VerifactuDetailsRegimeType19'),
-    '20' => $langs->trans('VerifactuDetailsRegimeType20'),
+	'01' => $langs->trans('VerifactuDetailsRegimeType01'),
+	'02' => $langs->trans('VerifactuDetailsRegimeType02'),
+	'03' => $langs->trans('VerifactuDetailsRegimeType03'),
+	'04' => $langs->trans('VerifactuDetailsRegimeType04'),
+	'05' => $langs->trans('VerifactuDetailsRegimeType05'),
+	'06' => $langs->trans('VerifactuDetailsRegimeType06'),
+	'07' => $langs->trans('VerifactuDetailsRegimeType07'),
+	'08' => $langs->trans('VerifactuDetailsRegimeType08'),
+	'09' => $langs->trans('VerifactuDetailsRegimeType09'),
+	'10' => $langs->trans('VerifactuDetailsRegimeType10'),
+	'11' => $langs->trans('VerifactuDetailsRegimeType11'),
+	'14' => $langs->trans('VerifactuDetailsRegimeType14'),
+	'15' => $langs->trans('VerifactuDetailsRegimeType15'),
+	'17' => $langs->trans('VerifactuDetailsRegimeType17'),
+	'18' => $langs->trans('VerifactuDetailsRegimeType18'),
+	'19' => $langs->trans('VerifactuDetailsRegimeType19'),
+	'20' => $langs->trans('VerifactuDetailsRegimeType20'),
 );
 
 $regimeField = $formSetup->newItem('AUTOVERIFACTU_DEFAULT_REGIME')->setAsSelect($regimes);
@@ -204,24 +205,24 @@ $blocklog_field->fieldAttr['error'] = empty($conf->modules['blockedlog']);
 $invalid = $invalid || $blocklog_field->fieldAttr['error'];
 
 if ($invalid) {
-    $toggle->fieldAttr['disabled'] = true;
-    $toggle->fieldAttr['error'] = true;
+	$toggle->fieldAttr['disabled'] = true;
+	$toggle->fieldAttr['error'] = true;
 
-    ob_start();
+	ob_start();
 
-    ?>
-    <div style="opacity:0.4">
-        <div id="confirm_AUTOVERIFACTU_ENABLED" title="" style="display: none;"></div>
-        <span id="set_AUTOVERIFACTU_ENABLED" class="valignmiddle inline-block linkobject" style="cursor: default;">
-            <span class="fas fa-toggle-off" style=" color: #999;" title="Disabled"></span>
-        </span>
-        <span id="del_AUTOVERIFACTU_ENABLED" class="valignmiddle inline-block linkobject hideobject" style="cursor: default;">
-            <span class="fas fa-toggle-on font-status4" style="" title="Enabled"></span>
-        </span>
-    </div>
-    <?php
+	?>
+	<div style="opacity:0.4">
+		<div id="confirm_AUTOVERIFACTU_ENABLED" title="" style="display: none;"></div>
+		<span id="set_AUTOVERIFACTU_ENABLED" class="valignmiddle inline-block linkobject" style="cursor: default;">
+			<span class="fas fa-toggle-off" style=" color: #999;" title="Disabled"></span>
+		</span>
+		<span id="del_AUTOVERIFACTU_ENABLED" class="valignmiddle inline-block linkobject hideobject" style="cursor: default;">
+			<span class="fas fa-toggle-on font-status4" style="" title="Enabled"></span>
+		</span>
+	</div>
+	<?php
 
-    $toggle->fieldOverride = ob_get_clean();
+	$toggle->fieldOverride = ob_get_clean();
 }
 
 $formSetup->newItem('ADVANCED_SECTION_TITLE')->setAsTitle();
@@ -234,31 +235,31 @@ $setupnotempty += count($formSetup->items);
  */
 
 if ($action === 'update' && !empty($user->admin)) {
-    autoverifactuSetupPost();
+	autoverifactuSetupPost();
 
-    header('Location: ' . $_SERVER['PHP_SELF']);
+	header('Location: ' . $_SERVER['PHP_SELF']);
 } elseif ($action === 'upload' && !empty($user->admin)) {
-    $filepath = autoverifactuUploadCert();
+	$filepath = autoverifactuUploadCert();
 
-    if ($filepath) {
-        $filepath = str_replace(DOL_DATA_ROOT . '/', '', $filepath);
-        autoverifactu_set_const('AUTOVERIFACTU_CERT', $filepath);
-        $cert_field->fieldValue = $filepath;
-        header('Location: ' . $_SERVER['PHP_SELF']);
-    } else {
-        dol_syslog('Unable to upload the user cert file', LOG_ERR);
-        autoverifactu_set_const('AUTOVERIFACTU_CERT', null);
+	if ($filepath) {
+		$filepath = str_replace(DOL_DATA_ROOT . '/', '', $filepath);
+		autoverifactu_set_const('AUTOVERIFACTU_CERT', $filepath);
+		$cert_field->fieldValue = $filepath;
+		header('Location: ' . $_SERVER['PHP_SELF']);
+	} else {
+		dol_syslog('Unable to upload the user cert file', LOG_ERR);
+		autoverifactu_set_const('AUTOVERIFACTU_CERT', null);
 
-        http_response_code(400);
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?uploaderror=1');
-    }
+		http_response_code(400);
+		header('Location: ' . $_SERVER['PHP_SELF'] . '?uploaderror=1');
+	}
 }
 
 $certpath = getDolGlobalString('AUTOVERIFACTU_CERT');
 if (!is_file(DOL_DATA_ROOT . '/' . $certpath)) {
-    autoverifactu_set_const('AUTOVERIFACTU_CERT', '');
-    $cert_field->fieldValue = '';
-    $cert_field->fieldAttr['error'] = true;
+	autoverifactu_set_const('AUTOVERIFACTU_CERT', '');
+	$cert_field->fieldValue = '';
+	$cert_field->fieldAttr['error'] = true;
 }
 
 $action = 'edit';
@@ -275,7 +276,7 @@ $title = 'AutoverifactuSetup';
 llxHeader('', $langs->trans($title), $help_url, '', 0, 0, '', '', '', 'mod-autoverifactu page-admin');
 
 // Subheader
-$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php?restore_lastsearch_values=1">' . img_picto($langs->trans('BackToModuleList'), 'back', 'class="pictofixedwidth"').'<span class="hideonsmartphone">'.$langs->trans('BackToModuleList').'</span></a>';
+$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php?restore_lastsearch_values=1">' . img_picto($langs->trans('BackToModuleList'), 'back', 'class="pictofixedwidth"') . '<span class="hideonsmartphone">' . $langs->trans('BackToModuleList') . '</span></a>';
 
 echo load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 
@@ -283,58 +284,58 @@ echo load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 $head = autoverifactuAdminPrepareHead();
 
 echo dol_get_fiche_head(
-    $head,
-    'settings',
-    $langs->trans($title),
-    -1,
-    'autoverifactu@autoverifactu',
+	$head,
+	'settings',
+	$langs->trans($title),
+	-1,
+	'autoverifactu@autoverifactu',
 );
 
 // Setup page goes here
 echo '<span class="opacitymedium">' . $langs->trans('AutoverifactuSetupPage') . '</span><br><br>';
 
 if (!empty($formSetup->items)) {
-    echo '<div id="autoverifactuSetupForm">';
-    echo $formSetup->generateOutput(true);
-    echo '</div>';
+	echo '<div id="autoverifactuSetupForm">';
+	echo $formSetup->generateOutput(true);
+	echo '</div>';
 }
 
 if (empty($setupnotempty)) {
-    echo '<br>'.$langs->trans('NothingToSetup');
+	echo '<br>' . $langs->trans('NothingToSetup');
 }
 
 $formfile->form_attach_new_file(
-    $_SERVER["PHP_SELF"] . '?action=upload',
-    $langs->trans('UploadCertificate'),
-    0,
-    0,
-    1,
-    50,
-    null,
-    '',
-    1,
-    '',
-    0,
-    'autoverifactu-certupload',
-    '.p12',
-    '',
-    0,
-    0,
-    1,
-    0
+	$_SERVER['PHP_SELF'] . '?action=upload',
+	$langs->trans('UploadCertificate'),
+	0,
+	0,
+	1,
+	50,
+	null,
+	'',
+	1,
+	'',
+	0,
+	'autoverifactu-certupload',
+	'.p12',
+	'',
+	0,
+	0,
+	1,
+	0
 );
 
 // Page end
 echo dol_get_fiche_end();
 
 ?>
-    <script id="harry-potter">
-    document.addEventListener("DOMContentLoaded", function () {
-        const input = document.getElementById("AUTOVERIFACTU_PASSWORD");
-        input.removeAttribute("required");
-        input.removeAttribute("aria-required");
-    });
-    </script>
+	<script id="harry-potter">
+	document.addEventListener("DOMContentLoaded", function () {
+		const input = document.getElementById("AUTOVERIFACTU_PASSWORD");
+		input.removeAttribute("required");
+		input.removeAttribute("aria-required");
+	});
+	</script>
 <?php
 llxFooter();
 $db->close();
