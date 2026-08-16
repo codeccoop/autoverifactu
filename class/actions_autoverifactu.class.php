@@ -171,6 +171,7 @@ class ActionsAutoverifactu extends CommonHookActions
 					break;
 				case 'edit_extras':
 					$attribute = GETPOST('attribute', 'alpha');
+
 					//evito que se editen estos campos
 					if (
 						$attribute === 'verifactu_status' ||
@@ -272,7 +273,7 @@ class ActionsAutoverifactu extends CommonHookActions
 				if (!$result < 0) {
 					return $result;
 				}
-		}
+			}
 		}*/
 
 		return 0;
@@ -510,19 +511,19 @@ class ActionsAutoverifactu extends CommonHookActions
 				las lineas con las mismas tipos de taxas se deben de sumar
 
 				if (count($object->lines) > 12 && !empty($parameters['userRight'])) {
-				$label = $langs->trans('MaxInvoiceLines');
-				$button = dolGetButtonAction(
-					$label,
-					$parameters['html'],
-					$parameters['actionType'],
-					'',
-					$parameters['id'],
-					0,
-					$parameters['params']
-				);
+					$label = $langs->trans('MaxInvoiceLines');
+					$button = dolGetButtonAction(
+						$label,
+						$parameters['html'],
+						$parameters['actionType'],
+						'',
+						$parameters['id'],
+						0,
+						$parameters['params']
+					);
 
-				$this->resprints = $button;
-				return 1;
+					$this->resprints = $button;
+					return 1;
 				} */
 			}
 		}
