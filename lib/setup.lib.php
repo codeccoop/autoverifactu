@@ -44,6 +44,8 @@ function autoverifactuGetPost($field)
 
 /**
  * Handles POST requests to the module's setup page.
+ *
+ * @return null
  */
 function autoverifactuSetupPost()
 {

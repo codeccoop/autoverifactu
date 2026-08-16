@@ -1479,11 +1479,13 @@ function autoverifactuSoapEnvelopeMass($records, $issuer, $representative = null
 	return $xml->saveXML($envelope);
 }
 
-/*
-Esta funcion nos indica si un valor es 0 o esta vacio
-true si es cero o vacio
-false si tiene un valor != 0
-*/
+/**
+ * Esta funcion nos indica si un valor es 0 o esta vacio true si es cero o vacio false si tiene un valor != 0
+ *
+ * @param mixed $valor Valor a evaluar.
+ *
+ * @return bool
+ */
 function NumberIsZero($valor)
 {
 	if (!isset($valor)) {

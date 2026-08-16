@@ -37,41 +37,53 @@ require_once dirname(__DIR__) . '/lib/validation.lib.php';
 class ActionsAutoverifactu extends CommonHookActions
 {
 	/**
-	 * @var DoliDB Database handler.
+	 * Handles the dolibarr's database client singleton object.
+	 *
+	 * @var DoliDBMysqli
 	 */
 	public $db;
 
 	/**
-	 * @var string Error code (or message)
+	 * Handles an error code (or message).
+	 *
+	 * @var string
 	 */
 	public $error = '';
 
 	/**
-	 * @var string[] Errors.
+	 * Handles an array of string error codes (or messages).
+	 *
+	 * @var string[]
 	 */
 	public $errors = array();
 
 
 	/**
-	 * @var mixed[] Hook results. Propagated to $hookmanager->resArray for later reuse.
+	 * Hook results. Propagated to $hookmanager->resArray for later reuse.
+	 *
+	 * @var mixed[]
 	 */
 	public $results = array();
 
 	/**
-	 * @var ?string String displayed by executeHook() immediately after return.
+	 * String displayed by executeHook() immediately after return.
+	 *
+	 * @var ?string
 	 */
 	public $resprints;
 
 	/**
-	 * @var int     Priority of hook (50 is used if value is not defined).
+	 * Priority of hook (50 is used if value is not defined).
+	 *
+	 * @var ?int
 	 */
 	public $priority;
 
 
 	/**
-	 * Constructor
+	 * Class constructor.
 	 *
-	 *  @param DoliDB  $db      Database handler.
+	 *  @param DoliDBMysqli $db      Database handler.
 	 */
 	public function __construct($db)
 	{
@@ -270,8 +282,7 @@ class ActionsAutoverifactu extends CommonHookActions
 	 * invoice body is opened.
 	 *
 	 * @param array<string,mixed> $parameters     Array of parameters.
-	 * @param PDFCT               &$pdfhandler    Object output on PDF.
-	 * @param string              $action         'add', 'update', 'view'.
+	 * @param PDFCT               $pdfhandler    Object output on PDF.
 	 *
 	 * @return int                                 Return always 0.
 	 *                                              Overwrites the hookmanager results array
@@ -338,7 +349,7 @@ class ActionsAutoverifactu extends CommonHookActions
 	 * it adds a "verifactu" button to the row.
 	 *
 	 * @param array<string,mixed>  $parameters  Array of parameters.
-	 * @param CommonObect          &$object     Instance of the owner object of the page.
+	 * @param CommonObect          $object     Instance of the owner object of the page.
 	 * @param string               $action      Global action.
 	 *
 	 * @return null                              Empty response. The button
@@ -422,12 +433,12 @@ class ActionsAutoverifactu extends CommonHookActions
 	 * the state of the invoice.
 	 *
 	 * @param array<string,mixed>  $parameters  Array of parameters.
-	 * @param CommonObect          &$object     Instance of the owner object of
+	 * @param CommonObect          $object      Instance of the owner object of
 	 *                                          the page.
 	 * @param string               $action      Global action.
 	 *
-	 * @return int<0,1>                          1 if button has been overwrited,
-	 *                                           0 otherwise.
+	 * @return int<0,1>                         1 if button has been overwrited,
+	 *                                          0 otherwise.
 	 */
 	public function dolGetButtonAction(&$parameters, $object, $action)
 	{
@@ -513,22 +524,26 @@ class ActionsAutoverifactu extends CommonHookActions
 		}
 	}
 
+	/**
+	 * Form object options.
+	 *
+	 * @param array        $parameters Parameters
+	 * @param CommonObject $object     Object
+	 * @param string       $action     Action
+	 *
+	 * @return int
+	 */
 	public function formObjectOptions($parameters, $object, $action)
 	{
-
-		global $extrafields, $langs, $db ;
-
+		global $extrafields, $langs;
 
 		if ($parameters['currentcontext'] !== 'invoicecard' || $object->element !== 'facture') {
 			return;
 		}
 
-		if ($parameters['currentcontext'] === 'invoicecard' && $action === 'fixErrors' && $object->id > 0) {
-			//accion de mostrar los erroes y una explicacion
-			require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+		if ($action === 'fixErrors' && $object->id > 0) {
+			// Accion de mostrar los erroes y una explicacion
 			$langs->load('autoverifactu@autoverifactu');
-			$form = new Form($db);
-			$formquestion;
 
 			if ($object->array_options['options_verifactu_error_code'] === '2001' ) {
 				//El NIF del bloque Destinatarios no está identificado en el censo de la AEAT.
@@ -544,6 +559,7 @@ class ActionsAutoverifactu extends CommonHookActions
 				$url = $_SERVER['PHP_SELF'] . '?id=' . $object->id;
 				$this->formAlert($message, $url);
 			}
+
 			return 0;
 		}
 
@@ -556,30 +572,38 @@ class ActionsAutoverifactu extends CommonHookActions
 				),
 				true
 			) && $object->id !== null // never hide the field for invoice creation forms
-			// && $action === 'edit_extras'
 		) {
-			//$extrafields->attributes['facture']['list']['verifactu_rectification_type'] = '0';
+			$extrafields->attributes['facture']['list']['verifactu_rectification_type'] = '0';
+		} else {
+			echo '<style>.field_options_verifactu_rectification_type span.valignmiddle{font-weight:bold}</style>';
 		}
-		//css para ocultar de los campos adjuntos el icono de editar
-		print '
-        <style>
-            tr:has(#facture_extras_verifactu_error_' . $object->id . ') .editfielda {
-                display: none !important;
-            }
-            tr:has(#facture_extras_verifactu_hash_' . $object->id . ') .editfielda {
-                display: none !important;
-            }
-            tr:has(#facture_extras_verifactu_status_' . $object->id . ') .editfielda {
-                display: none !important;
-            }
-            .field_options_verifactu_rectification_type span.valignmiddle{
-                font-weight: bold;
-            }
-        </style>';
+
+		echo '
+    <style>
+        tr:has(#facture_extras_verifactu_error_' . $object->id . ') .editfielda {
+            display: none !important;
+        }
+        tr:has(#facture_extras_verifactu_hash_' . $object->id . ') .editfielda {
+            display: none !important;
+        }
+        tr:has(#facture_extras_verifactu_status_' . $object->id . ') .editfielda {
+            display: none !important;
+        }
+        .field_options_verifactu_rectification_type span.valignmiddle{
+            font-weight: bold;
+        }
+    </style>';
 	}
 
-	//funcion que genera una ventana emergente con el mensaje parado por parametro con un btn de aceptar,
-	// que te lleva a la url pasada por parametro.
+	/**
+	 * Funcion que genera una ventana emergente con el mensaje parado por parametro con un btn de aceptar,
+	 * que te lleva a la url pasada por parametro.
+	 *
+	 * @param string $message Mensaje a mostrar en la ventana.
+	 * @param string $url URL de destino del enlace de la notificación.
+	 *
+	 * @return null
+	 */
 	private function formAlert($message, $url)
 	{
 		?>
@@ -597,7 +621,7 @@ class ActionsAutoverifactu extends CommonHookActions
 						modal: true,
 						resizable: false,
 						closeOnEscape: true,
-						width: 550,  
+						width: 550,
 						height: "auto",
 						buttons: [
 							{
@@ -605,7 +629,6 @@ class ActionsAutoverifactu extends CommonHookActions
 								class: "button", // Clase CSS nativa de los botones de Dolibarr
 								click: function() {
 									jQuery(this).dialog("close");
-						  
 									window.location.href = '<?php echo $url ?>';
 								}
 							}

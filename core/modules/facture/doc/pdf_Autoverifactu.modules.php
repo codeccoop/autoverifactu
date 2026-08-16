@@ -44,10 +44,7 @@ require_once dirname(__DIR__, 4) . '/lib/validation.lib.php';
 require_once dirname(__DIR__, 4) . '/lib/autoverifactu.lib.php';
 
 
-//!importante
 /*
-
-
 7. Ubicación del QR en la factura
 El QR debe ubicarse al principio de la factura, preferentemente en:
 
@@ -62,41 +59,45 @@ Para garantizar la legibilidad del código QR en cualquier factura, su tamaño d
 30x30 mm como mínimo
 40x40 mm como máximo
 Este rango asegura que el QR pueda ser escaneado correctamente por cualquier dispositivo.
-
- */
-
-
-
-
-
+*/
 
 /**
- *	Class to generate the customer invoice PDF with template Verifactu
+ * Class to generate the customer invoice PDF with template Verifactu
  */
 class pdf_Autoverifactu extends ModelePDFFactures
 {
 	/**
-	 * @var DoliDB Database handler
+	 * Database handler.
+	 *
+	 * @var DoliDB
 	 */
 	public $db;
 
 	/**
-	 * @var string model name
+	 * Model name.
+	 *
+	 * @var string
 	 */
 	public $name;
 
 	/**
-	 * @var string model description (short text)
+	 * Model description (short text)
+	 *
+	 * @var string
 	 */
 	public $description;
 
 	/**
-	 * @var int 	Save the name of generated file as the main doc when generating a doc with this template
+	 * Save the name of generated file as the main doc when generating a doc with this template
+	 *
+	 * @var int
 	 */
 	public $update_main_doc_field;
 
 	/**
-	 * @var string document type
+	 * Document type
+	 *
+	 * @var string
 	 */
 	public $type;
 
@@ -108,34 +109,38 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	public $version = 'dolibarr';
 
 	/**
-	 * @var bool Situation invoice type
+	 * Situation invoice type
+	 *
+	 * @var bool
 	 */
 	public $situationinvoice;
 
 	/**
-	 * @var float X position for the situation progress column
+	 * X position for the situation progress column
+	 *
+	 * @var float
 	 */
 	public $posxprogress;
 
 	/**
-	 * @var int Category of operation
+	 * Category of operation
+	 *
+	 * @var int
 	 */
 	public $categoryOfOperation = -1; // unknown by default
 
 
 	/**
-	 *	Constructor
+	 * Constructor
 	 *
-	 *  @param DoliDB		$db      Database handler
+	 * @param DoliDB $db Database handler.
 	 */
 	public function __construct($db)
 	{
-		global $conf, $langs, $mysoc;
+		global $langs, $mysoc;
 
 		// Translations
 		$langs->loadLangs(array('main', 'bills'));
-
-
 
 		$this->db = $db;
 		$this->name = 'Autoverifactu';
@@ -216,12 +221,13 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	/**
 	 *  Function to build pdf onto disk
 	 *
-	 *  @param  Facture		$object				Object to generate
-	 *  @param  Translate	$outputlangs		Lang output object
-	 *  @param  string		$srctemplatepath	Full path of source filename for generator using a template file
-	 *  @param  int			$hidedetails		Do not show line details
-	 *  @param  int			$hidedesc			Do not show desc
-	 *  @param  int			$hideref			Do not show ref
+	 *  @param Facture		$object				Object to generate
+	 *  @param Translate	$outputlangs		Lang output object
+	 *  @param string		$srctemplatepath	Full path of source filename for generator using a template file
+	 *  @param int			$hidedetails		Do not show line details
+	 *  @param int			$hidedesc			Do not show desc
+	 *  @param int			$hideref			Do not show ref
+	 *
 	 *  @return int         	    			1=OK, 0=KO
 	 */
 	public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
@@ -971,11 +977,12 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	/**
 	 *  Show payments table
 	 *
-	 *  @param	TCPDF		$pdf            	Object PDF
-	 *  @param  Facture		$object         	Object invoice
-	 *  @param  int			$posy           	Position y in PDF
-	 *  @param  Translate	$outputlangs    	Object langs for output
-	 *  @param  int			$heightforfooter 	Height for footer
+	 *  @param TCPDF		$pdf            	Object PDF
+	 *  @param Facture		$object         	Object invoice
+	 *  @param int			$posy           	Position y in PDF
+	 *  @param Translate	$outputlangs    	Object langs for output
+	 *  @param int			$heightforfooter 	Height for footer
+	 *
 	 *  @return int             				Return integer <0 if KO, >0 if OK
 	 */
 	protected function _tableau_versements(&$pdf, $object, $posy, $outputlangs, $heightforfooter = 0)
@@ -1128,14 +1135,15 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	/**
 	 * Function _tableau_versements_header
 	 *
-	 * @param  TCPDF 		$pdf				Object PDF
-	 * @param  Facture		$object				Object invoice
-	 * @param  Translate		$outputlangs		Object langs for output
-	 * @param  int			$default_font_size	Font size
-	 * @param  int			$tab3_posx			pos x
-	 * @param  int 			$tab3_top			pos y
-	 * @param  int 			$tab3_width			width
-	 * @param  int 			$tab3_height		height
+	 * @param TCPDF 		$pdf				Object PDF
+	 * @param Facture		$object				Object invoice
+	 * @param Translate		$outputlangs		Object langs for output
+	 * @param int			$default_font_size	Font size
+	 * @param int			$tab3_posx			pos x
+	 * @param int 			$tab3_top			pos y
+	 * @param int 			$tab3_width			width
+	 * @param int 			$tab3_height		height
+	 *
 	 * @return void
 	 */
 	protected function _tableau_versements_header($pdf, $object, $outputlangs, $default_font_size, $tab3_posx, $tab3_top, $tab3_width, $tab3_height)
@@ -1170,11 +1178,12 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	/**
 	 *   Show miscellaneous information (payment mode, payment term, ...)
 	 *
-	 *   @param  TCPDF		$pdf     		Object PDF
-	 *   @param  Facture		$object			Object to show
-	 *   @param  int			$posy			Y
-	 *   @param  Translate	$outputlangs	Langs object
-	 *   @param  Translate	$outputlangsbis	Object lang for output bis
+	 *   @param TCPDF		$pdf     		Object PDF
+	 *   @param Facture		$object			Object to show
+	 *   @param int			$posy			Y
+	 *   @param Translate	$outputlangs	Langs object
+	 *   @param Translate	$outputlangsbis	Object lang for output bis
+	 *
 	 *   @return int							Pos y
 	 */
 	protected function _tableau_info(&$pdf, $object, $posy, $outputlangs, $outputlangsbis)
@@ -1389,12 +1398,13 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	/**
 	 *	Show total to pay
 	 *
-	 *	@param	TCPDF		$pdf            Object PDF
-	 *	@param  Facture		$object         Object invoice
-	 *	@param  int			$deja_regle     Amount already paid (in the currency of invoice)
-	 *	@param	int			$posy			Position depart
-	 *	@param	Translate	$outputlangs	Object langs
-	 *  @param  Translate	$outputlangsbis	Object lang for output bis
+	 *	@param TCPDF		$pdf            Object PDF
+	 *	@param Facture		$object         Object invoice
+	 *	@param int			$deja_regle     Amount already paid (in the currency of invoice)
+	 *	@param int			$posy			Position depart
+	 *	@param Translate	$outputlangs	Object langs
+	 *  @param Translate	$outputlangsbis	Object lang for output bis
+	 *
 	 *	@return int							Position pour suite
 	 */
 	protected function _tableau_tot(&$pdf, $object, $deja_regle, $posy, $outputlangs, $outputlangsbis)
@@ -1747,14 +1757,15 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	/**
 	 *   Show table for lines
 	 *
-	 *   @param  TCPDF		$pdf     		Object PDF
-	 *   @param  float|int	$tab_top		Top position of table
-	 *   @param  float|int	$tab_height		Height of table (rectangle)
-	 *   @param  int			$nexY			Y (not used)
-	 *   @param  Translate	$outputlangs	Langs object
-	 *   @param  int			$hidetop		1=Hide top bar of array and title, 0=Hide nothing, -1=Hide only title
-	 *   @param  int			$hidebottom		Hide bottom bar of array
-	 *   @param  string		$currency		Currency code
+	 *   @param TCPDF		$pdf     		Object PDF
+	 *   @param float|int	$tab_top		Top position of table
+	 *   @param float|int	$tab_height		Height of table (rectangle)
+	 *   @param int			$nexY			Y (not used)
+	 *   @param Translate	$outputlangs	Langs object
+	 *   @param int			$hidetop		1=Hide top bar of array and title, 0=Hide nothing, -1=Hide only title
+	 *   @param int			$hidebottom		Hide bottom bar of array
+	 *   @param string		$currency		Currency code
+	 *
 	 *   @return void
 	 */
 	protected function _tableau(&$pdf, $tab_top, $tab_height, $nexY, $outputlangs, $hidetop = 0, $hidebottom = 0, $currency = '')
@@ -1868,11 +1879,12 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	/**
 	 *  Show top header of page.
 	 *
-	 *  @param	TCPDF		$pdf     		Object PDF
-	 *  @param  Facture		$object     	Object to show
-	 *  @param  int	    	$showaddress    0=no, 1=yes
-	 *  @param  Translate	$outputlangs	Object lang for output
-	 *  @param  Translate	$outputlangsbis	Object lang for output bis
+	 *  @param TCPDF		$pdf     		Object PDF
+	 *  @param Facture		$object     	Object to show
+	 *  @param int	    	$showaddress    0=no, 1=yes
+	 *  @param Translate	$outputlangs	Object lang for output
+	 *  @param Translate	$outputlangsbis	Object lang for output bis
+	 *
 	 *  @return	float|int                   Return topshift value
 	 */
 	protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs, $outputlangsbis = null)
@@ -2047,14 +2059,6 @@ class pdf_Autoverifactu extends ModelePDFFactures
 				$title .= $outputlangsbis->transnoentities('InvoiceProForma');
 			}
 		}
-
-
-
-
-
-
-
-
 
 		$title .= ' ' . $outputlangs->convToOutputCharset($object->ref);
 		if ($object->statut == $object::STATUS_DRAFT) {
@@ -2350,20 +2354,20 @@ class pdf_Autoverifactu extends ModelePDFFactures
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.PublicUnderscore
 	/**
-	 *   	Show footer of page. Need this->emetteur object
+	 * Show footer of page. Need this->emetteur object
 	 *
-	 *   	@param	TCPDF		$pdf     			PDF
-	 * 		@param	Facture		$object				Object to show
-	 *      @param	Translate	$outputlangs		Object lang for output
-	 *      @param	int			$hidefreetext		1=Hide free text
-	 *      @param	int			$heightforqrinvoice	Height for QR invoices
-	 *      @return	int								Return height of bottom margin including footer text
+	 * @param TCPDF     $pdf                PDF
+	 * @param Facture   $object             Object to show
+	 * @param Translate $outputlangs        Object lang for output
+	 * @param int       $hidefreetext       1=Hide free text
+	 * @param int       $heightforqrinvoice Height for QR invoices
+	 *
+	 * @return int                          Return height of bottom margin including footer text
 	 */
 	protected function _pagefoot(&$pdf, $object, $outputlangs, $hidefreetext = 0, $heightforqrinvoice = 0)
 	{
 
 		$showdetails = getDolGlobalInt('MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS', 0);
-
 
 		$text = 'En cumplimiento de la normativa de Protección de Datos le informamos que el RESPONSABLE del tratamiento de los mismos es OYR SOLUTIONS S.L.
 gestionados con la FINALIDAD de expedir un presupuesto o la correspondiente factura por la compra de un presto  o la prestación de alguno de nuestros servicios. La LEGITIMACIÓN se basa en la existencia de una relación comercial de compra de productos o contractual para la prestación de un servicio. Serán DESTINATARIOS de sus datos aquellas organizaciones o entidades directamente relacionadas con el Responsable, así como las Administraciones Públicas con competencia en la materia. El plazo de CONSERVACIÓN de sus datos será hasta el fin de la prestación del servicio, y una vez finalizado, hasta que se solicite su supresión por parte del interesado. Entre sus DERECHOS se encuentra el de acceder, rectificar y suprimir, así como el de oposición, limitación y portabilidad.

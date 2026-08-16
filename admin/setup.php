@@ -34,31 +34,30 @@ require_once dirname(__DIR__) . '/lib/setup.lib.php';
 require_once dirname(__DIR__) . '/lib/validation.lib.php';
 
 /**
+ * Global variables.
+ *
  * @var Conf $conf
  * @var DoliDB $db
  * @var HookManager $hookmanager
  * @var Translate $langs
  * @var User $user
  */
-
 global $db, $langs, $conf;
 
-// Translations
+/* Translations */
 $langs->loadLangs(array('admin', 'autoverifactu@autoverifactu'));
 
-// Initialize a technical object to manage hooks of page. Note that conf->hooks_modules contains an array of hook context
-/**
- * @var HookManager $hookmanager
-*/
+// Initialize a technical object to manage hooks of page. Note that conf->hooks_modules
+// contains an array of hook context.
 $hookmanager->initHooks(array('autoverifactusetup', 'globalsetup'));
 
-// Parameters
+/* Parameters */
 $action = GETPOST('action', 'aZ09');
 
 $error = 0;
 $setupnotempty = 0;
 
-// Access control
+/* Access control */
 if (!$user->admin) {
 	accessforbidden();
 }

@@ -368,8 +368,9 @@ function autoverifactuEnabled()
 /**
  * Performs record data validation.
  *
- * @param  stdClass $record Target record.
- * @param  array $error error array
+ * @param stdClass $record Target record.
+ * @param array $error error array
+ *
  * @return int              0 if validatio fail, 1 if succeed
  */
 function autoverifactuValidateRecord($record, &$error)
@@ -536,8 +537,9 @@ function autoverifactuIsPosInvoice($invoice)
 /**
  * Performs validation checks to the record values.
  *
- * @param  stdClass $record Invoice record object.
- * @param  array $error array de errores
+ * @param stdClass $record Invoice record object.
+ * @param array $error array de errores
+ *
  * @return bool
  */
 function autoverifactuValidateRecordValues($record, &$error)
