@@ -171,6 +171,7 @@ class ActionsAutoverifactu extends CommonHookActions
 					break;
 				case 'edit_extras':
 					$attribute = GETPOST('attribute', 'alpha');
+
 					//evito que se editen estos campos
 					if (
 						$attribute === 'verifactu_status' ||
@@ -179,9 +180,9 @@ class ActionsAutoverifactu extends CommonHookActions
 						$attribute === 'verifactu_error_code' ||
 						$attribute === 'verifactu_pdfLegalText' ||
 						$attribute === 'VerifactuTimeStamp'
-						) {
-							$this->errors[] = $langs->trans('NotEdit');
-							$action = '';
+					) {
+						$this->errors[] = $langs->trans('NotEdit');
+						$action = '';
 					}
 					break;
 				case 'add':
@@ -222,6 +223,7 @@ class ActionsAutoverifactu extends CommonHookActions
 			if ($action === 'update' && autoverifactuEnabled()) {
 				$forbidden = $mysoc->nom !== GETPOST('name')
 					|| $mysoc->idprof1 !== GETPOST('siren');
+
 				if ($forbidden) {
 					$_POST['name'] = $mysoc->nom;
 					$_POST['siren'] = $mysoc->idprof1;
@@ -329,7 +331,7 @@ class ActionsAutoverifactu extends CommonHookActions
 					'border' => false,
 					'padding' => 2,
 					'fgcolor' => array(25, 25, 25),
-					 'bgcolor' => array(255, 255, 255), //margen color blanco con padding 2mm
+					'bgcolor' => array(255, 255, 255), //margen color blanco con padding 2mm
 					'module_width' => 1,
 					'module_height' => 1,
 				),
@@ -381,14 +383,15 @@ class ActionsAutoverifactu extends CommonHookActions
 				)
 			);
 		}
+
 		//Boton para mostrar los errores de factura
 		if ( $object->element === 'facture'
 			&& $object->status > Facture::STATUS_DRAFT
 			&& $object->type <= Facture::TYPE_DEPOSIT
 			&& autoverifactuEnabled()
 			&& $object->array_options['options_verifactu_status'] === '4'
-			) {
-							echo dolGetButtonAction(
+		) {
+			echo dolGetButtonAction(
 				$langs->trans('fixErrors'),
 				$langs->trans('fixErrors'),
 				'default',
@@ -400,17 +403,19 @@ class ActionsAutoverifactu extends CommonHookActions
 						'class' => 'classfortooltip',
 						'title' => ''
 					),
-							 )
+				),
 			);
 		}
+
 		//permitir reenviar la facturas con errores
-		if ( $object->element === 'facture'
+		if (
+			$object->element === 'facture'
 			&& $object->status > Facture::STATUS_DRAFT
 			&& $object->type <= Facture::TYPE_DEPOSIT
 			&& autoverifactuEnabled()
 			&& in_array($object->array_options['options_verifactu_status'], array('2','4','5'), true)
-			) {
-				echo dolGetButtonAction(
+		) {
+			echo dolGetButtonAction(
 				$langs->trans('VerifactuResend'),
 				$langs->trans('VerifactuResend'),
 				'default',
@@ -422,7 +427,7 @@ class ActionsAutoverifactu extends CommonHookActions
 						'class' => 'classfortooltip',
 						'title' => ''
 					),
-				)
+				),
 			);
 		}
 	}
@@ -471,8 +476,8 @@ class ActionsAutoverifactu extends CommonHookActions
 					$parameters['params']
 				);
 
-					$this->resprints = $button;
-					return 1;
+				$this->resprints = $button;
+				return 1;
 			} elseif ($object->status == Facture::STATUS_DRAFT && $action === 'valid') {
 				$object->fetch_thirdparty();
 				$thirdparty = $object->thirdparty;
@@ -577,22 +582,6 @@ class ActionsAutoverifactu extends CommonHookActions
 		} else {
 			echo '<style>.field_options_verifactu_rectification_type span.valignmiddle{font-weight:bold}</style>';
 		}
-
-		echo '
-    <style>
-        tr:has(#facture_extras_verifactu_error_' . $object->id . ') .editfielda {
-            display: none !important;
-        }
-        tr:has(#facture_extras_verifactu_hash_' . $object->id . ') .editfielda {
-            display: none !important;
-        }
-        tr:has(#facture_extras_verifactu_status_' . $object->id . ') .editfielda {
-            display: none !important;
-        }
-        .field_options_verifactu_rectification_type span.valignmiddle{
-            font-weight: bold;
-        }
-    </style>';
 	}
 
 	/**
