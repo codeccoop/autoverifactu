@@ -71,7 +71,7 @@ class ActionsAutoverifactu extends CommonHookActions
 	/**
 	 * Constructor
 	 *
-	 *  @param  DoliDB  $db      Database handler.
+	 *  @param DoliDB  $db      Database handler.
 	 */
 	public function __construct($db)
 	{
@@ -81,12 +81,12 @@ class ActionsAutoverifactu extends CommonHookActions
 	/**
 	 * Overload the doActions function : replacing the parent's function with the one below
 	 *
-	 * @param   array<string,mixed> $parameters     Hook metadata (context, etc...)
-	 * @param   CommonObject        $object         The object to process (an invoice if you are
-	 *                                              in invoice module, a propale in propale's module, etc...)
-	 * @param   ?string             $action         Current action (if set). Generally create or edit or null
+	 * @param array<string,mixed> $parameters     Hook metadata (context, etc...)
+	 * @param CommonObject        $object         The object to process (an invoice if you are
+	 *                                            in invoice module, a propale in propale's module, etc...)
+	 * @param ?string             $action         Current action (if set). Generally create or edit or null
 	 *
-	 * @return  int                                 Return integer < 0 on error, 0 on success, 1 to replace
+	 * @return int                                 Return integer < 0 on error, 0 on success, 1 to replace
 	 *                                              standard code
 	 */
 	public function doActions($parameters, &$object, &$action)
@@ -95,9 +95,9 @@ class ActionsAutoverifactu extends CommonHookActions
 		global $langs, $mysoc, $dolibarr_main_url_root;
 
 
-		if ($parameters['currentcontext'] ==='invoicelist') {
+		if ($parameters['currentcontext'] === 'invoicelist') {
 			//añade estilo a los estados de verifactu.
-			echo '<link rel="stylesheet" type="text/css" href="'.$dolibarr_main_url_root.'/custom/autoverifactu/css/selector_status.css.php">';
+			echo '<link rel="stylesheet" type="text/css" href="' . $dolibarr_main_url_root . '/custom/autoverifactu/css/selector_status.css.php">';
 		}
 
 		if ($parameters['currentcontext'] === 'invoicecard') {
@@ -158,15 +158,15 @@ class ActionsAutoverifactu extends CommonHookActions
 					}
 					break;
 				case 'edit_extras':
-					$attribute=GETPOST("attribute", "alpha");
+					$attribute = GETPOST('attribute', 'alpha');
 					//evito que se editen estos campos
 					if (
-						$attribute==="verifactu_status" ||
-						$attribute==="verifactu_hash" ||
-						$attribute === "verifactu_error" ||
-						$attribute === "verifactu_error_code" ||
-						$attribute ==="verifactu_pdfLegalText" ||
-						$attribute==="VerifactuTimeStamp"
+						$attribute === 'verifactu_status' ||
+						$attribute === 'verifactu_hash' ||
+						$attribute === 'verifactu_error' ||
+						$attribute === 'verifactu_error_code' ||
+						$attribute === 'verifactu_pdfLegalText' ||
+						$attribute === 'VerifactuTimeStamp'
 						) {
 							$this->errors[] = $langs->trans('NotEdit');
 							$action = '';
@@ -174,25 +174,25 @@ class ActionsAutoverifactu extends CommonHookActions
 					break;
 				case 'add':
 					if (in_array($object->type, array(Facture::TYPE_REPLACEMENT,Facture::TYPE_CREDIT_NOTE), true)) {
-						$rectificationType=GETPOST("options_verifactu_rectification_type", "alpha");
+						$rectificationType = GETPOST('options_verifactu_rectification_type', 'alpha');
 
 						if (empty($rectificationType)) {
 							$this->errors[] = $langs->trans('RectificationTypeRequired');
-							header('Location: '.$_SERVER['PHP_SELF'].'?action=create');
+							header('Location: ' . $_SERVER['PHP_SELF'] . '?action=create');
 						}
 					}
 
 					break;
 				case 'verifactuResend':
 					//esta accion se da cuando una factura ha tenido un error y se quiere reenviar unavez subsanado el error
-					$now=new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
+					$now = new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
 					//compruebo que el a pasado el tiempo de espera par la proxima peticion de la api
-					if ($now->getTimestamp()<getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0')) {
+					if ($now->getTimestamp() < getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0')) {
 						//en caso de que no se pueda enviar lo indico
 						$langs->load('autoverifactu@autoverifactu');
-						$this->errors[] = $langs->trans('notToDoList', getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED')-$now->getTimestamp());
+						$this->errors[] = $langs->trans('notToDoList', getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED') - $now->getTimestamp());
 						return 0;
-					} elseif (in_array($object->array_options['options_verifactu_status'], array("2","4","5"), true)) {
+					} elseif (in_array($object->array_options['options_verifactu_status'], array('2','4','5'), true)) {
 						//en caso de poder enviarla lo envio
 						$result = autoverifactuRegisterInvoice($object, $action);
 						if ($result <= 0) {
@@ -229,11 +229,11 @@ class ActionsAutoverifactu extends CommonHookActions
 	/**
 	 * Execute action before PDF (document) creation
 	 *
-	 * @param   array<string,mixed> $parameters Array of parameters.
-	 * @param   CommonObject        $object     Object output on PDF.
-	 * @param   string              $action     'add', 'update', 'view'.
+	 * @param array<string,mixed> $parameters Array of parameters.
+	 * @param CommonObject        $object     Object output on PDF.
+	 * @param string              $action     'add', 'update', 'view'.
 	 *
-	 * @return  int                             Return integer <0 if KO,
+	 * @return int                             Return integer <0 if KO,
 	 *                                          =0 if OK but we want to process standard actions too,
 	 *                                          >0 if OK and we want to replace standard actions.
 	 */
@@ -269,11 +269,11 @@ class ActionsAutoverifactu extends CommonHookActions
 	 * Execute action after PDF (document) header creation. Writes the QR code before the
 	 * invoice body is opened.
 	 *
-	 * @param   array<string,mixed> $parameters     Array of parameters.
-	 * @param   PDFCT               &$pdfhandler    Object output on PDF.
-	 * @param   string              $action         'add', 'update', 'view'.
+	 * @param array<string,mixed> $parameters     Array of parameters.
+	 * @param PDFCT               &$pdfhandler    Object output on PDF.
+	 * @param string              $action         'add', 'update', 'view'.
 	 *
-	 * @return  int                                 Return always 0.
+	 * @return int                                 Return always 0.
 	 *                                              Overwrites the hookmanager results array
 	 */
 	public function printUnderHeaderPDFline($parameters, &$pdfhandler)
@@ -286,7 +286,7 @@ class ActionsAutoverifactu extends CommonHookActions
 			&& $object->status > Facture::STATUS_DRAFT
 			&& $object->type <= Facture::TYPE_DEPOSIT
 			&& autoverifactuEnabled()
-			&& $modelpdf !== "Autoverifactu" //en caso de que no tenga la plantilla autoverifactu que ya incluye el QR
+			&& $modelpdf !== 'Autoverifactu' //en caso de que no tenga la plantilla autoverifactu que ya incluye el QR
 		) {
 			$pdf = &$parameters['pdf'];
 
@@ -304,14 +304,14 @@ class ActionsAutoverifactu extends CommonHookActions
 			//A este respecto, se deben mantener como mínimo 2 milímetros de espacio vacío (en blanco) alrededor de los cuatro lados del código «QR», recomendándose que sean 6 milímetros.
 			//La presentación del código «QR» incluirá también un texto que siempre deberá ir precediéndolo: «QR tributario:», y que se situará encima del propio código «QR»
 			// (preferiblemente centrado con respecto a este), de manera que sirva para identificarlo y distinguirlo de otros posibles códigos «QR» que pudiera contener la factura para otros cometidos.
-			$pdf->setTopMargin($pdfhandler->tab_top -5);
+			$pdf->setTopMargin($pdfhandler->tab_top - 5);
 			$pdf->MultiCell(30, 10, 'QR tributario:', 0, 'C', 0, 1);
 
 			$pdf->write2DBarcode(
 				$base_url . $endpoint . '?' . $query,
 				'QRCODE,M',
 				$pdfhandler->marge_gauche,
-				$pdfhandler->tab_top-1,
+				$pdfhandler->tab_top - 1,
 				32,
 				32,
 				array(
@@ -337,9 +337,9 @@ class ActionsAutoverifactu extends CommonHookActions
 	 * Execute action on card page buttons render. If it is a facture page,
 	 * it adds a "verifactu" button to the row.
 	 *
-	 * @param  array<string,mixed>  $parameters  Array of parameters.
-	 * @param  CommonObect          &$object     Instance of the owner object of the page.
-	 * @param  string               $action      Global action.
+	 * @param array<string,mixed>  $parameters  Array of parameters.
+	 * @param CommonObect          &$object     Instance of the owner object of the page.
+	 * @param string               $action      Global action.
 	 *
 	 * @return null                              Empty response. The button
 	 *                                           html is echoed to the output
@@ -397,7 +397,7 @@ class ActionsAutoverifactu extends CommonHookActions
 			&& $object->status > Facture::STATUS_DRAFT
 			&& $object->type <= Facture::TYPE_DEPOSIT
 			&& autoverifactuEnabled()
-			&& in_array($object->array_options['options_verifactu_status'], array("2","4","5"), true)
+			&& in_array($object->array_options['options_verifactu_status'], array('2','4','5'), true)
 			) {
 				echo dolGetButtonAction(
 				$langs->trans('VerifactuResend'),
@@ -421,10 +421,10 @@ class ActionsAutoverifactu extends CommonHookActions
 	 * then check userRights for each button based on the button action and
 	 * the state of the invoice.
 	 *
-	 * @param  array<string,mixed>  $parameters  Array of parameters.
-	 * @param  CommonObect          &$object     Instance of the owner object of
-	 *                                           the page.
-	 * @param  string               $action      Global action.
+	 * @param array<string,mixed>  $parameters  Array of parameters.
+	 * @param CommonObect          &$object     Instance of the owner object of
+	 *                                          the page.
+	 * @param string               $action      Global action.
 	 *
 	 * @return int<0,1>                          1 if button has been overwrited,
 	 *                                           0 otherwise.
@@ -523,25 +523,25 @@ class ActionsAutoverifactu extends CommonHookActions
 			return;
 		}
 
-		if ($parameters['currentcontext'] === 'invoicecard' && $action==="fixErrors" && $object->id>0) {
+		if ($parameters['currentcontext'] === 'invoicecard' && $action === 'fixErrors' && $object->id > 0) {
 			//accion de mostrar los erroes y una explicacion
 			require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
 			$langs->load('autoverifactu@autoverifactu');
 			$form = new Form($db);
 			$formquestion;
 
-			if ($object->array_options['options_verifactu_error_code'] === "2001" ) {
+			if ($object->array_options['options_verifactu_error_code'] === '2001' ) {
 				//El NIF del bloque Destinatarios no está identificado en el censo de la AEAT.
-				$message = $langs->trans("Errorcode2001", $object->thirdparty->idprof1);
+				$message = $langs->trans('Errorcode2001', $object->thirdparty->idprof1);
 				$parametros = $_GET;
 				$parametros['id'] = $object->id;
-				$url= $_SERVER["PHP_SELF"] . "?id=" . $object->id;
+				$url = $_SERVER['PHP_SELF'] . '?id=' . $object->id;
 				$this->formAlert($message, $url);
 			} else {
 				//los demas errores en teoria no deberian producirse porque la aplicación
 				//daria error y no enviaria la petición
-				$message= $langs->trans("ErrorCodeErrorAplication");
-				$url= $_SERVER["PHP_SELF"] . "?id=" . $object->id;
+				$message = $langs->trans('ErrorCodeErrorAplication');
+				$url = $_SERVER['PHP_SELF'] . '?id=' . $object->id;
 				$this->formAlert($message, $url);
 			}
 			return 0;

@@ -19,15 +19,15 @@ class VerifactuQueue
 	{
 		global $conf, $langs;
 		$langs->load('autoverifactu@autoverifactu');
-		$now=new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
-		if ($now->getTimestamp()<getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0')) {
+		$now = new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
+		if ($now->getTimestamp() < getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0')) {
 			//sigue en espera
 			return 0;
 		} else {
 			//se puede enviar
 			include_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 			//obtengo las facturas en cola max 30.
-			$sql = "SELECT fk_object FROM " . MAIN_DB_PREFIX . "facture_extrafields WHERE verifactu_status ='3'  LIMIT 30";
+			$sql = 'SELECT fk_object FROM ' . MAIN_DB_PREFIX . "facture_extrafields WHERE verifactu_status ='3'  LIMIT 30";
 			$resql = $this->db->query($sql);
 			if ($resql && $this->db->num_rows($resql) > 0) {
 				//en caso de existir facturas en cola genero un array con las facturas

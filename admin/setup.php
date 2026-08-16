@@ -47,7 +47,9 @@ global $db, $langs, $conf;
 $langs->loadLangs(array('admin', 'autoverifactu@autoverifactu'));
 
 // Initialize a technical object to manage hooks of page. Note that conf->hooks_modules contains an array of hook context
-/** @var HookManager $hookmanager */
+/**
+ * @var HookManager $hookmanager
+*/
 $hookmanager->initHooks(array('autoverifactusetup', 'globalsetup'));
 
 // Parameters
@@ -275,7 +277,7 @@ $title = 'AutoverifactuSetup';
 llxHeader('', $langs->trans($title), $help_url, '', 0, 0, '', '', '', 'mod-autoverifactu page-admin');
 
 // Subheader
-$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php?restore_lastsearch_values=1">' . img_picto($langs->trans('BackToModuleList'), 'back', 'class="pictofixedwidth"').'<span class="hideonsmartphone">'.$langs->trans('BackToModuleList').'</span></a>';
+$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php?restore_lastsearch_values=1">' . img_picto($langs->trans('BackToModuleList'), 'back', 'class="pictofixedwidth"') . '<span class="hideonsmartphone">' . $langs->trans('BackToModuleList') . '</span></a>';
 
 echo load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 
@@ -300,11 +302,11 @@ if (!empty($formSetup->items)) {
 }
 
 if (empty($setupnotempty)) {
-	echo '<br>'.$langs->trans('NothingToSetup');
+	echo '<br>' . $langs->trans('NothingToSetup');
 }
 
 $formfile->form_attach_new_file(
-	$_SERVER["PHP_SELF"] . '?action=upload',
+	$_SERVER['PHP_SELF'] . '?action=upload',
 	$langs->trans('UploadCertificate'),
 	0,
 	0,

@@ -50,9 +50,9 @@ define('AUTOVERIFACTU_XD_NS', 'http://www.w3.org/2000/09/xmldsig');
 /**
  * Verifactu invoice record registration.
  *
- * @param  Facture $invoice Target invoice. Invoice should not be validated, or
- *                          action should be BILL_CANCEL.
- * @param  string  $action  Current action.
+ * @param Facture $invoice Target invoice. Invoice should not be validated, or
+ *                         action should be BILL_CANCEL.
+ * @param string  $action  Current action.
  *
  * @return int              Return <0 if KO, 0 if skipped, >0 if OK.
 */
@@ -95,11 +95,11 @@ function autoverifactuRegisterInvoice($invoice, $action)
 	;
 	if (empty($conf->facture->multidir_output[$conf->entity])) {
 		dol_syslog('Constant $conf->facture->multidir_output not defined', LOG_ERR);
-		$invoice->error[]="NotExistInvoiceOutput"; //añado el error
+		$invoice->error[] = 'NotExistInvoiceOutput'; //añado el error
 		return -1;
 	}
 
-	$now=new DateTimeImmutable(
+	$now = new DateTimeImmutable(
 		'now',
 		new DateTimeZone('Europe/Madrid'),
 	);
@@ -111,14 +111,14 @@ function autoverifactuRegisterInvoice($invoice, $action)
 	//las facturas simplificadas no tienen tercero y por tanto tienen que evitar esta validación
 	if (!autoverifactuIsPosInvoice($invoice) && $valid_id <= 0 && !$thirdparty->tva_intra) {
 		dol_syslog('Skip invoice verifactu record registration due to thirdparty without a vaid idprof1');
-		$invoice->error[]="NotNIFThirdparty";
+		$invoice->error[] = 'NotNIFThirdparty';
 		return -1;
 	}
 
 	$invoice->fetch_lines();
 	if (!count($invoice->lines)) {
 		dol_syslog('Skip invoice verifactu record registration to an invoice without lines');
-		$invoice->error[]="NotLinesFacure";
+		$invoice->error[] = 'NotLinesFacure';
 		return -1;
 	}
 
@@ -127,20 +127,20 @@ function autoverifactuRegisterInvoice($invoice, $action)
 	//he añadido la fecha para que no se sobreescriban los XML
 	//de esta forma se tiene un historial de todas los XML enviados
 	if ($action === 'BILL_VALIDATE') {
-		$file = $dir . '/' . $invoiceref . '-alta-'.$now->format('Y-m-d_H-i-s').'.xml';
-		$hidden = $dir . '/.verifactu-alta-'.$now->format('Y-m-d_H-i-s').'.xml';
+		$file = $dir . '/' . $invoiceref . '-alta-' . $now->format('Y-m-d_H-i-s') . '.xml';
+		$hidden = $dir . '/.verifactu-alta-' . $now->format('Y-m-d_H-i-s') . '.xml';
 	} elseif ($action === 'verifactuResend') {
-		$file = $dir . '/' . $invoiceref . '-subsanacion-'.$now->format('Y-m-d_H-i-s').'.xml';
-		$hidden = $dir . '/.verifactu-subsanacion-'.$now->format('Y-m-d_H-i-s').'.xml';
+		$file = $dir . '/' . $invoiceref . '-subsanacion-' . $now->format('Y-m-d_H-i-s') . '.xml';
+		$hidden = $dir . '/.verifactu-subsanacion-' . $now->format('Y-m-d_H-i-s') . '.xml';
 	} else {
-		$file = $dir . '/' . $invoiceref . '-anulacion-'.$now->format('Y-m-d_H-i-s').'.xml';
-		$hidden = $dir . '/.verifactu-anulacion-'.$now->format('Y-m-d_H-i-s').'.xml';
+		$file = $dir . '/' . $invoiceref . '-anulacion-' . $now->format('Y-m-d_H-i-s') . '.xml';
+		$hidden = $dir . '/.verifactu-anulacion-' . $now->format('Y-m-d_H-i-s') . '.xml';
 	}
 
 	if (!file_exists($dir)) {
 		if (dol_mkdir($dir) < 0) {
 			dol_syslog('Unable to create verifactu files directory ' . $dir, LOG_ERR);
-			$invoice->error[]="NotCreateDirectoryVerifactu";
+			$invoice->error[] = 'NotCreateDirectoryVerifactu';
 			return -1;
 		}
 	}
@@ -235,9 +235,9 @@ function autoverifactuRegisterInvoice($invoice, $action)
 /**
  * Send an invoice as a record to the Veri*Factu SOAP endpoints.
  *
- * @param  Facture $invoice Target invoice. Invoice should not be published before
- * @param  string  $action  Triggered action. Can be BILL_VALIDATE or BILL_CANCEL.
- * @param  string  &$xml    Response body as an XML string.
+ * @param Facture $invoice Target invoice. Invoice should not be published before
+ * @param string  $action  Triggered action. Can be BILL_VALIDATE or BILL_CANCEL.
+ * @param string  $xml    Response body as an XML string.
  *
  * @return stdClass|null    Registered record, null if skipped.
  *
@@ -268,7 +268,7 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 			. $invoice->id .
 			'is already registered',
 		);
-		$invoice->error[]="alradyRegisterInvoice";//añado los errores
+		$invoice->error[] = 'alradyRegisterInvoice';//añado los errores
 		return -1 ;
 	}
 
@@ -322,12 +322,12 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 	try {
 		$res = autoverifactuSoapRequest($envelope);
 	} catch (\Throwable $th) {
-		if ($th->getCode()===503) {
+		if ($th->getCode() === 503) {
 			//en caso de un error interno y que la factura sea alta meto en la lista a enviar
-			if ($recordType==="alta") {
+			if ($recordType === 'alta') {
 				$invoice->array_options['options_verifactu_status'] = '3';
 				$invoice->insertExtraFields();
-				dol_syslog("VERI*FACTU: FACTURE ID ".$object->id." TEMPORARILY QUEUED.", LOG_DEBUG);
+				dol_syslog('VERI*FACTU: FACTURE ID ' . $object->id . ' TEMPORARILY QUEUED.', LOG_DEBUG);
 				return $record;
 				throw new Exception($th->getMessage(), 503);
 			} else {
@@ -352,7 +352,7 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 	if ($status->nodeValue === 'Incorrecto') {
 		dol_syslog('# REJECTED SOAP ENVELOPE', LOG_DEBUG);
 		dol_syslog($envelope, LOG_DEBUG);
-		if ($operationTypeNode->nodeValue === "Anulacion") {
+		if ($operationTypeNode->nodeValue === 'Anulacion') {
 			//error de anulacion
 			$invoice->array_options['options_verifactu_status'] = '7';
 		} else {
@@ -366,7 +366,7 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 				$invoice->array_options['options_verifactu_status'] = '5';
 			}
 		}
-		$invoice->ref=$record->invoiceId->invoiceNumber;
+		$invoice->ref = $record->invoiceId->invoiceNumber;
 
 		$errCode = $res->getElementsByTagName('CodigoErrorRegistro')[0] ?? null;
 		$errMessage = $res->getElementsByTagName('DescripcionErrorRegistro')[0] ?? null;
@@ -398,7 +398,7 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 		$record->error->message = $errMessage->nodeValue;
 		//actualizo el estado a Enviada y correcta con errores
 		$operationTypeNode = $res->getElementsByTagName('TipoOperacion')[0];
-		if ($operationTypeNode->nodeValue === "Anulacion") {
+		if ($operationTypeNode->nodeValue === 'Anulacion') {
 			//error de anulacion cuando esta la factura registrada
 			$invoice->array_options['options_verifactu_status'] = '7';
 		} else {
@@ -418,7 +418,7 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 		//actualizo el estado a Enviada y correcta
 		$operationTypeNode = $res->getElementsByTagName('TipoOperacion')[0];
 		//actualizo el estado segun sea anulacion o alta
-		$operationTypeNode->nodeValue === "Anulacion"? $invoice->array_options['options_verifactu_status'] = '6' : $invoice->array_options['options_verifactu_status'] = '1';
+		$operationTypeNode->nodeValue === 'Anulacion' ? $invoice->array_options['options_verifactu_status'] = '6' : $invoice->array_options['options_verifactu_status'] = '1';
 		$invoice->array_options['options_verifactu_error'] = '';
 		$invoice->array_options['options_verifactu_error_code'] = '';
 
@@ -483,18 +483,18 @@ function autoverifactuSoapRequest($body, $ttl = 3)
 	$doc->loadXML($res . "\n");
 	$faults = $doc->getElementsByTagName('Fault');
 	//obtengo de la respuesta el tiempo de espara hasta la proxima registro
-	$shippingWaitingTimeNodes=$doc->getElementsByTagName('TiempoEsperaEnvio');
+	$shippingWaitingTimeNodes = $doc->getElementsByTagName('TiempoEsperaEnvio');
 	if ($shippingWaitingTimeNodes->length > 0) {
-		$now=new DateTimeImmutable(
+		$now = new DateTimeImmutable(
 			'now',
 			new DateTimeZone('Europe/Madrid'),
 		);
 		$shippingWaitingTime = (int) $shippingWaitingTimeNodes->item(0)->nodeValue;
-		$newShipment= $now->modify("+" . $shippingWaitingTime . " seconds");
-		$newValueTimestamp=$newShipment->getTimestamp();
+		$newShipment = $now->modify('+' . $shippingWaitingTime . ' seconds');
+		$newValueTimestamp = $newShipment->getTimestamp();
 		//guardo la fecha en la que puedo realizar el proximo envio
 		$result = dolibarr_set_const($db, 'VERIFACTU_NEXT_DELIVERY_ALLOWED', $newValueTimestamp, 'chaine', 0, '', 0);
-		if ($result<=0) {
+		if ($result <= 0) {
 			dol_syslog('# VERIFACTU SAVE DOLIBARR CONST VERIFACTU_NEXT_DELIVERY_ALLOWED', LOG_DEBUG);
 		}
 	}
@@ -571,10 +571,10 @@ function autoverifactuSoapEnvelope($record, $issuer, $representative = null)
 /**
 * Return the invoice as a Veri*Factu record object.
 *
-* @param  Facture$invoice Target invoice.
-* @param  streing         Record type. Can be 'alta' or 'anulacion'.
+* @param Facture $invoice     Target invoice.
+* @param string  $recordType  Record type. Can be 'alta' or 'anulacion'.
 *
-* @return stdClass|null   Record representation.
+* @return stdClass|null        Record representation.
 */
 function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 {
@@ -613,7 +613,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 			} else {
 				// Factura rectificativa corriente.
 				if (!isset($invoice->array_options['options_verifactu_rectification_type'])) {
-					 throw new Exception("Error not value options_verifactu_rectification_type", 1);
+					 throw new Exception('Error not value options_verifactu_rectification_type', 1);
 				}
 				$invoiceType = $invoice->array_options['options_verifactu_rectification_type'] ;
 			}
@@ -626,7 +626,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 
 	$record = new stdClass();
 	$record->type = $recordType;
-	$record->statusVerifactu=$invoice->array_options['options_verifactu_status'];
+	$record->statusVerifactu = $invoice->array_options['options_verifactu_status'];
 	if (!empty($invoice->array_options['options_verifactu_date_operation'])) {
 		$record->dateOperation = new DateTimeImmutable(
 			date('Y-m-d H:i:s', $invoice->array_options['options_verifactu_date_operation']),
@@ -655,7 +655,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 		''
 	);
 
-	$record->factureTotalTaxAmount=number_format($invoice->total_tva + $invoice->total_localtax1, 2, '.', '');
+	$record->factureTotalTaxAmount = number_format($invoice->total_tva + $invoice->total_localtax1, 2, '.', '');
 
 
 	$record->factureTtc = number_format($invoice->total_ttc - $invoice->total_localtax2, 2, '.', '');
@@ -680,26 +680,26 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 					!in_array($thirdparty->array_options['options_verifactu_identification_thirdparty'], array('03','04','05','06','07'))
 				) {
 					//no existe tipo de identificacion
-					$invoice->errors[]='NotTypeIdentificationThirdparty';
+					$invoice->errors[] = 'NotTypeIdentificationThirdparty';
 					return 0;
 				}
-				if ($thirdparty->array_options['options_verifactu_identification_thirdparty']=='03') {
+				if ($thirdparty->array_options['options_verifactu_identification_thirdparty'] == '03') {
 					//Pasaporte (Passport)
 					$recipient->type = '03';
 					$recipient->value = trim($thirdparty->idprof1);
-				} elseif ($thirdparty->array_options['options_verifactu_identification_thirdparty']=='04') {
+				} elseif ($thirdparty->array_options['options_verifactu_identification_thirdparty'] == '04') {
 					//DOCUMENTO OFICIAL DE IDENTIFICACIÓN EXPEDIDO POR EL PAÍS (Document issued by the country)
 					$recipient->type = '04';
 					$recipient->value = trim($thirdparty->idprof1);
-				} elseif ($thirdparty->array_options['options_verifactu_identification_thirdparty']=='05') {
+				} elseif ($thirdparty->array_options['options_verifactu_identification_thirdparty'] == '05') {
 					//CERTIFICADO DE RESIDENCIA (Residence Certificate)
 					$recipient->type = '05';
 					$recipient->value = trim($thirdparty->idprof1);
-				} elseif ($thirdparty->array_options['options_verifactu_identification_thirdparty']=='06') {
+				} elseif ($thirdparty->array_options['options_verifactu_identification_thirdparty'] == '06') {
 					//OTRO DOCUMENTO PROBATORIO (Other supporting document)
 					$recipient->type = '06';
 					$recipient->value = trim($thirdparty->idprof1);
-				} elseif ($thirdparty->array_options['options_verifactu_identification_thirdparty']=='07') {
+				} elseif ($thirdparty->array_options['options_verifactu_identification_thirdparty'] == '07') {
 					//No censado (Unregistered)
 					$recipient->type = '07';
 					//  $recipient->value = trim($thirdparty->idprof1);
@@ -740,7 +740,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 
 		if (!$sourceInvoice) {
 			dol_syslog('Can not find the source invoice of the corrective invoice #' . $invoice->id, LOG_ERR);
-			$invoice->error[]="NotFoundSourceInvoiceCorrective";
+			$invoice->error[] = 'NotFoundSourceInvoiceCorrective';
 			return -1;
 		} else {
 			$sourceInvoice->fetch_thirdparty();
@@ -774,9 +774,9 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 	$tax_total = 0;
 	$base_total = 0;
 	foreach ($record->breakdown as $line) {
-		$equivalenceSurcharge=0;
+		$equivalenceSurcharge = 0;
 		if (isset($line->equivalenceSurcharge)) {
-			$equivalenceSurcharge= $line->equivalenceSurcharge->total;
+			$equivalenceSurcharge = $line->equivalenceSurcharge->total;
 		}
 
 
@@ -861,9 +861,9 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 /**
  * Serializes a record as a valid Vri*Factu XML record.
  *
- * @param  stdClass          $record  Invoice Veri*Factu record object.
- * @param  DOMDocument|null  $xml     Inherited document. If null, node will be created
- *                                    on a new DOMDocument instance.
+ * @param stdClass          $record  Invoice Veri*Factu record object.
+ * @param DOMDocument|null  $xml     Inherited document. If null, node will be created
+ *                                   on a new DOMDocument instance.
  *
  * @return DOMElement                 XML record representation.
  *
@@ -900,15 +900,15 @@ function autoverifactuRecordToXML($record, $xml = null)
 
 
 		//etiquetas para subsanacion de errores
-		if (in_array($record->statusVerifactu, array("2","4","5"), true)) {
-			$valueSubsanacion="S";
-			$valueRechazoPrevio="X";
+		if (in_array($record->statusVerifactu, array('2','4','5'), true)) {
+			$valueSubsanacion = 'S';
+			$valueRechazoPrevio = 'X';
 
-			if ($record->statusVerifactu==="4") {
-				$valueRechazoPrevio="N";
+			if ($record->statusVerifactu === '4') {
+				$valueRechazoPrevio = 'N';
 			}
-			if ($record->statusVerifactu==="5") {
-				$valueRechazoPrevio="S";
+			if ($record->statusVerifactu === '5') {
+				$valueRechazoPrevio = 'S';
 			}
 			$recordEl->appendChild($xml->createElement('sum1:Subsanacion', $valueSubsanacion));
 			$recordEl->appendChild($xml->createElement('sum1:RechazoPrevio', $valueRechazoPrevio));
@@ -1101,45 +1101,10 @@ function autoverifactuRecordToXML($record, $xml = null)
 /**
 * Get an invoice and returns its lines as a breakdown details array.
 *
-* @param  Facture    $invoice Target invoice.
+* @param Facture     $invoice Target invoice.
 *
 * @return stdClass[]
 */
-/*
-OLD FUNCTION
-function autoverifactuLinesToBreakdown($invoice)
-{
-	$breakdown = array();
-
-	$defaultRegime = getDolGlobalString('AUTOVERIFACTU_DEFAULT_REGIME') ?: '01';
-
-
-	foreach ($invoice->lines as $line) {
-
-
-		$details = new stdClass();
-		$details->taxType = getDolGlobalString('AUTOVERIFACTU_TAX') ?: '01';
-		// variable incorrecta options_verifactu_regim_type=> options_verifactu_regime_type
-		$details->regimeType = $line->array_options['options_verifactu_regime_type'] ?: $defaultRegime;
-		$details->operationType = $line->array_options['options_verifactu_operation_type'] ?: 'S1';
-		$details->excemptionCode = $line->array_options['options_verifactu_tax_excemption'] ?: null;
-		$details->taxRate = number_format((float) $line->tva_tx, 2, '.', '');
-		$details->baseAmount = number_format((float) $line->total_ht, 2, '.', '');
-		$details->taxAmount = number_format((float) $line->total_tva, 2, '.', '');
-
-		if (!$details->exemptionCode && $details->operationType === 'S1' && $details->regimeType === '18') {
-			$details->equivalenceSurcharge = new stdClass();
-			$details->equivalenceSurcharge->type = number_format((float) $line->localtax1_tx, 2, '.', '') ;
-			$details->equivalenceSurcharge->total = number_format((float) $line->total_localtax1, 2, '.', '');
-		}
-		//falta añadir al array
-		$breakdown[] = $details;
-	}
-
-
-	return $breakdown;
-} */
-
 function autoverifactuLinesToBreakdown($invoice)
 {
 
@@ -1167,7 +1132,7 @@ function autoverifactuLinesToBreakdown($invoice)
 		var_dump( !NumberIsZero($line->localtax1_tx));
 		echo "<br>";
 		echo "-----------------------------------";*/
-		$equivalenceSurchargeType = !NumberIsZero($line->localtax1_tx) && $line->product_type==="0" ? number_format((float) $line->localtax1_tx, 2, '.', '') : null;
+		$equivalenceSurchargeType = !NumberIsZero($line->localtax1_tx) && $line->product_type === '0' ? number_format((float) $line->localtax1_tx, 2, '.', '') : null;
 		$equivalenceSurchargeTotal = $line->total_localtax1 ? (float) $line->total_localtax1 : 0.0;
 		/*echo "<br>";
 		echo "******************";
@@ -1219,8 +1184,8 @@ function autoverifactuLinesToBreakdown($invoice)
 	}
 	//creo la clase y las guardo en el arrray
 	$breakdown = array();
-	if (count($grouped)>12) {
-		$invoice->error[]="maximumNumberOfTaxRates";
+	if (count($grouped) > 12) {
+		$invoice->error[] = 'maximumNumberOfTaxRates';
 		return -1;
 	}
 	foreach ($grouped as $group) {
@@ -1278,14 +1243,14 @@ function autoverifactuGetRecordComputerSystem()
 /**
 * Calculate the record hash.
 *
-* @param  stdClass $record Invoice record object.
+* @param stdClass $record Invoice record object.
 *
 * @return string           Record sha256 hash.
 */
 function autoverifactuCalculateRecordHash($record)
 {
 	if ($record->type == 'alta') {
-		echo "<br><br>";
+		echo '<br><br>';
 		$payload  = 'IDEmisorFactura=' . $record->invoiceId->issuerId;
 		$payload .= '&NumSerieFactura=' . $record->invoiceId->invoiceNumber;
 		$payload .= '&FechaExpedicionFactura=' . $record->invoiceId->issueDate->format('d-m-Y');
@@ -1310,55 +1275,63 @@ function autoverifactuCalculateRecordHash($record)
 /**
  * Verifactu invoice record registration. (Crontab)
  *
- * @param  Facture $invoices Array object invoices.
+ * @param Facture[]  $invoices Array object invoices.
  *
- * @return int              Return <0 if KO, 0 if skipped, >0 if OK.
-*/
-/*
-
+ * @return int                  Return <0 if KO, 0 if skipped, >0 if OK.
 */
 function autoverifactuRegisterInvoiceList($invoices)
 {
-	global $db, $conf, $hookmanager, $user;
+	global $conf, $user;
+
 	if (empty($invoices) || !is_array($invoices)) {
 		return 0;
 	}
+
 	if (empty($conf->facture->multidir_output[$conf->entity])) {
 		dol_syslog('Constant $conf->facture->multidir_output not defined', LOG_ERR);
 		return -1;
 	}
-	$now=new DateTimeImmutable(
-			'now',
-			new DateTimeZone('Europe/Madrid'),
-		);
+
+	$now = new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
+
 	$recordsLote = array();
 	$facturasValidasLote = array();
+
 	//recorro las facturas
 	foreach ($invoices as $invoice) {
-		if ($invoice->type > Facture::TYPE_DEPOSIT) continue;
+		if ($invoice->type > Facture::TYPE_DEPOSIT) {
+			continue;
+		}
+
 		$invoice->fetch_thirdparty();
 		$thirdparty = $invoice->thirdparty;
 		$valid_id = $thirdparty->id_prof_check(1, $thirdparty);
+
 		if (!autoverifactuIsPosInvoice($invoice) && $valid_id <= 0 && !$thirdparty->tva_intra) {
 			dol_syslog('Skip invoice #' . $invoice->id . ' due to thirdparty without valid idprof1');
 			continue;
 		}
+
 		if (!count($invoice->lines)) {
 			dol_syslog('Skip invoice #' . $invoice->id . ' due to no lines');
 			continue;
 		}
-		$recordType ='alta';
+
+		$recordType = 'alta';
 		$record = autoverifactuInvoiceToRecord($invoice, $recordType);
+
 		if ($record) {
 			$recordsLote[] = $record;
 			$facturasValidasLote[] = $invoice; // Guardamos la correspondencia
 		}
 	}
+
 	if (empty($recordsLote)) {
 		return 0;
 	}
 
 	global $mysoc;
+
 	$issuer = array(
 		'name' => $mysoc->nom,
 		'idprof1' => $mysoc->idprof1,
@@ -1385,16 +1358,17 @@ function autoverifactuRegisterInvoiceList($invoices)
 			if ($status === 'Correcto' || $status === 'AceptadoConErrores') {
 				// Guardar localmente el XML individual o masivo por cumplimiento normativo de almacenamiento
 				if ($action === 'BILL_VALIDATE') {
-					$file = $dir . '/' . $invoiceref . '-alta-'.$now->format('Y-m-d_H-i-s').'.xml';
-					$hidden = $dir . '/.verifactu-alta-'.$now->format('Y-m-d_H-i-s').'.xml';
+					$file = $dir . '/' . $invoiceref . '-alta-' . $now->format('Y-m-d_H-i-s') . '.xml';
+					$hidden = $dir . '/.verifactu-alta-' . $now->format('Y-m-d_H-i-s') . '.xml';
 				} elseif ($action === 'verifactuResend') {
-					$file = $dir . '/' . $invoiceref . '-subsanacion-'.$now->format('Y-m-d_H-i-s').'.xml';
-					$hidden = $dir . '/.verifactu-subsanacion-'.$now->format('Y-m-d_H-i-s').'.xml';
+					$file = $dir . '/' . $invoiceref . '-subsanacion-' . $now->format('Y-m-d_H-i-s') . '.xml';
+					$hidden = $dir . '/.verifactu-subsanacion-' . $now->format('Y-m-d_H-i-s') . '.xml';
 				} else {
-					$file = $dir . '/' . $invoiceref . '-anulacion-'.$now->format('Y-m-d_H-i-s').'.xml';
-					$hidden = $dir . '/.verifactu-anulacion-'.$now->format('Y-m-d_H-i-s').'.xml';
+					$file = $dir . '/' . $invoiceref . '-anulacion-' . $now->format('Y-m-d_H-i-s') . '.xml';
+					$hidden = $dir . '/.verifactu-anulacion-' . $now->format('Y-m-d_H-i-s') . '.xml';
 				}
-				$file = $dir . '/' . $invoiceref .  '-alta-'.$now->format('Y-m-d_H-i-s').'xml' ;
+
+				$file = $dir . '/' . $invoiceref .  '-alta-' . $now->format('Y-m-d_H-i-s') . 'xml' ;
 				$result = file_put_contents($file, $envelope);
 				$result = $result && file_put_contents($hidden, $envelope);
 				if ($result) {
@@ -1440,7 +1414,7 @@ function autoverifactuRegisterInvoiceList($invoices)
 				$invoice->array_options['options_verifactu_error_code'] = $errCode;
 				$invoice->insertExtraFields();
 				dol_syslog('Factura #' . $invoice->id . ' rechazada por AEAT: ' . $errMessage, LOG_ERR);
-				$invoice->ref=$record->invoiceId->invoiceNumber;
+				$invoice->ref = $record->invoiceId->invoiceNumber;
 				$result = $invoice->update($user);
 				if ($result <= 0) {
 					throw new Exception($invoice->error, 1);
@@ -1450,19 +1424,19 @@ function autoverifactuRegisterInvoiceList($invoices)
 
 		return $exitos == count($facturasValidasLote);
 	} catch (Exception $e) {
-			dol_syslog('Critical error in Veri*Factu mass mailing:' . $e->getMessage(), LOG_ERR);
-			return -1;
+		dol_syslog('Critical error in Veri*Factu mass mailing:' . $e->getMessage(), LOG_ERR);
+		return -1;
 	}
 }
 
 /**
  * Gets an verifactu list invoice record and returns it inside a SOAP envelope.
  *
- * @param stdClass    $record         list invoice record.
- * @param array       $issuer         Issuer data with name and id keys.
- * @param array|null  $representative Representative data with name and id keys.
+ * @param stdClass[]    $records        List invoice record.
+ * @param array         $issuer         Issuer data with name and id keys.
+ * @param array|null    $representative Representative data with name and id keys.
  *
- * @return string                     SOAP XML enveloped record.
+ * @return string                       SOAP XML enveloped record.
  */
 function autoverifactuSoapEnvelopeMass($records, $issuer, $representative = null)
 {
@@ -1531,59 +1505,70 @@ function NumberIsZero($valor)
 	return false;
 }
 
-/*
-* añade los textos legales al pdf dependiendo de las caractericticas de la factura
-*/
+/**
+ * Añade los textos legales al pdf dependiendo de las caractericticas de la factura.
+ *
+ * @param Facture $invoice Facture object.
+ *
+ * @return Facture
+ *
+ * @throws Exception
+ */
 function autoverifactuSetLegalText($invoice)
 {
-
-	if (!isset($invoice->array_options["options_verifactu_pdfLegalText"])) {
-		$invoice->array_options["options_verifactu_pdfLegalText"] = [];
-	} elseif (strlen($invoice->array_options["options_verifactu_pdfLegalText"])>0) {
-		$invoice->array_options["options_verifactu_pdfLegalText"] = explode(',', $invoice->array_options["options_verifactu_pdfLegalText"]);
+	if (!isset($invoice->array_options['options_verifactu_pdfLegalText'])) {
+		$invoice->array_options['options_verifactu_pdfLegalText'] = [];
+	} elseif (strlen($invoice->array_options['options_verifactu_pdfLegalText']) > 0) {
+		$invoice->array_options['options_verifactu_pdfLegalText'] = explode(',', $invoice->array_options['options_verifactu_pdfLegalText']);
 	}
 
-
-
-	//IRPF
+	/* IRPF */
 	if (!NumberIsZero($invoice->total_localtax2)) {
-		$invoice->array_options["options_verifactu_pdfLegalText"][]="VerifactuLegalTextIRPF";
+		$invoice->array_options['options_verifactu_pdfLegalText'][] = 'VerifactuLegalTextIRPF';
 	}
 
 	$SujetoPasivo = true;
-	if (in_array("VerifactuLegalTextSujetoPasivo", $invoice->array_options['options_verifactu_pdfLegalText'])) {
+	if (in_array('VerifactuLegalTextSujetoPasivo', $invoice->array_options['options_verifactu_pdfLegalText'])) {
 		$SujetoPasivo = false;
 	}
+
 	$criterioCaja = true;
-	if (in_array("VerifactuLegalTextCriterioCaja", $invoice->array_options['options_verifactu_pdfLegalText'])) {
+	if (in_array('VerifactuLegalTextCriterioCaja', $invoice->array_options['options_verifactu_pdfLegalText'])) {
 		$criterioCaja = false;
 	}
+
 	$excemptionIVA = [];
-	if (in_array("VerifactuLegalTextTaxExcemptionE1", $invoice->array_options['options_verifactu_pdfLegalText'])) {
-		$excemptionIVA[]='E1';
-	}
-	if (in_array("VerifactuLegalTextTaxExcemptionE2", $invoice->array_options['options_verifactu_pdfLegalText'])) {
-		$excemptionIVA[]='E2';
-	}
-	if (in_array("VerifactuLegalTextTaxExcemptionE3", $invoice->array_options['options_verifactu_pdfLegalText'])) {
-		$excemptionIVA[]='E3';
-	}
-	if (in_array("VerifactuLegalTextTaxExcemptionE4", $invoice->array_options['options_verifactu_pdfLegalText'])) {
-		$excemptionIVA[]='E4';
-	}
-	if (in_array("VerifactuLegalTextTaxExcemptionE5", $invoice->array_options['options_verifactu_pdfLegalText'])) {
-		$excemptionIVA[]='E5';
-	}
-	if (in_array("VerifactuLegalTextTaxExcemptionE6", $invoice->array_options['options_verifactu_pdfLegalText'])) {
-		$excemptionIVA[]='E6';
+	if (in_array('VerifactuLegalTextTaxExcemptionE1', $invoice->array_options['options_verifactu_pdfLegalText'])) {
+		$excemptionIVA[] = 'E1';
 	}
 
-	$rebu=true;
-	if (in_array("VerifactuLegalTextREBU", $invoice->array_options['options_verifactu_pdfLegalText'])) {
+	if (in_array('VerifactuLegalTextTaxExcemptionE2', $invoice->array_options['options_verifactu_pdfLegalText'])) {
+		$excemptionIVA[] = 'E2';
+	}
+
+	if (in_array('VerifactuLegalTextTaxExcemptionE3', $invoice->array_options['options_verifactu_pdfLegalText'])) {
+		$excemptionIVA[] = 'E3';
+	}
+
+	if (in_array('VerifactuLegalTextTaxExcemptionE4', $invoice->array_options['options_verifactu_pdfLegalText'])) {
+		$excemptionIVA[] = 'E4';
+	}
+
+	if (in_array('VerifactuLegalTextTaxExcemptionE5', $invoice->array_options['options_verifactu_pdfLegalText'])) {
+		$excemptionIVA[] = 'E5';
+	}
+
+	if (in_array('VerifactuLegalTextTaxExcemptionE6', $invoice->array_options['options_verifactu_pdfLegalText'])) {
+		$excemptionIVA[] = 'E6';
+	}
+
+	$rebu = true;
+	if (in_array('VerifactuLegalTextREBU', $invoice->array_options['options_verifactu_pdfLegalText'])) {
 		$rebu = false;
 	}
-	$agenciaViajes=true;
-	if (in_array("VerifactuLegalTextAgenciaViajes", $invoice->array_options['options_verifactu_pdfLegalText'])) {
+
+	$agenciaViajes = true;
+	if (in_array('VerifactuLegalTextAgenciaViajes', $invoice->array_options['options_verifactu_pdfLegalText'])) {
 		$agenciaViajes = false;
 	}
 
@@ -1593,72 +1578,73 @@ function autoverifactuSetLegalText($invoice)
 			switch ($line->array_options['options_verifactu_tax_excemption']) {
 				case 'E1':
 					if (!in_array('E1', $excemptionIVA)) {
-						$invoice->array_options["options_verifactu_pdfLegalText"][]="VerifactuLegalTextTaxExcemptionE1";
-						$excemptionIVA[]='E1';
+						$invoice->array_options['options_verifactu_pdfLegalText'][] = 'VerifactuLegalTextTaxExcemptionE1';
+						$excemptionIVA[] = 'E1';
 					}
 
 					break;
 				case 'E2':
 					if (!in_array('E2', $excemptionIVA)) {
-						$invoice->array_options["options_verifactu_pdfLegalText"][]="VerifactuLegalTextTaxExcemptionE2";
-						$excemptionIVA[]='E2';
+						$invoice->array_options['options_verifactu_pdfLegalText'][] = 'VerifactuLegalTextTaxExcemptionE2';
+						$excemptionIVA[] = 'E2';
 					}
 					break;
 				case 'E3':
 					if (!in_array('E3', $excemptionIVA)) {
-						$invoice->array_options["options_verifactu_pdfLegalText"][]="VerifactuLegalTextTaxExcemptionE3";
-						$excemptionIVA[]='E3';
+						$invoice->array_options['options_verifactu_pdfLegalText'][] = 'VerifactuLegalTextTaxExcemptionE3';
+						$excemptionIVA[] = 'E3';
 					}
 					break;
 				case 'E4':
 					if (!in_array('E4', $excemptionIVA)) {
-						$invoice->array_options["options_verifactu_pdfLegalText"][]="VerifactuLegalTextTaxExcemptionE4";
-						$excemptionIVA[]='E4';
+						$invoice->array_options['options_verifactu_pdfLegalText'][] = 'VerifactuLegalTextTaxExcemptionE4';
+						$excemptionIVA[] = 'E4';
 					}
 					break;
 				case 'E5':
 					if (!in_array('E5', $excemptionIVA)) {
-						$invoice->array_options["options_verifactu_pdfLegalText"][]="VerifactuLegalTextTaxExcemptionE5";
-						$excemptionIVA[]='E5';
+						$invoice->array_options['options_verifactu_pdfLegalText'][] = 'VerifactuLegalTextTaxExcemptionE5';
+						$excemptionIVA[] = 'E5';
 					}
 
 					break;
 				case 'E6':
 					if (!in_array('E6', $excemptionIVA)) {
-						$invoice->array_options["options_verifactu_pdfLegalText"][]="VerifactuLegalTextTaxExcemptionE6";
-						$excemptionIVA[]='E6';
+						$invoice->array_options['options_verifactu_pdfLegalText'][] = 'VerifactuLegalTextTaxExcemptionE6';
+						$excemptionIVA[] = 'E6';
 					}
 					break;
 				default:
-					throw new Exception("Error  options_verifactu_error not valid value", 1);
+					throw new Exception('Error  options_verifactu_error not valid value', 1);
 					break;
 			}
 		}
 
 		//Inversión del Sujeto Pasivo
-		if ($line->array_options['options_verifactu_operation_type']==='S2' && $SujetoPasivo) {
-			$invoice->array_options["options_verifactu_pdfLegalText"][]="VerifactuLegalTextSujetoPasivo";
-			$SujetoPasivo=false;
+		if ($line->array_options['options_verifactu_operation_type'] === 'S2' && $SujetoPasivo) {
+			$invoice->array_options['options_verifactu_pdfLegalText'][] = 'VerifactuLegalTextSujetoPasivo';
+			$SujetoPasivo = false;
 		}
 		//regimen de criterio de caja
-		if ($line->array_options['options_verifactu_regime_type']==="07" && $criterioCaja) {
-			$invoice->array_options["options_verifactu_pdfLegalText"][]="VerifactuLegalTextCriterioCaja";
-			$criterioCaja=false;
+		if ($line->array_options['options_verifactu_regime_type'] === '07' && $criterioCaja) {
+			$invoice->array_options['options_verifactu_pdfLegalText'][] = 'VerifactuLegalTextCriterioCaja';
+			$criterioCaja = false;
 		}
 
-		if ($line->array_options['options_verifactu_regime_type']==="03" && $rebu) {
-			$invoice->array_options["options_verifactu_pdfLegalText"][]="VerifactuLegalTextREBU";
-			$rebu=false;
+		if ($line->array_options['options_verifactu_regime_type'] === '03' && $rebu) {
+			$invoice->array_options['options_verifactu_pdfLegalText'][] = 'VerifactuLegalTextREBU';
+			$rebu = false;
 		}
-		if ($line->array_options['options_verifactu_regime_type']==="09" && $agenciaViajes) {
-			$invoice->array_options["options_verifactu_pdfLegalText"][]="VerifactuLegalTextAgenciaViajes";
-			$agenciaViajes=false;
+		if ($line->array_options['options_verifactu_regime_type'] === '09' && $agenciaViajes) {
+			$invoice->array_options['options_verifactu_pdfLegalText'][] = 'VerifactuLegalTextAgenciaViajes';
+			$agenciaViajes = false;
 		}
 	}
-	$invoice->array_options["options_verifactu_pdfLegalText"]=implode(',', $invoice->array_options["options_verifactu_pdfLegalText"]);
+
+	$invoice->array_options['options_verifactu_pdfLegalText'] = implode(',', $invoice->array_options['options_verifactu_pdfLegalText']);
 
 	$result = $invoice->insertExtraFields();
 	if ($result < 0) {
-		throw new Exception("Error  save options_verifactu_pdfLegalText ", 1);
+		throw new Exception('Error  save options_verifactu_pdfLegalText ', 1);
 	}
 }

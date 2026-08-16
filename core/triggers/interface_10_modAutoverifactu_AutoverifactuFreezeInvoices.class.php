@@ -211,12 +211,12 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
 					return 0;
 				}
 				//creación de facturas de anulacion
-				$now=new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
+				$now = new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
 				//Verifactu obliga a enviar peticiones a la api con unos tiempos de espera determinados enviados en la última respuesta
 				//en caso de que el tiempo del proximo envio no haya pasado
-				if ($now->getTimestamp()<getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0')) {
-					if (in_array($object->array_options['options_verifactu_status'], array("7"), true)) {
-						$this->errors[] = $langs->trans('notToDoList', getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED')-$now->getTimestamp());
+				if ($now->getTimestamp() < getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0')) {
+					if (in_array($object->array_options['options_verifactu_status'], array('7'), true)) {
+						$this->errors[] = $langs->trans('notToDoList', getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED') - $now->getTimestamp());
 						return -1;
 					}
 				} else {
@@ -240,20 +240,20 @@ class InterfaceAutoverifactuFreezeInvoices extends DolibarrTriggers
 				//verificamos que el tiempo de espera a pasado
 				// y si no lo incluimos en la lista de pendientes de envio
 
-				$now=new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
+				$now = new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
 
-				if ($now->getTimestamp()<getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0')) {
-					if (in_array($object->array_options['options_verifactu_status'], array("2","4","5"), true)) {
+				if ($now->getTimestamp() < getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0')) {
+					if (in_array($object->array_options['options_verifactu_status'], array('2','4','5'), true)) {
 						//en caso de eser facturas con errores,
 						//no las enviamos a la lista de espera ya que no sabemos si han sido arregladas o no
-						$this->errors[] = $langs->trans('notToDoList', getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED')-$now->getTimestamp());
+						$this->errors[] = $langs->trans('notToDoList', getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED') - $now->getTimestamp());
 						return -1;
 					}
 					/*Para incluir la facturas anuladas en las acciones lista temporal habria que modificar
 					la funcion autoverifactuRegisterInvoiceList y obtener de alguna forma la un identificador del tipo de factura de alta o anulacion */
 					$object->array_options['options_verifactu_status'] = '3';
 					$object->insertExtraFields();
-					dol_syslog("VERI*FACTU: FACTURE ID ".$object->id." TEMPORARILY QUEUED.", LOG_DEBUG);
+					dol_syslog('VERI*FACTU: FACTURE ID ' . $object->id . ' TEMPORARILY QUEUED.', LOG_DEBUG);
 					return 1;
 				} else {
 					//en caso de que el tiempo de espera haya pasado enviamos la factura

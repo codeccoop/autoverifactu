@@ -255,15 +255,15 @@ class modAutoverifactu extends DolibarrModules
 	 *  The init function add constants, boxes, permissions and menus (defined in constructor) into Dolibarr database.
 	 *  It also creates data directories.
 	 *
-	 *  @param      string  $options    Options when enabling module ('', 'noboxes').
+	 *  @param string  $options    Options when enabling module ('', 'noboxes').
 	 *
-	 *  @return     int<-1,1>           1 if OK, <=0 if KO.
+	 *  @return int<-1,1>           1 if OK, <=0 if KO.
 	 */
 	public function init($options = '')
 	{
 		global $db, $langs; // , $conf;
 		$langs->loadLangs(array('autoverifactu@autoverifactu'));
-		$now=new DateTimeImmutable(
+		$now = new DateTimeImmutable(
 			'now',
 			new DateTimeZone('Europe/Madrid'),
 		);
@@ -662,7 +662,7 @@ class modAutoverifactu extends DolibarrModules
 	 *  Remove from database constants, boxes and permissions from Dolibarr database.
 	 *  Data directories are not deleted
 	 *
-	 *  @param  string      $options    Options when enabling module ('', 'noboxes')
+	 *  @param string      $options    Options when enabling module ('', 'noboxes')
 	 *
 	 *  @return int<-1,1>               1 if OK, <=0 if KO
 	 */
