@@ -113,7 +113,7 @@ class modAutoverifactu extends DolibarrModules
 			'theme' => 0,
 			// Set this to relative path of css file if module has its own css file
 			'css' => array(
-				'/autoverifactu/css/admin.css.php',
+				'/autoverifactu/css/autoverifactuu.css.php',
 			),
 			// Set this to relative path of js file if module must load a js on all pages
 			'js' => array(
@@ -281,18 +281,19 @@ class modAutoverifactu extends DolibarrModules
 		// Create extrafields during init
 		include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
 		$extrafields = new ExtraFields($this->db);
+
 		//----------------------------------------Invoice ----------------------------------------
 		// Tipo de rectificación en caso de que la factura sea rectificativa.
 		$extrafields->addExtraField(
-			'verifactu_rectification_type',
-			'VerifactuRectificationType',
-			'select',
-			1,
-			2,
-			'facture',
-			0,
-			0,
-			'',
+			'verifactu_rectification_type', // name
+			'VerifactuRectificationType', // label
+			'select', // type
+			1, // position
+			2, // size
+			'facture', // element
+			0, // unique
+			0, // required
+			'', // default
 			array(
 				'options' => array(
 					'R1' => $langs->trans('VerifactuRectificationTypeR1'),
@@ -301,16 +302,17 @@ class modAutoverifactu extends DolibarrModules
 					'R4' => $langs->trans('VerifactuRectificationTypeR4'),
 					// 'R5' => $langs->trans('VerifactuRectificationTypeR5')
 				),
-			),
-			0,
-			'',
-			'3',
-			$langs->trans('VerifactuRectificationTypeDescription'),
-			'',
-			'',
-			'autoverifactu@autoverifactu',
-			'isModEnabled("autoverifactu")',
+			), // parameters
+			0, // always editable
+			'', // permissions
+			'3', // Visibility (0=never, 1=all, 2=list 3=form)
+			$langs->trans('VerifactuRectificationTypeDescription'), // help
+			'', // computed
+			'', // entity
+			'autoverifactu@autoverifactu', // lang file
+			'isModEnabled("autoverifactu")', // enabled
 		);
+
 		// Fecha de operación
 		$extrafields->addExtraField(
 			'verifactu_date_operation',
@@ -332,6 +334,7 @@ class modAutoverifactu extends DolibarrModules
 			'autoverifactu@autoverifactu',
 			'isModEnabled("autoverifactu")',
 		);
+
 		// Campo para el almacenamiento de los textos legales para el pdf
 		// de la factura por el usuario.
 		$extrafields->addExtraField(
@@ -354,6 +357,7 @@ class modAutoverifactu extends DolibarrModules
 			'autoverifactu@autoverifactu',
 			'isModEnabled("autoverifactu")',
 		);
+
 		// Estado de los envios a verifactu en funcion de si esta permitio o no hacer una peticion a la API
 		$extrafields->addExtraField(
 			'verifactu_status',
@@ -380,13 +384,14 @@ class modAutoverifactu extends DolibarrModules
 			),
 			0,
 			'',
-			'1',
+			0,
 			$langs->trans('verifactuStatusDescription'),
 			'',
 			'',
 			'autoverifactu@autoverifactu',
 			'isModEnabled("autoverifactu")',
 		);
+
 		// campo para el almacenamiento de errores  de validación de la factura.
 		$extrafields->addExtraField(
 			'verifactu_error',
@@ -401,13 +406,14 @@ class modAutoverifactu extends DolibarrModules
 			'',
 			0,
 			'',
-			3,
+			0,
 			'',
 			'',
 			'',
 			'autoverifactu@autoverifactu',
 			'isModEnabled("autoverifactu")',
 		);
+
 		//campo para el almacenamiento de los codigos de errores de validación de la factura.
 		$extrafields->addExtraField(
 			'verifactu_error_code',
@@ -429,6 +435,7 @@ class modAutoverifactu extends DolibarrModules
 			'autoverifactu@autoverifactu',
 			'isModEnabled("autoverifactu")',
 		);
+
 		// hash verifactu
 		$extrafields->addExtraField(
 			'verifactu_hash',
@@ -450,6 +457,7 @@ class modAutoverifactu extends DolibarrModules
 			'autoverifactu@autoverifactu',
 			'isModEnabled("autoverifactu")',
 		);
+
 		// Campo para el almacenamiento de los textos legales para el pdf de la factura.
 		$extrafields->addExtraField(
 			'verifactu_pdfLegalText',
@@ -471,6 +479,7 @@ class modAutoverifactu extends DolibarrModules
 			'autoverifactu@autoverifactu',
 			'isModEnabled("autoverifactu")',
 		);
+
 		// Timestamp de validación de la factura.
 		$extrafields->addExtraField(
 			'verifactu_tms',
@@ -492,6 +501,7 @@ class modAutoverifactu extends DolibarrModules
 			'autoverifactu@autoverifactu',
 			'isModEnabled("autoverifactu")',
 		);
+
 		//----------------------------------------line ----------------------------------------
 		// regimen de facturación de la línea de factura
 		$extrafields->addExtraField(
