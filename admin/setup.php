@@ -225,9 +225,6 @@ if ($invalid) {
 	$toggle->fieldOverride = ob_get_clean();
 }
 
-$formSetup->newItem('ADVANCED_SECTION_TITLE')->setAsTitle();
-$spitInvoices = $formSetup->newItem('AUTOVERIFACTU_SPLIT_INVOICES')->setAsYesNo();
-
 $setupnotempty += count($formSetup->items);
 
 /*
