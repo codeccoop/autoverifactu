@@ -22,23 +22,23 @@
  */
 
 if (!defined('NOREQUIRESOC')) {
-    define('NOREQUIRESOC', '1');
+	define('NOREQUIRESOC', '1');
 }
 
 if (!defined('NOTOKENRENEWAL')) {
-    define('NOTOKENRENEWAL', 1);
+	define('NOTOKENRENEWAL', 1);
 }
 
 if (!defined('NOLOGIN')) {
-    define('NOLOGIN', 1);
+	define('NOLOGIN', 1);
 }
 
 if (!defined('NOREQUIREHTML')) {
-    define('NOREQUIREHTML', 1);
+	define('NOREQUIREHTML', 1);
 }
 
 if (!defined('NOREQUIREAJAX')) {
-    define('NOREQUIREAJAX', '1');
+	define('NOREQUIREAJAX', '1');
 }
 
 /**
@@ -52,9 +52,9 @@ require_once dirname(__DIR__) . '/env.php';
 header('Content-type: text/css');
 
 if (empty($dolibarr_nocache)) {
-    header('Cache-Control: max-age=10800, public, must-revalidate');
+	header('Cache-Control: max-age=10800, public, must-revalidate');
 } else {
-    header('Cache-Control: no-cache');
+	header('Cache-Control: no-cache');
 }
 
 ?>
@@ -65,36 +65,36 @@ if (empty($dolibarr_nocache)) {
 }
 
 .autodeclaration-preview {
-    position: relative;
-    max-width: 65rem;
-    padding: 6rem 4.5rem 4.5rem;
-    border: 1px solid;
-    box-sizing: border-box;
+	position: relative;
+	max-width: 65rem;
+	padding: 6rem 4.5rem 4.5rem;
+	border: 1px solid;
+	box-sizing: border-box;
 }
 
 .autodeclaration-preview h1,
 .autodeclaration-preview h2 {
-    line-height: 1.2;
+	line-height: 1.2;
 }
 
 .autodeclaration-preview h1 {
-    margin-bottom: 1.5em;
+	margin-bottom: 1.5em;
 }
 
 .autodeclaration-preview ol,
 .autodeclaration-preview ul {
-    padding-left: 1rem;
+	padding-left: 1rem;
 }
 
 .autodeclaration-watermark {
-    position: absolute;
-    z-index: 10;
-    font-weight: 800;
-    font-size: 8rem;
-    color: red;
-    top: 15%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(45deg);
-    opacity: 0.3;
-    text-transform: uppercase;
+	position: absolute;
+	z-index: 10;
+	font-weight: 800;
+	font-size: 8rem;
+	color: red;
+	top: 15%;
+	left: 50%;
+	transform: translate(-50%, -50%) rotate(45deg);
+	opacity: 0.3;
+	text-transform: uppercase;
 }

@@ -30,22 +30,22 @@
 //     define('NOREQUIRETRAN', 0);
 // }
 if (!defined('NOCSRFCHECK')) {
-    define('NOCSRFCHECK', 1);
+	define('NOCSRFCHECK', 1);
 }
 if (!defined('NOTOKENRENEWAL')) {
-    define('NOTOKENRENEWAL', 1);
+	define('NOTOKENRENEWAL', 1);
 }
 // if (!defined('NOLOGIN')) {
 //     define('NOLOGIN', 1);
 // }
 if (!defined('NOREQUIREMENU')) {
-    define('NOREQUIREMENU', 1);
+	define('NOREQUIREMENU', 1);
 }
 if (!defined('NOREQUIREHTML')) {
-    define('NOREQUIREHTML', 1);
+	define('NOREQUIREHTML', 1);
 }
 if (!defined('NOREQUIREAJAX')) {
-    define('NOREQUIREAJAX', '1');
+	define('NOREQUIREAJAX', '1');
 }
 
 
@@ -62,9 +62,9 @@ header('Content-Type: application/javascript');
 // Important: Following code is to cache this file to avoid page request by browser at each Dolibarr page access.
 // You can use CTRL+F5 to refresh your browser cache.
 if (empty($dolibarr_nocache)) {
-    header('Cache-Control: max-age=3600, public, must-revalidate');
+	header('Cache-Control: max-age=3600, public, must-revalidate');
 } else {
-    header('Cache-Control: no-cache');
+	header('Cache-Control: no-cache');
 }
 
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
@@ -82,23 +82,23 @@ $dismissed = array_filter(array_map('trim', explode(',', getDolGlobalString('AUT
 $drop = array();
 
 if ($enabled && ($index = array_search('DISABLED', $dismissed, true)) !== false) {
-    $drop = array_merge($drop, array_splice($dismissed, $index, 1));
+	$drop = array_merge($drop, array_splice($dismissed, $index, 1));
 }
 
 if (!$testMode && ($index = array_search('TESTMODE', $dismissed, true)) !== false) {
-    $drop = array_merge($drop, array_splice($dismissed, $index, 1));
+	$drop = array_merge($drop, array_splice($dismissed, $index, 1));
 }
 
 if (count($drop)) {
-    $dismissed = array_filter($dismissed, function ($tag) use ($drop) {
-        return !in_array($tag, $drop, true);
-    });
+	$dismissed = array_filter($dismissed, function ($tag) use ($drop) {
+		return !in_array($tag, $drop, true);
+	});
 
-    autoverifactu_set_const(
-        'AUTOVERIFACTU_DISMISSED_NOTICES',
-        implode(',', array_filter(array_map('trim', $dismissed))),
-        $mysoc->entity,
-    );
+	autoverifactu_set_const(
+		'AUTOVERIFACTU_DISMISSED_NOTICES',
+		implode(',', array_filter(array_map('trim', $dismissed))),
+		$mysoc->entity,
+	);
 }
 
 $messages = array();
@@ -106,106 +106,106 @@ $messages = array();
 $is_admin = $user->admin;
 
 if ($is_admin && !$enabled && !in_array('DISABLED', $dismissed, true)) {
-    $messages[] = array(
-        'warning',
-        '<b>' . $langs->trans('AutoVerifactuNotEnabled') . '</b>, '
-            . $langs->trans('InvoicesNotSent') . '.',
-        true,
-        'DISABLED',
-    );
+	$messages[] = array(
+		'warning',
+		'<b>' . $langs->trans('AutoVerifactuNotEnabled') . '</b>, '
+			. $langs->trans('InvoicesNotSent') . '.',
+		true,
+		'DISABLED',
+	);
 }
 
 if ($is_admin && $testMode && !in_array('TESTMODE', $dismissed, true)) {
-    $messages[] = array(
-        'info',
-        $langs->trans('AutoVerifactuInTestMode'),
-        true,
-        'TESTMODE'
-    );
+	$messages[] = array(
+		'info',
+		$langs->trans('AutoVerifactuInTestMode'),
+		true,
+		'TESTMODE'
+	);
 }
 ?>
 
 /* Javascript library of module Auto-Veri*Factu */
 document.addEventListener("DOMContentLoaded", function () {
-    // handle ui messages
-    const entity = <?php echo $mysoc->entity ?: 1 ?>;
-    const messages = <?php echo json_encode($messages); ?>;
-    messages.forEach(function (msg) {
-        const [type, message, sticky, tag] = msg;
-        $.jnotify(message, {
-            type,
-            sticky,
-            beforeRemove: () => {
-                fetch("<?php echo DOL_URL_ROOT ?>/custom/autoverifactu/ajax/dismiss_notice.php", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: `tag=${tag}&entity=${+entity}`,
-                });
-            }
-        });
-    });
+	// handle ui messages
+	const entity = <?php echo $mysoc->entity ?: 1 ?>;
+	const messages = <?php echo json_encode($messages); ?>;
+	messages.forEach(function (msg) {
+		const [type, message, sticky, tag] = msg;
+		$.jnotify(message, {
+			type,
+			sticky,
+			beforeRemove: () => {
+				fetch("<?php echo DOL_URL_ROOT ?>/custom/autoverifactu/ajax/dismiss_notice.php", {
+					method: "POST",
+					headers: { "Content-Type": "application/x-www-form-urlencoded" },
+					body: `tag=${tag}&entity=${+entity}`,
+				});
+			}
+		});
+	});
 
-    autoverifactuHandleInvoiceCardReactivity();
-    autoverifactuHandleInvoiceDetailsReactivity();
+	autoverifactuHandleInvoiceCardReactivity();
+	autoverifactuHandleInvoiceDetailsReactivity();
 });
 
 function autoverifactuHandleInvoiceCardReactivity() {
-    const form = document.querySelector("#formtocreate");
-    if (!form) return;
+	const form = document.querySelector("#formtocreate");
+	if (!form) return;
 
-    const rectificationTypeField = form.querySelector(".field_options_verifactu_rectification_type");
-    if (!rectificationTypeField) return;
+	const rectificationTypeField = form.querySelector(".field_options_verifactu_rectification_type");
+	if (!rectificationTypeField) return;
 
-    let invoiceType = "0";
-    function setInvoiceType(value) {
-        invoiceType = value;
+	let invoiceType = "0";
+	function setInvoiceType(value) {
+		invoiceType = value;
 
-        // 0 = 'Factura estándard'
-        // 1 = 'Factura rectificativa'
-        // 2 = 'Abono'
-        if (value === "1" || value === "2") {
-            rectificationTypeField.style.display = "table-row";
-        } else {
-            rectificationTypeField.style.display = "none";
-            rectificationTypeField.querySelector("select").value = "";
-        }
-    }
+		// 0 = 'Factura estándard'
+		// 1 = 'Factura rectificativa'
+		// 2 = 'Abono'
+		if (value === "1" || value === "2") {
+			rectificationTypeField.style.display = "table-row";
+		} else {
+			rectificationTypeField.style.display = "none";
+			rectificationTypeField.querySelector("select").value = "";
+		}
+	}
 
-    const radioButtons = form.querySelectorAll('input[type="radio"]');
-    radioButtons.forEach((input) => {
-        if (input.checked) {
-            setInvoiceType(input.value);
-        }
+	const radioButtons = form.querySelectorAll('input[type="radio"]');
+	radioButtons.forEach((input) => {
+		if (input.checked) {
+			setInvoiceType(input.value);
+		}
 
-        input.addEventListener("change", () => {
-            if (input.checked) {
-                setInvoiceType(input.value);
-            }
-        });
-    });
+		input.addEventListener("change", () => {
+			if (input.checked) {
+				setInvoiceType(input.value);
+			}
+		});
+	});
 }
 
 function autoverifactuHandleInvoiceDetailsReactivity() {
-    const form = document.querySelector("form#addproduct");
-    if (!form) return;
+	const form = document.querySelector("form#addproduct");
+	if (!form) return;
 
-    const regimeField = form.querySelector(".fieldline_options_verifactu_regime_type select");
-    const optTypeField = form.querySelector(".fieldline_options_verifactu_operation_type select");
-    const excemptionField = form.querySelector(".fieldline_options_verifactu_tax_excemption select");
-    if (!(regimeField && optTypeField && excemptionField)) return;
+	const regimeField = form.querySelector(".fieldline_options_verifactu_regime_type select");
+	const optTypeField = form.querySelector(".fieldline_options_verifactu_operation_type select");
+	const excemptionField = form.querySelector(".fieldline_options_verifactu_tax_excemption select");
+	if (!(regimeField && optTypeField && excemptionField)) return;
 
-    $(regimeField).val("<?php echo $defaultRegime ?>").trigger("change");
-    $(optTypeField).val("S1").trigger("change");
+	$(regimeField).val("<?php echo $defaultRegime ?>").trigger("change");
+	$(optTypeField).val("S1").trigger("change");
 
-    $(optTypeField).on("change", function () {
-        if (this.value) {
-            $(excemptionField).val("").trigger("change");
-        }
-    });
+	$(optTypeField).on("change", function () {
+		if (this.value) {
+			$(excemptionField).val("").trigger("change");
+		}
+	});
 
-    $(excemptionField).on("change", function () {
-        if (this.value) {
-            $(optTypeField).val("").trigger("change");
-        }
-    });
+	$(excemptionField).on("change", function () {
+		if (this.value) {
+			$(optTypeField).val("").trigger("change");
+		}
+	});
 }

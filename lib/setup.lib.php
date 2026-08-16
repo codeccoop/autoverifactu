@@ -39,7 +39,7 @@ require_once __DIR__ . '/validation.lib.php';
  */
 function autoverifactuGetPost($field)
 {
-    return GETPOST($field) ?: getDolGlobalString($field);
+	return GETPOST($field) ?: getDolGlobalString($field);
 }
 
 /**
@@ -47,21 +47,21 @@ function autoverifactuGetPost($field)
  */
 function autoverifactuSetupPost()
 {
-    $certpath = autoverifactuGetPost('AUTOVERIFACTU_CERT');
-    autoverifactu_set_const('AUTOVERIFACTU_CERT', (string) $certpath);
+	$certpath = autoverifactuGetPost('AUTOVERIFACTU_CERT');
+	autoverifactu_set_const('AUTOVERIFACTU_CERT', (string) $certpath);
 
-    $password = autoverifactuGetPost('AUTOVERIFACTU_PASSWORD');
-    autoverifactu_set_const('AUTOVERIFACTU_PASSWORD', $password);
+	$password = autoverifactuGetPost('AUTOVERIFACTU_PASSWORD');
+	autoverifactu_set_const('AUTOVERIFACTU_PASSWORD', $password);
 
-    $tax = autoverifactuGetPost('AUTOVERIFACTU_TAX') ?: '01';
-    autoverifactu_set_const('AUTOVERIFACTU_TAX', $tax);
+	$tax = autoverifactuGetPost('AUTOVERIFACTU_TAX') ?: '01';
+	autoverifactu_set_const('AUTOVERIFACTU_TAX', $tax);
 
-    $regime = autoverifactuGetPost('AUTOVERIFACTU_DEFAULT_REGIME') ?: '01';
-    autoverifactu_set_const('AUTOVERIFACTU_DEFAULT_REGIME', $regime);
+	$regime = autoverifactuGetPost('AUTOVERIFACTU_DEFAULT_REGIME') ?: '01';
+	autoverifactu_set_const('AUTOVERIFACTU_DEFAULT_REGIME', $regime);
 
-    $enabled = autoverifactuGetPost('AUTOVERIFACTU_ENABLED');
-    $enabled = $enabled && autoverifactuSystemCheck();
-    autoverifactu_set_const('AUTOVERIFACTU_ENABLED', $enabled);
+	$enabled = autoverifactuGetPost('AUTOVERIFACTU_ENABLED');
+	$enabled = $enabled && autoverifactuSystemCheck();
+	autoverifactu_set_const('AUTOVERIFACTU_ENABLED', $enabled);
 }
 
 /**
@@ -71,26 +71,26 @@ function autoverifactuSetupPost()
  */
 function autoverifactuUploadCert()
 {
-    global $conf;
-    $upload_dir = $conf->autoverifactu->dir_output . '/';
+	global $conf;
+	$upload_dir = $conf->autoverifactu->dir_output . '/';
 
-    if (!is_dir($upload_dir)) {
-        dol_mkdir($upload_dir);
-    }
+	if (!is_dir($upload_dir)) {
+		dol_mkdir($upload_dir);
+	}
 
-    $dest = null;
+	$dest = null;
 
-    if (!empty($_FILES['userfile']['tmp_name'])) {
-        $file = $_FILES['userfile'];
-        $filename = dol_sanitizeFileName($file['name']);
-        $dest = $upload_dir . $filename;
+	if (!empty($_FILES['userfile']['tmp_name'])) {
+		$file = $_FILES['userfile'];
+		$filename = dol_sanitizeFileName($file['name']);
+		$dest = $upload_dir . $filename;
 
-        if (dol_move_uploaded_file($file['tmp_name'], $dest, 1, 0, $file['error'])) {
-            // $file_id = dol_add_file($dest, $filename, 'autoverifactu');
-        } else {
-            return;
-        }
-    }
+		if (dol_move_uploaded_file($file['tmp_name'], $dest, 1, 0, $file['error'])) {
+			// $file_id = dol_add_file($dest, $filename, 'autoverifactu');
+		} else {
+			return;
+		}
+	}
 
-    return $dest;
+	return $dest;
 }

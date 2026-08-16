@@ -34,7 +34,7 @@ $langs->loadLangs(array('errors', 'admin', 'autoverifactu@autoverifactu'));
 
 // Access control
 if (!$user->admin) {
-    accessforbidden();
+	accessforbidden();
 }
 
 // Parameters
@@ -66,11 +66,11 @@ echo load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 $head = autoverifactuAdminPrepareHead();
 
 echo dol_get_fiche_head(
-    $head,
-    'about',
-    $langs->trans($title),
-    0,
-    'autoverifactu@autoverifactu'
+	$head,
+	'about',
+	$langs->trans($title),
+	0,
+	'autoverifactu@autoverifactu'
 );
 
 // About page goes here

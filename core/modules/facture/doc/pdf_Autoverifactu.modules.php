@@ -40,11 +40,11 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 
-require_once dirname(__DIR__ , 4). '/lib/validation.lib.php';
-require_once dirname(__DIR__,4) . '/lib/autoverifactu.lib.php';
+require_once dirname(__DIR__, 4). '/lib/validation.lib.php';
+require_once dirname(__DIR__, 4) . '/lib/autoverifactu.lib.php';
 
 
-//!importante 
+//!importante
 /*
 
 
@@ -135,7 +135,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		$langs->loadLangs(array("main", "bills"));
 
 
-	
+
 		$this->db = $db;
 		$this->name = "Autoverifactu";
 		$this->description = "Factura PDF plantilla Autoverifactu. Una plantilla compatible con el QR de Verifactu";
@@ -241,7 +241,7 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		// Load translation files required by the page
 		$outputlangs->loadLangs(array("main", "bills", "products", "dict", "companies"));
 
-	
+
 		// Show Draft Watermark
 		if ($object->statut == $object::STATUS_DRAFT && (getDolGlobalString('FACTURE_DRAFT_WATERMARK'))) {
 			$this->watermark = getDolGlobalString('FACTURE_DRAFT_WATERMARK');
@@ -567,31 +567,31 @@ class pdf_Autoverifactu extends ModelePDFFactures
 						}
 					}
 				}
-				
-				//echo "<pre>";
-				
-				//verifactu_pdfLegalText
-				
 
-				if(isset($object->array_options["options_verifactu_pdfLegalText"] )){
+				//echo "<pre>";
+
+				//verifactu_pdfLegalText
+
+
+				if (isset($object->array_options["options_verifactu_pdfLegalText"])) {
 					$langs->load("autoverifactu@autoverifactu");
 					$LegalText="<strong>Texto Legal</strong> ";
 					$LegalText .= '<br> '.$object->array_options["options_verifactu_pdfLegalTextUser"] ;
 					$LegalTextArray = explode(',', $object->array_options["options_verifactu_pdfLegalText"]);
 
 					foreach ($LegalTextArray as  $value) {
-						$LegalText .= '<br> '.$langs->trans( $value) ;
+						$LegalText .= '<br> '.$langs->trans($value);
 					}
 					$LegalText .= " <hr><br>";
-					$notetoshow = dol_concatdesc($notetoshow, $LegalText,false,true);
+					$notetoshow = dol_concatdesc($notetoshow, $LegalText, false, true);
 				}
 				// Extrafields in noteº
 				$extranote = $this->getExtrafieldsInHtml($object, $outputlangs);
-				
+
 				if (!empty($extranote)) {
 					$notetoshow = dol_concatdesc($notetoshow, $extranote);
 				}
-	
+
 				if ($notetoshow) {
 					$tab_top -= 2;
 
@@ -1893,18 +1893,18 @@ class pdf_Autoverifactu extends ModelePDFFactures
 
 
 
-		
+
 				/*				7. Ubicación del QR en la factura
-			
+
 
 			Si se utiliza un formato de orientación vertical para organizar y disponer el contenido de la factura, el código «QR»
 			se situará arriba de esta, próximo al margen superior, preferiblemente centrado respecto a los márgenes izquierdo y
-			derecho de la factura.La presentación del código «QR» incluirá también un texto que siempre deberá ir precediéndolo: 
-			«QR tributario:», y que se situará encima del propio código «QR» (preferiblemente centrado con respecto a este), 
-			de manera que sirva para identificarlo y distinguirlo de otros posibles códigos «QR» que pudiera contener 
+			derecho de la factura.La presentación del código «QR» incluirá también un texto que siempre deberá ir precediéndolo:
+			«QR tributario:», y que se situará encima del propio código «QR» (preferiblemente centrado con respecto a este),
+			de manera que sirva para identificarlo y distinguirlo de otros posibles códigos «QR» que pudiera contener
 			la factura para otros cometidos.
-			Además, en el caso de facturas expedidas por sistemas que emiten facturas verificables, 
-			justo debajo del código «QR» deberá aparecer la frase «Factura verificable en la sede electrónica de la AEAT» 
+			Además, en el caso de facturas expedidas por sistemas que emiten facturas verificables,
+			justo debajo del código «QR» deberá aparecer la frase «Factura verificable en la sede electrónica de la AEAT»
 			o «VERI*FACTU», preferiblemente centrada con respecto al código «QR». Si no cabe toda la frase en una sola línea,
 			podrán utilizarse varias líneas hasta completarla.Tanto el texto que siempre debe preceder al código «QR», como, en su caso,
 			la frase que habrán de incluir los sistemas «VERI*FACTU» deberán tener un tipo de letra y tamaño legibles, siempre iguales o
@@ -1914,62 +1914,62 @@ class pdf_Autoverifactu extends ModelePDFFactures
 
 			1. El código «QR» deberá tener un tamaño entre 30x30 y 40x40 milímetros y seguir las especificaciones de la norma
 			ISO/IEC 18004:2015.Este rango asegura que el QR pueda ser escaneado correctamente por cualquier dispositivo.
-			
+
 			A este respecto, se deben mantener como mínimo 2 milímetros de espacio vacío (en blanco) alrededor de los cuatro lados
-			del código «QR», recomendándose que sean 6 milímetros.La presentación del código «QR» incluirá también un texto que 
-			siempre deberá ir precediéndolo: «QR tributario:»,Además, en el caso de facturas expedidas por sistemas que emiten 
-			facturas verificables, justo debajo del código «QR» deberá aparecer la frase «Factura verificable en la sede 
+			del código «QR», recomendándose que sean 6 milímetros.La presentación del código «QR» incluirá también un texto que
+			siempre deberá ir precediéndolo: «QR tributario:»,Además, en el caso de facturas expedidas por sistemas que emiten
+			facturas verificables, justo debajo del código «QR» deberá aparecer la frase «Factura verificable en la sede
 			electrónica de la AEAT» o «VERI*FACTU», preferiblemente centrada con respecto al código «QR».
 			*/
 		if (
-            $object->element === 'facture'
-            && $object->status > Facture::STATUS_DRAFT
-            && $object->type <= Facture::TYPE_DEPOSIT
-            && autoverifactuEnabled()
-        ) {
+			$object->element === 'facture'
+			&& $object->status > Facture::STATUS_DRAFT
+			&& $object->type <= Facture::TYPE_DEPOSIT
+			&& autoverifactuEnabled()
+		) {
 			global $mysoc;
 
- 			$testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
+			$testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
 			$base_url = $testMode ? VERIFACTU_TEST_COLLATION_BASE_URL : VERIFACTU_COLLATION_BASE_URL;
 			$endpoint = '/wlpl/TIKE-CONT/ValidarQR';
-			
+
 			$query = http_build_query(array(
-                'nif' => $mysoc->idprof1,
-                'numserie' => $object->ref,
-                'fecha' => date('d-m-Y', $object->date),
-                'importe' => number_format($object->total_ttc - $object->total_localtax2, 2, '.', ''),
-            ));
-			
+				'nif' => $mysoc->idprof1,
+				'numserie' => $object->ref,
+				'fecha' => date('d-m-Y', $object->date),
+				'importe' => number_format($object->total_ttc - $object->total_localtax2, 2, '.', ''),
+			));
+
 			$qr_width = 36;
 			$qr_x = ($this->page_largeur - $qr_width) / 2;
 			$qr_y = 8;
-			
-			$pdf->SetXY($qr_x+1,3);
-			$pdf->SetFont('', '', $default_font_size );   
 
-            $pdf->MultiCell(30, 10, 'QR tributario:', 0, 'C', 0, 1);
+			$pdf->SetXY($qr_x+1, 3);
+			$pdf->SetFont('', '', $default_font_size);
+
+			$pdf->MultiCell(30, 10, 'QR tributario:', 0, 'C', 0, 1);
 
 			$pdf->write2DBarcode(
-                $base_url . $endpoint . '?' . $query,
-                'QRCODE,M',
-                $qr_x,
-                $qr_y,
-                $qr_width,
-                $qr_width,
-                array(
-                    'border' => false,
-                    'padding' => 6,
-                    'fgcolor' => array(25, 25, 25),
-                   	'bgcolor' => array(255, 255, 255),
-                    'module_width' => 1,
-                    'module_height' => 1,
-                ),
-                25,
-            );
-			
-			$pdf->SetXY($qr_x+1, $qr_y + $qr_width );
-            $pdf->MultiCell(30, 10, 'VERI*FACTU', 0, 'C', 0, 1);
-		} 
+				$base_url . $endpoint . '?' . $query,
+				'QRCODE,M',
+				$qr_x,
+				$qr_y,
+				$qr_width,
+				$qr_width,
+				array(
+					'border' => false,
+					'padding' => 6,
+					'fgcolor' => array(25, 25, 25),
+					'bgcolor' => array(255, 255, 255),
+					'module_width' => 1,
+					'module_height' => 1,
+				),
+				25,
+			);
+
+			$pdf->SetXY($qr_x+1, $qr_y + $qr_width);
+			$pdf->MultiCell(30, 10, 'VERI*FACTU', 0, 'C', 0, 1);
+		}
 
 		$pdf->SetTextColor(0, 0, 60);
 		$pdf->SetFont('', 'B', $default_font_size + 2);
@@ -1994,7 +1994,6 @@ class pdf_Autoverifactu extends ModelePDFFactures
 					$logo = $logodir.'/logos/'.$this->emetteur->logo;
 				}
 				if (is_readable($logo)) {
-		
 					$pdf->Image($logo, $this->marge_gauche, $posy, 0, $height); // width=0 (auto)
 				} else {
 					$pdf->SetTextColor(200, 0, 0);
@@ -2048,11 +2047,11 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			}
 		}
 
-		
 
-		
-	
-	
+
+
+
+
 
 
 
@@ -2360,11 +2359,11 @@ class pdf_Autoverifactu extends ModelePDFFactures
 	 */
 	protected function _pagefoot(&$pdf, $object, $outputlangs, $hidefreetext = 0, $heightforqrinvoice = 0)
 	{
-	
-	$showdetails = getDolGlobalInt('MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS', 0);
+
+		$showdetails = getDolGlobalInt('MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS', 0);
 
 
-	$text="En cumplimiento de la normativa de Protección de Datos le informamos que el RESPONSABLE del tratamiento de los mismos es OYR SOLUTIONS S.L.
+		$text="En cumplimiento de la normativa de Protección de Datos le informamos que el RESPONSABLE del tratamiento de los mismos es OYR SOLUTIONS S.L.
 gestionados con la FINALIDAD de expedir un presupuesto o la correspondiente factura por la compra de un presto  o la prestación de alguno de nuestros servicios. La LEGITIMACIÓN se basa en la existencia de una relación comercial de compra de productos o contractual para la prestación de un servicio. Serán DESTINATARIOS de sus datos aquellas organizaciones o entidades directamente relacionadas con el Responsable, así como las Administraciones Públicas con competencia en la materia. El plazo de CONSERVACIÓN de sus datos será hasta el fin de la prestación del servicio, y una vez finalizado, hasta que se solicite su supresión por parte del interesado. Entre sus DERECHOS se encuentra el de acceder, rectificar y suprimir, así como el de oposición, limitación y portabilidad.
 
 Si tiene alguna pregunta relacionada con el cumplimiento del RGPD o la protección de datos, póngase en contacto con nuestro Responsable de Protección de Datos en el correo security@oyr.es";

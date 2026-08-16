@@ -33,7 +33,7 @@ global $langs, $user, $hookmanager;
 
 // Access control
 if (!$user->admin) {
-    accessforbidden();
+	accessforbidden();
 }
 
 // Translations
@@ -52,21 +52,21 @@ $autodeclaration = GETPOST('autodeclaration', 'restricthtml');
  * Actions
  */
 if ($action === 'create') {
-    autoverifactu_set_const('AUTOVERIFACTU_RESPONSABILITY', $autodeclaration);
-    header('Location: ' . $_SERVER['PHP_SELF']);
+	autoverifactu_set_const('AUTOVERIFACTU_RESPONSABILITY', $autodeclaration);
+	header('Location: ' . $_SERVER['PHP_SELF']);
 } elseif ($action === 'delete') {
-    autoverifactu_set_const('AUTOVERIFACTU_RESPONSABILITY', '');
-    autoverifactu_set_const('AUTOVERIFACTU_ENABLED', false);
-    header('Location: ' . $_SERVER['PHP_SELF']);
+	autoverifactu_set_const('AUTOVERIFACTU_RESPONSABILITY', '');
+	autoverifactu_set_const('AUTOVERIFACTU_ENABLED', false);
+	header('Location: ' . $_SERVER['PHP_SELF']);
 } elseif ($action === 'download') {
-    ob_clean();
-    header('Content-Type: text/html');
-    header('Content-Disposition: attachment; filename="autodeclaracion.html"');
-    echo $autodeclaration;
-    die();
+	ob_clean();
+	header('Content-Type: text/html');
+	header('Content-Disposition: attachment; filename="autodeclaracion.html"');
+	echo $autodeclaration;
+	die();
 } elseif ($action) {
-    header('Location: ' . $_SERVER['PHP_SELF']);
-    die();
+	header('Location: ' . $_SERVER['PHP_SELF']);
+	die();
 }
 
 $action = null;
@@ -91,11 +91,11 @@ echo load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 $head = autoverifactuAdminPrepareHead();
 
 echo dol_get_fiche_head(
-    $head,
-    'autodeclaration',
-    $langs->trans($title),
-    0,
-    'autoverifactu@autoverifactu'
+	$head,
+	'autodeclaration',
+	$langs->trans($title),
+	0,
+	'autoverifactu@autoverifactu'
 );
 
 // Autodeclaration page goes here
@@ -105,47 +105,47 @@ $responsability = getDolGlobalString('AUTOVERIFACTU_RESPONSABILITY');
 ?>
 <div>
 <?php if ($responsability) { ?>
-    <div class="autodeclaration-preview">
-        <?php echo $responsability ?>
-    </div>
+	<div class="autodeclaration-preview">
+		<?php echo $responsability ?>
+	</div>
 <?php } elseif ($action === 'create') { ?>
-    <div class="autodeclaration-preview">
-        <?php echo $autodeclaration ?>
-    </div>
+	<div class="autodeclaration-preview">
+		<?php echo $autodeclaration ?>
+	</div>
 <?php } else {
-    echo autoverifactuDeclarationRenderedTemplate();
+	echo autoverifactuDeclarationRenderedTemplate();
 } ?>
 </div>
 <div style="margin-top: 1rem">
-    <form id="autodeclarationForm" action="<?php echo rtrim(DOL_URL_ROOT, '/') ?>/custom/autoverifactu/admin/autodeclaration.php?token=<?php echo newToken() ?>" method="POST">
-        <input type="hidden" name="autodeclaration" />
-        <div class="form-setup-button-container">
-            <?php if ($responsability) : ?>
-                <input class="button button-save" type="submit" value="Download" data-action="download">
-                <input class="button button-delete butActionDelete" type="submit" value="Delete" data-action="delete">
-            <?php else : ?>
-                <input class="button button-save" type="submit" value="Save" data-action="create">
-            <?php endif; ?>
-        </div>
-    </form>
+	<form id="autodeclarationForm" action="<?php echo rtrim(DOL_URL_ROOT, '/') ?>/custom/autoverifactu/admin/autodeclaration.php?token=<?php echo newToken() ?>" method="POST">
+		<input type="hidden" name="autodeclaration" />
+		<div class="form-setup-button-container">
+			<?php if ($responsability) : ?>
+				<input class="button button-save" type="submit" value="Download" data-action="download">
+				<input class="button button-delete butActionDelete" type="submit" value="Delete" data-action="delete">
+			<?php else : ?>
+				<input class="button button-save" type="submit" value="Save" data-action="create">
+			<?php endif; ?>
+		</div>
+	</form>
 </div>
 <script>
 window.addEventListener("DOMContentLoaded", function () {
-    const content = document.querySelector(".autodeclaration-preview").cloneNode(true);
+	const content = document.querySelector(".autodeclaration-preview").cloneNode(true);
 
-    const watermark = content.querySelector(".autodeclaration-watermark");
-    if (watermark) {
-        watermark.parentElement.removeChild(watermark);
-    }
+	const watermark = content.querySelector(".autodeclaration-watermark");
+	if (watermark) {
+		watermark.parentElement.removeChild(watermark);
+	}
 
-    const form = document.getElementById("autodeclarationForm");
+	const form = document.getElementById("autodeclarationForm");
 
-    const autodeclarationField = form.querySelector("input[name=\"autodeclaration\"]");
-    autodeclarationField.value = content.innerHTML;
+	const autodeclarationField = form.querySelector("input[name=\"autodeclaration\"]");
+	autodeclarationField.value = content.innerHTML;
 
-    for (let button of form.querySelectorAll("input[type=\"submit\"]")) {
-        button.setAttribute("formaction", form.getAttribute("action") + "&action=" + button.dataset.action);
-    }
+	for (let button of form.querySelectorAll("input[type=\"submit\"]")) {
+		button.setAttribute("formaction", form.getAttribute("action") + "&action=" + button.dataset.action);
+	}
 });
 </script>
 <?php
