@@ -58,18 +58,12 @@ define('AUTOVERIFACTU_XD_NS', 'http://www.w3.org/2000/09/xmldsig');
 */
 function autoverifactuRegisterInvoice($invoice, $action)
 {
-
-
-
 	global $db, $conf, $hookmanager;
 
-	$error;
 	if ($invoice->type > Facture::TYPE_DEPOSIT) {
 		// Skip non recordable invoice types.
 		return 0;
 	}
-
-
 
 	if (
 		$invoice->status == Facture::STATUS_DRAFT &&
@@ -179,7 +173,6 @@ function autoverifactuRegisterInvoice($invoice, $action)
 	try {
 		$record = autoverifactuSendInvoice($invoice, $action, $xml);
 
-
 		// Skip document generation if send does not succeed.
 		if (!$record) {
 			return 0;
@@ -199,7 +192,6 @@ function autoverifactuRegisterInvoice($invoice, $action)
 				$invoice->array_options['options_verifactu_error'] = $error->message;
 				$invoice->array_options['options_verifactu_error_code'] = $error->code;
 			}
-
 
 			$result = $invoice->insertExtraFields();
 
@@ -261,7 +253,6 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 
 	$recordType = ($action === 'BILL_VALIDATE' ||  $action === 'verifactuResend') ? 'alta' : 'anulacion';
 
-
 	if ($recordType === 'alta' && autoverifactuIsInvoiceRecorded($invoice)) {
 		dol_syslog(
 			'Skip verifactu invoice registration because invoice #'
@@ -272,15 +263,14 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 		return -1 ;
 	}
 
-
 	$record = autoverifactuInvoiceToRecord($invoice, $recordType);
-
 
 	if (!$record) {
 		throw new Exception('Inconsistent invoice data');
 	}
 
 	global $hookmanager;
+
 	$parameters = array('record' => &$record, 'invoice' => $invoice, 'action' => $action);
 	$reshook = $hookmanager->executeHooks(
 		'autoverifactuRecord',
@@ -306,6 +296,7 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 		'name' => $mysoc->nom,
 		'idprof1' => $mysoc->idprof1,
 	);
+
 	//no exisiste la funcion autoverifactuValidateIssuer
 	/*$issuerIsValid = autoverifactuValidateIssuer($issuer);
 
@@ -317,7 +308,6 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 		$record,
 		$issuer
 	);
-	$res;
 
 	try {
 		$res = autoverifactuSoapRequest($envelope);
@@ -339,19 +329,12 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 	}
 
 
-	$status = $res->getElementsByTagName('EstadoRegistro')[0];
-	/*     echo "<br>";
-	echo "<br>";
-	echo "---------------NODE-----------------";
-	echo "<br>";
-	var_dump($status->nodeValue);
-	echo "<br>";
-	echo "---------------NODE-----------------";
-	echo "<br>";
-	echo "<br>"; */
+	$status = $res->getElementsByTagName('EstadoRegistro')->item(0);
+
 	if ($status->nodeValue === 'Incorrecto') {
 		dol_syslog('# REJECTED SOAP ENVELOPE', LOG_DEBUG);
 		dol_syslog($envelope, LOG_DEBUG);
+
 		if ($operationTypeNode->nodeValue === 'Anulacion') {
 			//error de anulacion
 			$invoice->array_options['options_verifactu_status'] = '7';
@@ -442,7 +425,6 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
  */
 function autoverifactuSoapRequest($body, $ttl = 3)
 {
-
 	global  $db;
 	$testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
 	$base_url = $testMode ? VERIFACTU_TEST_BASE_URL : VERIFACTU_BASE_URL;
