@@ -55,17 +55,6 @@ class VerifactuQueue
 	}
 
 	/**
-	 * Checks if the last waiting time reported by the Veri*Factu API responses has been exceeded.
-	 *
-	 * @return bool
-	 */
-	private function isDeliveryAllowed()
-	{
-		$now = new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
-		return $now->getTimestamp() >= getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0');
-	}
-
-	/**
 	 * Loads pending invoices and performs a batch submit of invoice records to the Verii*Factu SOAP API.
 	 *
 	 * @return int
@@ -76,7 +65,7 @@ class VerifactuQueue
 
 		$langs->load('autoverifactu@autoverifactu');
 
-		if (!$this->isDeliveryAllowed()) {
+		if (!autoverifactuIsDeliveryAllowed()) {
 			return -1;
 		}
 

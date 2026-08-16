@@ -1632,3 +1632,14 @@ function autoverifactuSetLegalText($invoice)
 		throw new Exception('Error  save options_verifactu_pdfLegalText ', 1);
 	}
 }
+
+/**
+ * Checks if the last waiting time reported by the Veri*Factu API responses has been exceeded.
+ *
+ * @return bool
+ */
+function autoverifactuIsDeliveryAllowed()
+{
+	$now = new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
+	return $now->getTimestamp() >= getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0');
+}
