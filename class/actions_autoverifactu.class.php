@@ -129,11 +129,11 @@ class ActionsAutoverifactu extends CommonHookActions
 					//en caso de tener IRPF hay que quitarselo ya que en verifactu no hay que tenerlo en cuenta
 					// por ello le sumo el irpf al total
 					$query = http_build_query(array(
-					'nif' => $mysoc->idprof1,
-					'numserie' => $object->ref,
-					'fecha' => date('d-m-Y', $object->date),
-					'importe' => number_format($object->total_ttc - $object->total_localtax2, 2, '.', ''),
-					'formato' => 'json',
+						'nif' => $mysoc->idprof1,
+						'numserie' => $object->ref,
+						'fecha' => date('d-m-Y', $object->date),
+						'importe' => number_format($object->total_ttc - $object->total_localtax2, 2, '.', ''),
+						'formato' => 'json',
 					));
 					$ch = curl_init();
 					echo $base_url . $endpoint . '?' . $query;
@@ -173,12 +173,12 @@ class ActionsAutoverifactu extends CommonHookActions
 					$attribute = GETPOST('attribute', 'alpha');
 					//evito que se editen estos campos
 					if (
-					$attribute === 'verifactu_status' ||
-					$attribute === 'verifactu_hash' ||
-					$attribute === 'verifactu_error' ||
-					$attribute === 'verifactu_error_code' ||
-					$attribute === 'verifactu_pdfLegalText' ||
-					$attribute === 'VerifactuTimeStamp'
+						$attribute === 'verifactu_status' ||
+						$attribute === 'verifactu_hash' ||
+						$attribute === 'verifactu_error' ||
+						$attribute === 'verifactu_error_code' ||
+						$attribute === 'verifactu_pdfLegalText' ||
+						$attribute === 'VerifactuTimeStamp'
 					) {
 						$this->errors[] = $langs->trans('NotEdit');
 						$action = '';
@@ -221,7 +221,8 @@ class ActionsAutoverifactu extends CommonHookActions
 		} elseif ($parameters['currentcontext'] === 'admincompany') {
 			if ($action === 'update' && autoverifactuEnabled()) {
 				$forbidden = $mysoc->nom !== GETPOST('name')
-				|| $mysoc->idprof1 !== GETPOST('siren');
+					|| $mysoc->idprof1 !== GETPOST('siren');
+
 				if ($forbidden) {
 					$_POST['name'] = $mysoc->nom;
 					$_POST['siren'] = $mysoc->idprof1;
@@ -254,23 +255,23 @@ class ActionsAutoverifactu extends CommonHookActions
 		//?No entiendo por que regeneras el archivo xml. Una vez enviado y guardado es mejor no volver a generar.
 
 		/* if (
-		$object->element === 'facture'
-		&& $object->status > Facture::STATUS_DRAFT
-		&& $object->type <= Facture::TYPE_DEPOSIT
-		&& autoverifactuEnabled()
+			$object->element === 'facture'
+			&& $object->status > Facture::STATUS_DRAFT
+			&& $object->type <= Facture::TYPE_DEPOSIT
+			&& autoverifactuEnabled()
 		) {
-		$result = autoverifactuCheckInvoiceImmutableXML($object, 'alta');
+			$result = autoverifactuCheckInvoiceImmutableXML($object, 'alta');
 
-		if ($result < 0) {
-			return $result;
-		}
-
-		if ($object->status >= Facture::STATUS_CLOSED) {
-			$result = autoverifactuCheckInvoiceImmutableXML($object, 'anulacion');
-
-			if (!$result < 0) {
+			if ($result < 0) {
 				return $result;
 			}
+
+			if ($object->status >= Facture::STATUS_CLOSED) {
+				$result = autoverifactuCheckInvoiceImmutableXML($object, 'anulacion');
+
+				if (!$result < 0) {
+					return $result;
+				}
 		}
 		}*/
 
@@ -293,11 +294,11 @@ class ActionsAutoverifactu extends CommonHookActions
 		$object = $parameters['object'];
 		$modelpdf = $object->model_pdf;
 		if (
-		$object->element === 'facture'
-		&& $object->status > Facture::STATUS_DRAFT
-		&& $object->type <= Facture::TYPE_DEPOSIT
-		&& autoverifactuEnabled()
-		&& $modelpdf !== 'Autoverifactu' //en caso de que no tenga la plantilla autoverifactu que ya incluye el QR
+			$object->element === 'facture'
+			&& $object->status > Facture::STATUS_DRAFT
+			&& $object->type <= Facture::TYPE_DEPOSIT
+			&& autoverifactuEnabled()
+			&& $modelpdf !== 'Autoverifactu' //en caso de que no tenga la plantilla autoverifactu que ya incluye el QR
 		) {
 			$pdf = &$parameters['pdf'];
 
@@ -306,10 +307,10 @@ class ActionsAutoverifactu extends CommonHookActions
 			$base_url = $testMode ? VERIFACTU_TEST_COLLATION_BASE_URL : VERIFACTU_COLLATION_BASE_URL;
 			$endpoint = '/wlpl/TIKE-CONT/ValidarQR';
 			$query = http_build_query(array(
-			'nif' => $mysoc->idprof1,
-			'numserie' => $object->ref,
-			'fecha' => date('d-m-Y', $object->date),
-			'importe' => number_format($object->total_ttc - $object->total_localtax2, 2, '.', ''),
+				'nif' => $mysoc->idprof1,
+				'numserie' => $object->ref,
+				'fecha' => date('d-m-Y', $object->date),
+				'importe' => number_format($object->total_ttc - $object->total_localtax2, 2, '.', ''),
 			));
 			//El código «QR» deberá tener un tamaño entre 30x30 y 40x40 milímetros y seguir las especificaciones de la norma ISO/IEC 18004:2015
 			//A este respecto, se deben mantener como mínimo 2 milímetros de espacio vacío (en blanco) alrededor de los cuatro lados del código «QR», recomendándose que sean 6 milímetros.
@@ -326,14 +327,14 @@ class ActionsAutoverifactu extends CommonHookActions
 				32,
 				32,
 				array(
-				'border' => false,
-				'padding' => 2,
-				'fgcolor' => array(25, 25, 25),
-				 'bgcolor' => array(255, 255, 255), //margen color blanco con padding 2mm
-				'module_width' => 1,
-				'module_height' => 1,
-			),
-			30,
+					'border' => false,
+					'padding' => 2,
+					'fgcolor' => array(25, 25, 25),
+					'bgcolor' => array(255, 255, 255), //margen color blanco con padding 2mm
+					'module_width' => 1,
+					'module_height' => 1,
+				),
+				30,
 			);
 			$pdf->setTopMargin($pdfhandler->tab_top + 32);
 			$pdf->MultiCell(30, 10, 'VERI*FACTU', 0, 'C', 0, 1);
@@ -360,69 +361,72 @@ class ActionsAutoverifactu extends CommonHookActions
 	{
 		global $langs;
 		if (
-		$object->element === 'facture'
-		&& $object->status > Facture::STATUS_DRAFT
-		&& $object->type <= Facture::TYPE_DEPOSIT
-		&& autoverifactuEnabled()
-		&&  $object->array_options['options_verifactu_status'] === '1'
+			$object->element === 'facture'
+			&& $object->status > Facture::STATUS_DRAFT
+			&& $object->type <= Facture::TYPE_DEPOSIT
+			&& autoverifactuEnabled()
+			&&  $object->array_options['options_verifactu_status'] === '1'
 		) {
 			echo dolGetButtonAction(
-			$langs->trans('CheckIntegrity'),
-			'Veri*Factu',
-			'default',
-			$_SERVER['PHP_SELF'] . '?action=verifactu&token=' . newToken() . '&id=' . $object->id,
-			'',
-			1,
-			array(
-				'attr' => array(
-					'class' => 'classfortooltip',
-					'title' => ''
-				),
-			)
+				$langs->trans('CheckIntegrity'),
+				'Veri*Factu',
+				'default',
+				$_SERVER['PHP_SELF'] . '?action=verifactu&token=' . newToken() . '&id=' . $object->id,
+				'',
+				1,
+				array(
+					'attr' => array(
+						'class' => 'classfortooltip',
+						'title' => ''
+					),
+				)
 			);
 		}
+
 		//Boton para mostrar los errores de factura
 		if ( $object->element === 'facture'
-		&& $object->status > Facture::STATUS_DRAFT
-		&& $object->type <= Facture::TYPE_DEPOSIT
-		&& autoverifactuEnabled()
-		&& $object->array_options['options_verifactu_status'] === '4'
-		) {
-						echo dolGetButtonAction(
-			$langs->trans('fixErrors'),
-			$langs->trans('fixErrors'),
-			'default',
-			$_SERVER['PHP_SELF'] . '?action=fixErrors&token=' . newToken() . '&id=' . $object->id,
-			'',
-			1,
-			array(
-				'attr' => array(
-					'class' => 'classfortooltip',
-					'title' => ''
-				),
-						 )
-			);
-		}
-		//permitir reenviar la facturas con errores
-		if ( $object->element === 'facture'
-		&& $object->status > Facture::STATUS_DRAFT
-		&& $object->type <= Facture::TYPE_DEPOSIT
-		&& autoverifactuEnabled()
-		&& in_array($object->array_options['options_verifactu_status'], array('2','4','5'), true)
+			&& $object->status > Facture::STATUS_DRAFT
+			&& $object->type <= Facture::TYPE_DEPOSIT
+			&& autoverifactuEnabled()
+			&& $object->array_options['options_verifactu_status'] === '4'
 		) {
 			echo dolGetButtonAction(
-			$langs->trans('VerifactuResend'),
-			$langs->trans('VerifactuResend'),
-			'default',
-			$_SERVER['PHP_SELF'] . '?action=verifactuResend&token=' . newToken() . '&id=' . $object->id,
-			'',
-			1,
-			array(
-				'attr' => array(
-					'class' => 'classfortooltip',
-					'title' => ''
+				$langs->trans('fixErrors'),
+				$langs->trans('fixErrors'),
+				'default',
+				$_SERVER['PHP_SELF'] . '?action=fixErrors&token=' . newToken() . '&id=' . $object->id,
+				'',
+				1,
+				array(
+					'attr' => array(
+						'class' => 'classfortooltip',
+						'title' => ''
+					),
 				),
-			)
+			);
+		}
+
+		//permitir reenviar la facturas con errores
+		if (
+			$object->element === 'facture'
+			&& $object->status > Facture::STATUS_DRAFT
+			&& $object->type <= Facture::TYPE_DEPOSIT
+			&& autoverifactuEnabled()
+			&& in_array($object->array_options['options_verifactu_status'], array('2','4','5'), true)
+		) {
+			echo dolGetButtonAction(
+				$langs->trans('VerifactuResend'),
+				$langs->trans('VerifactuResend'),
+				'default',
+				$_SERVER['PHP_SELF'] . '?action=verifactuResend&token=' . newToken() . '&id=' . $object->id,
+				'',
+				1,
+				array(
+					'attr' => array(
+						'class' => 'classfortooltip',
+						'title' => ''
+					),
+				),
 			);
 		}
 	}
@@ -445,9 +449,9 @@ class ActionsAutoverifactu extends CommonHookActions
 		global $langs;
 
 		if (
-		$object->element === 'facture'
-		&& $object->type <= Facture::TYPE_DEPOSIT
-		&& autoverifactuEnabled()
+			$object->element === 'facture'
+			&& $object->type <= Facture::TYPE_DEPOSIT
+			&& autoverifactuEnabled()
 		) {
 			$url = parse_url($parameters['url']);
 			parse_str($url['query'] ?? '', $query);
@@ -455,38 +459,13 @@ class ActionsAutoverifactu extends CommonHookActions
 			$action = $query['action'] ?? null;
 
 			if (
-			$object->status > Facture::STATUS_DRAFT
-			&& in_array($action, array('modif', 'reopen', 'delete'), true)
-			&& !empty($parameters['userRight'])
+				$object->status > Facture::STATUS_DRAFT
+				&& in_array($action, array('modif', 'reopen', 'delete'), true)
+				&& !empty($parameters['userRight'])
 			) {
 				$label = $langs->trans('DisabledBy');
 
 				$button = dolGetButtonAction(
-				$label,
-				$parameters['html'],
-				$parameters['actionType'],
-				'',
-				$parameters['id'],
-				0,
-				$parameters['params']
-				);
-
-					$this->resprints = $button;
-					return 1;
-			} elseif ($object->status == Facture::STATUS_DRAFT && $action === 'valid') {
-				$object->fetch_thirdparty();
-				$thirdparty = $object->thirdparty;
-				$valid_id = $thirdparty->idprof1 && $thirdparty->id_prof_check(1, $thirdparty);
-
-				if (
-				!$valid_id
-				&& !$thirdparty->tva_intra
-				&& !autoverifactuIsPosInvoice($object)
-				&& !empty($parameters['userRight'])
-				) {
-					$label = $langs->trans('ThirdpartyIdProfRequired');
-
-					$button = dolGetButtonAction(
 					$label,
 					$parameters['html'],
 					$parameters['actionType'],
@@ -494,6 +473,31 @@ class ActionsAutoverifactu extends CommonHookActions
 					$parameters['id'],
 					0,
 					$parameters['params']
+				);
+
+				$this->resprints = $button;
+				return 1;
+			} elseif ($object->status == Facture::STATUS_DRAFT && $action === 'valid') {
+				$object->fetch_thirdparty();
+				$thirdparty = $object->thirdparty;
+				$valid_id = $thirdparty->idprof1 && $thirdparty->id_prof_check(1, $thirdparty);
+
+				if (
+					!$valid_id
+					&& !$thirdparty->tva_intra
+					&& !autoverifactuIsPosInvoice($object)
+					&& !empty($parameters['userRight'])
+				) {
+					$label = $langs->trans('ThirdpartyIdProfRequired');
+
+					$button = dolGetButtonAction(
+						$label,
+						$parameters['html'],
+						$parameters['actionType'],
+						'',
+						$parameters['id'],
+						0,
+						$parameters['params']
 					);
 
 					$this->resprints = $button;
