@@ -57,6 +57,9 @@ if (!defined('NOREQUIREAJAX')) {
 
 require_once dirname(__DIR__) . '/env.php';
 
+require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
+require_once AUTOVERIFACTU_DIR . '/lib/autoverifactu.lib.php';
+
 // Define js type
 header('Content-Type: application/javascript');
 // Important: Following code is to cache this file to avoid page request by browser at each Dolibarr page access.
@@ -66,9 +69,6 @@ if (empty($dolibarr_nocache)) {
 } else {
 	header('Cache-Control: no-cache');
 }
-
-require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
-require_once dirname(__DIR__) . '/lib/autoverifactu.lib.php';
 
 global $langs, $user, $mysoc;
 

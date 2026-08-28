@@ -28,8 +28,8 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/commonhookactions.class.php';
 require_once DOL_DOCUMENT_ROOT . '/blockedlog/class/blockedlog.class.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
-require_once dirname(__DIR__) . '/lib/autoverifactu.lib.php';
-require_once dirname(__DIR__) . '/lib/validation.lib.php';
+require_once AUTOVERIFACTU_DIR . '/lib/autoverifactu.lib.php';
+require_once AUTOVERIFACTU_DIR . '/lib/validation.lib.php';
 
 /**
  * Class ActionsAutoverifactu

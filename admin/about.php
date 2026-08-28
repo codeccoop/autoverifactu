@@ -27,7 +27,9 @@ require_once dirname(__DIR__) . '/env.php';
 // Libraries
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
-require_once dirname(__DIR__) . '/lib/autoverifactu.lib.php';
+require_once AUTOVERIFACTU_DIR . '/lib/autoverifactu.lib.php';
+
+global $langs, $user, $db;
 
 // Translations
 $langs->loadLangs(array('errors', 'admin', 'autoverifactu@autoverifactu'));

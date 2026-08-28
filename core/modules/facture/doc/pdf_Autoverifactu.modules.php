@@ -40,8 +40,8 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
 
-require_once dirname(__DIR__, 4) . '/lib/validation.lib.php';
-require_once dirname(__DIR__, 4) . '/lib/autoverifactu.lib.php';
+require_once AUTOVERIFACTU_DIR . '/lib/validation.lib.php';
+require_once AUTOVERIFACTU_DIR . '/lib/autoverifactu.lib.php';
 
 
 /*
