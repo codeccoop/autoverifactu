@@ -40,6 +40,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
 
+require_once AUTOVERIFACTU_DIR . '/lib/verifactu.lib.php';
 require_once AUTOVERIFACTU_DIR . '/lib/validation.lib.php';
 require_once AUTOVERIFACTU_DIR . '/lib/autoverifactu.lib.php';
 
@@ -1940,19 +1941,6 @@ class pdf_Autoverifactu extends ModelePDFFactures
 			&& $object->type <= Facture::TYPE_DEPOSIT
 			&& autoverifactuEnabled()
 		) {
-			global $mysoc;
-
-			$testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
-			$base_url = $testMode ? VERIFACTU_TEST_COLLATION_BASE_URL : VERIFACTU_COLLATION_BASE_URL;
-			$endpoint = '/wlpl/TIKE-CONT/ValidarQR';
-
-			$query = http_build_query(array(
-				'nif' => $mysoc->idprof1,
-				'numserie' => $object->ref,
-				'fecha' => date('d-m-Y', $object->date),
-				'importe' => number_format($object->total_ttc - $object->total_localtax2, 2, '.', ''),
-			));
-
 			$qr_width = 36;
 			$qr_x = ($this->page_largeur - $qr_width) / 2;
 			$qr_y = 8;
@@ -1962,8 +1950,10 @@ class pdf_Autoverifactu extends ModelePDFFactures
 
 			$pdf->MultiCell(30, 10, 'QR tributario:', 0, 'C', 0, 1);
 
+			$collation_url = autoverifactuCollationLink($object);
+
 			$pdf->write2DBarcode(
-				$base_url . $endpoint . '?' . $query,
+				$collation_url,
 				'QRCODE,M',
 				$qr_x,
 				$qr_y,

@@ -1616,3 +1616,47 @@ function autoverifactuIsDeliveryAllowed(&$lasting_time = 0)
 	$lasting_time = max($time - $now, 0);
 	return $lasting_time === 0;
 }
+
+/**
+ * Returns the validation URL corresponding to the giving invoice.
+ *
+ * @param Facture $invoice Invoice object.
+ * @param bool    $as_json Switch to json response format.
+ *
+ * @return string.
+ */
+function autoverifactuCollationLink($invoice, $as_json = false)
+{
+	global $mysoc;
+
+	// En caso de tener IRPF hay que substraerlo del tota, ya que en verifactu no
+	// lo tiene en cuenta.
+	$invoice_total = $invoice->total_ttc;
+	if ($invoice->total_localtax2) {
+		$invoice_total -= $invoice->total_localtax2;
+	}
+
+	// Seleccionamos entorno en base al modo actual de Auto-Veri*Factu.
+	$test_mode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
+	$base_url = $test_mode ? VERIFACTU_TEST_COLLATION_BASE_URL : VERIFACTU_COLLATION_BASE_URL;
+
+	// Endpoint de cotejo de registors de facturación.
+	$endpoint = '/wlpl/TIKE-CONT/ValidarQR';
+
+	$query_args = array(
+		'nif' => $mysoc->idprof1,
+		'numserie' => $invoice->ref,
+		'fecha' => date('d-m-Y', $invoice->date),
+		'importe' => number_format($invoice_total, 2, '.', ''),
+	);
+
+	// El campo formato solo ha de ser informado cuando se espera una
+	// respuesta en formato json.
+	if ($as_json) {
+		$query_args['formato'] = 'json';
+	}
+
+	$query = http_build_query($query_args);
+
+	return $base_url . $endpoint . '?' . $query;
+}

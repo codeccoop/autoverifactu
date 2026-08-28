@@ -116,27 +116,19 @@ class ActionsAutoverifactu extends CommonHookActions
 					} elseif ($result < 0) {
 						$this->errors[] = $langs->trans('InconsistentInvoiceData');
 					}
-					// url de verificacion en caso de test o production.
-					$testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
-					$base_url = $testMode ? VERIFACTU_TEST_COLLATION_BASE_URL : VERIFACTU_COLLATION_BASE_URL;
-					$endpoint = '/wlpl/TIKE-CONT/ValidarQR';
-					//en caso de tener IRPF hay que quitarselo ya que en verifactu no hay que tenerlo en cuenta
-					// por ello le sumo el irpf al total
-					$query = http_build_query(array(
-						'nif' => $mysoc->idprof1,
-						'numserie' => $object->ref,
-						'fecha' => date('d-m-Y', $object->date),
-						'importe' => number_format($object->total_ttc - $object->total_localtax2, 2, '.', ''),
-						'formato' => 'json',
-					));
+
+					$collation_url = autoverifactuCollationLink($object, true);
+
 					$ch = curl_init();
-					curl_setopt($ch, CURLOPT_URL, $base_url . $endpoint . '?' . $query);
+					curl_setopt($ch, CURLOPT_URL, $collation_url);
 					curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 					curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 					curl_setopt($ch, CURLOPT_FAILONERROR, 1);
 					curl_setopt($ch, CURLOPT_SSLCERTTYPE, 'P12');
+
 					$certPath = DOL_DATA_ROOT . '/' . getDolGlobalString('AUTOVERIFACTU_CERT');
 					curl_setopt($ch, CURLOPT_SSLCERT, $certPath);
+
 					$certPass = getDolGlobalString('AUTOVERIFACTU_PASSWORD');
 					curl_setopt($ch, CURLOPT_SSLCERTPASSWD, $certPass);
 
@@ -283,7 +275,6 @@ class ActionsAutoverifactu extends CommonHookActions
 	 */
 	public function printUnderHeaderPDFline($parameters, &$pdfhandler)
 	{
-		global $mysoc;
 		$object = $parameters['object'];
 		$modelpdf = $object->model_pdf;
 		if (
@@ -295,25 +286,17 @@ class ActionsAutoverifactu extends CommonHookActions
 		) {
 			$pdf = &$parameters['pdf'];
 
-			// url de verificacion en caso de test o production.
-			$testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
-			$base_url = $testMode ? VERIFACTU_TEST_COLLATION_BASE_URL : VERIFACTU_COLLATION_BASE_URL;
-			$endpoint = '/wlpl/TIKE-CONT/ValidarQR';
-			$query = http_build_query(array(
-				'nif' => $mysoc->idprof1,
-				'numserie' => $object->ref,
-				'fecha' => date('d-m-Y', $object->date),
-				'importe' => number_format($object->total_ttc - $object->total_localtax2, 2, '.', ''),
-			));
-			//El código «QR» deberá tener un tamaño entre 30x30 y 40x40 milímetros y seguir las especificaciones de la norma ISO/IEC 18004:2015
-			//A este respecto, se deben mantener como mínimo 2 milímetros de espacio vacío (en blanco) alrededor de los cuatro lados del código «QR», recomendándose que sean 6 milímetros.
-			//La presentación del código «QR» incluirá también un texto que siempre deberá ir precediéndolo: «QR tributario:», y que se situará encima del propio código «QR»
+			// El código «QR» deberá tener un tamaño entre 30x30 y 40x40 milímetros y seguir las especificaciones de la norma ISO/IEC 18004:2015
+			// A este respecto, se deben mantener como mínimo 2 milímetros de espacio vacío (en blanco) alrededor de los cuatro lados del código «QR», recomendándose que sean 6 milímetros.
+			// La presentación del código «QR» incluirá también un texto que siempre deberá ir precediéndolo: «QR tributario:», y que se situará encima del propio código «QR»
 			// (preferiblemente centrado con respecto a este), de manera que sirva para identificarlo y distinguirlo de otros posibles códigos «QR» que pudiera contener la factura para otros cometidos.
 			$pdf->setTopMargin($pdfhandler->tab_top - 5);
 			$pdf->MultiCell(30, 10, 'QR tributario:', 0, 'C', 0, 1);
 
+			$collation_url = autoverifactuCollationLink($object);
+
 			$pdf->write2DBarcode(
-				$base_url . $endpoint . '?' . $query,
+				$collation_url,
 				'QRCODE,M',
 				$pdfhandler->marge_gauche,
 				$pdfhandler->tab_top - 1,
@@ -323,20 +306,21 @@ class ActionsAutoverifactu extends CommonHookActions
 					'border' => false,
 					'padding' => 2,
 					'fgcolor' => array(25, 25, 25),
-					'bgcolor' => array(255, 255, 255), //margen color blanco con padding 2mm
+					'bgcolor' => array(255, 255, 255), // margen color blanco con padding 2mm
 					'module_width' => 1,
 					'module_height' => 1,
 				),
 				30,
 			);
+
 			$pdf->setTopMargin($pdfhandler->tab_top + 32);
 			$pdf->MultiCell(30, 10, 'VERI*FACTU', 0, 'C', 0, 1);
+
 			$this->results = array('extra_under_address_shift' => 40);
 		}
 
 		return 0;
 	}
-
 
 	/**
 	 * Execute action on card page buttons render. If it is a facture page,
