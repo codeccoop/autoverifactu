@@ -104,13 +104,7 @@ class ActionsAutoverifactu extends CommonHookActions
 	public function doActions($parameters, &$object, &$action)
 	{
 
-		global $langs, $mysoc, $dolibarr_main_url_root;
-
-
-		if ($parameters['currentcontext'] === 'invoicelist') {
-			//añade estilo a los estados de verifactu.
-			echo '<link rel="stylesheet" type="text/css" href="' . $dolibarr_main_url_root . '/custom/autoverifactu/css/selector_status.css.php">';
-		}
+		global $langs, $mysoc;
 
 		if ($parameters['currentcontext'] === 'invoicecard') {
 			switch ($action) {
@@ -136,7 +130,6 @@ class ActionsAutoverifactu extends CommonHookActions
 						'formato' => 'json',
 					));
 					$ch = curl_init();
-					echo $base_url . $endpoint . '?' . $query;
 					curl_setopt($ch, CURLOPT_URL, $base_url . $endpoint . '?' . $query);
 					curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 					curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
@@ -198,12 +191,11 @@ class ActionsAutoverifactu extends CommonHookActions
 					break;
 				case 'verifactuResend':
 					//esta accion se da cuando una factura ha tenido un error y se quiere reenviar unavez subsanado el error
-					$now = new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
 					//compruebo que el a pasado el tiempo de espera par la proxima peticion de la api
-					if ($now->getTimestamp() < getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0')) {
+					if (!autoverifactuIsDeliveryAllowed($lasting_time)) {
 						//en caso de que no se pueda enviar lo indico
 						$langs->load('autoverifactu@autoverifactu');
-						$this->errors[] = $langs->trans('notToDoList', getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED') - $now->getTimestamp());
+						$this->errors[] = $langs->trans('notToDoList', $lasting_time);
 						return 0;
 					} elseif (in_array($object->array_options['options_verifactu_status'], array('2','4','5'), true)) {
 						//en caso de poder enviarla lo envio

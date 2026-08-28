@@ -297,12 +297,6 @@ function autoverifactuSendInvoice($invoice, $action, &$xml = '')
 		'idprof1' => $mysoc->idprof1,
 	);
 
-	//no exisiste la funcion autoverifactuValidateIssuer
-	/*$issuerIsValid = autoverifactuValidateIssuer($issuer);
-
-	if (!$issuerIsValid) {
-		throw new Exception('Inconsistent issuer data');
-	}*/
 
 	$envelope = $xml = autoverifactuSoapEnvelope(
 		$record,
@@ -452,40 +446,44 @@ function autoverifactuSoapRequest($body, $ttl = 3)
 	$res = curl_exec($ch);
 	dol_syslog('# RESPUESTA ALTA REGISTRO', LOG_DEBUG);
 	dol_syslog($res, LOG_DEBUG);
-	// echo "<br>"; echo "<br>"; echo "<br>"; echo "<br>";
+
+	// En caso de no obtener respuesta, lanzamos un error de CURL a.k.a. error de conexión.
 	if ($res === false) {
 		$error = curl_error($ch);
 		$code = curl_errno($ch);
-		curl_close($ch);
 		throw new Exception('cURL error:' . $error, $code);
 	}
-	curl_close($ch);
-	// var_dump(htmlentities($res));
+
 	$doc = new DOMDocument();
 	$doc->loadXML($res . "\n");
-	$faults = $doc->getElementsByTagName('Fault');
-	//obtengo de la respuesta el tiempo de espara hasta la proxima registro
-	$shippingWaitingTimeNodes = $doc->getElementsByTagName('TiempoEsperaEnvio');
-	if ($shippingWaitingTimeNodes->length > 0) {
-		$now = new DateTimeImmutable(
-			'now',
-			new DateTimeZone('Europe/Madrid'),
-		);
-		$shippingWaitingTime = (int) $shippingWaitingTimeNodes->item(0)->nodeValue;
-		$newShipment = $now->modify('+' . $shippingWaitingTime . ' seconds');
-		$newValueTimestamp = $newShipment->getTimestamp();
-		//guardo la fecha en la que puedo realizar el proximo envio
-		$result = dolibarr_set_const($db, 'VERIFACTU_NEXT_DELIVERY_ALLOWED', $newValueTimestamp, 'chaine', 0, '', 0);
+
+	// Consultamos la existencia en la resupuesta de información respecto
+	// a los tiempos de envío permitidos.
+	$nodes = $doc->getElementsByTagName('TiempoEsperaEnvio');
+	if ($nodes->count() > 0) {
+		// Obtenemos la siguiente fecha de envío permitida en base al timestamp actual
+		// sumado al tiempo de espera indicado por la respuesta, y guardamos el resultado
+		// en base de datos.
+		$now = new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
+		$time = (int) $nodes->item(0)->nodeValue;
+		$then = $now->modify('+' . $time . ' seconds');
+
+		$result = dolibarr_set_const($db, 'VERIFACTU_NEXT_DELIVERY_ALLOWED', $then->getTimestamp(), 'chaine', 0, '', 0);
 		if ($result <= 0) {
 			dol_syslog('# VERIFACTU SAVE DOLIBARR CONST VERIFACTU_NEXT_DELIVERY_ALLOWED', LOG_DEBUG);
 		}
 	}
+
+	// Consultamos la existencia de reportes de error en el contenido de la respuesta.
+	$faults = $doc->getElementsByTagName('Fault');
 	if ($faults->count() > 0) {
-		$fault = $faults[0];
-		$code = $fault->getElementsByTagName('faultcode')[0];
+		$fault = $faults->item(0);
+		$code = $fault->getElementsByTagName('faultcode')->item(0);
+
+		// Si el error es de servidor (su parte), reintentamos la llamda, hasta
+		// consumir el ttl disponibles (3).
 		if (in_array($code->nodeValue, array('env:Server', 'sopaenv:Server'), true)) {
 			if ($ttl) {
-				// Retry on soapenv:Server errors with a limit of 3 attempts.
 				return autoverifactuSoapRequest($body, $ttl - 1);
 			} else {
 				// Exit if max retries is reached.
@@ -494,10 +492,13 @@ function autoverifactuSoapRequest($body, $ttl = 3)
 				throw new Exception($res, 503);
 			}
 		}
+
 		dol_syslog('# REJECTED SOAP ENVELOPE', LOG_DEBUG);
 		dol_syslog($body, LOG_DEBUG);
+
 		throw new Exception($res, 400);
 	}
+
 	return $doc;
 }
 
@@ -532,6 +533,7 @@ function autoverifactuSoapEnvelope($record, $issuer, $representative = null)
 	$issuerEl->appendChild($issuerNameEl);
 	$issuerNifEl = $xml->createElement('sum1:NIF', htmlspecialchars($issuer['idprof1']));
 	$issuerEl->appendChild($issuerNifEl);
+
 	if ($representative) {
 		$representativeEl = $xml->createElement('sum1:Representante');
 		$regHeaderEl->appendChild($representativeEl);
@@ -751,8 +753,6 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 
 	$record->breakdown = autoverifactuLinesToBreakdown($invoice);
 
-
-
 	$tax_total = 0;
 	$base_total = 0;
 	foreach ($record->breakdown as $line) {
@@ -773,8 +773,6 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 		'.',
 		'',
 	);
-
-
 
 	$previous = autoverifactuGetPreviousValidInvoice($invoice, $now);
 
@@ -1092,14 +1090,8 @@ function autoverifactuLinesToBreakdown($invoice)
 
 	$grouped = array();
 	$defaultRegime = getDolGlobalString('AUTOVERIFACTU_DEFAULT_REGIME') ?: '01';
-	/*   echo "<pre>";
-	var_dump($invoice->lines);
-	echo "</pre>";
-	echo "<br>";
-	 echo "<br>";
-	  echo "<br>";*/
+
 	foreach ($invoice->lines as $line) {
-		//echo getDolGlobalString('AUTOVERIFACTU_TAX') ."|".$line->array_options['options_verifactu_regime_type']."|". $line->array_options['options_verifactu_operation_type']."|".$line->array_options['options_verifactu_tax_excemption']."|".$line->tva_tx."|".$line->localtax1_tx ;
 		$taxType = $line->array_options['options_Verifactu_Tax'] ?: '01';
 		$regimeType = $line->array_options['options_verifactu_regime_type'] ?: $defaultRegime;
 		$operationType = $line->array_options['options_verifactu_operation_type'] ?: 'S1';
@@ -1107,24 +1099,11 @@ function autoverifactuLinesToBreakdown($invoice)
 		$taxRate = number_format((float) $line->tva_tx, 2, '.', '');
 		$baseAmount = (float) $line->total_ht;
 		$taxAmount = (float) $line->total_tva;
-		/*   echo "-----------------------------------";
-		echo "<br>";
-		var_dump($line->localtax1_tx);
-			  echo "<br>";
-		var_dump( !NumberIsZero($line->localtax1_tx));
-		echo "<br>";
-		echo "-----------------------------------";*/
+
 		$equivalenceSurchargeType = !NumberIsZero($line->localtax1_tx) && $line->product_type === '0' ? number_format((float) $line->localtax1_tx, 2, '.', '') : null;
 		$equivalenceSurchargeTotal = $line->total_localtax1 ? (float) $line->total_localtax1 : 0.0;
-		/*echo "<br>";
-		echo "******************";
-		echo "<br>";
-		echo $equivalenceSurchargeType;
-		echo "<br>";
-		echo "******************";*/
-		//genero in key determinado
-		//para cada uno de los
-		//diferentes tipos impositivos
+
+		// Genero un key determinado para cada uno de los diferentes tipos impositivos.
 		$key = implode('|', array(
 			$taxType,
 			$regimeType,
@@ -1133,14 +1112,6 @@ function autoverifactuLinesToBreakdown($invoice)
 			$taxRate,
 			$equivalenceSurchargeType ?: null
 		));
-		/* echo "<br>";
-		echo $key;
-		echo "<br>";
-		echo $line->id;
-		echo "<br>";
-		echo  var_dump(isset($grouped[$key]));
-		echo "<br>";*/
-
 
 		//si no existe creo lo añado
 		if (!isset($grouped[$key])) {
@@ -1156,20 +1127,20 @@ function autoverifactuLinesToBreakdown($invoice)
 				'equivalenceSurchargeTotal' => 0.0
 			);
 		}
+
 		//sumo los tipos
 		$grouped[$key]['baseAmount'] += $baseAmount;
 		$grouped[$key]['taxAmount'] += $taxAmount;
 		$grouped[$key]['equivalenceSurchargeTotal'] += $equivalenceSurchargeTotal;
-		/*echo "<pre>";
-		var_dump($grouped);
-		echo "</pre>";*/
 	}
+
 	//creo la clase y las guardo en el arrray
 	$breakdown = array();
 	if (count($grouped) > 12) {
 		$invoice->error[] = 'maximumNumberOfTaxRates';
 		return -1;
 	}
+
 	foreach ($grouped as $group) {
 		$details = new stdClass();
 		$details->taxType = $group['taxType'];
@@ -1182,16 +1153,14 @@ function autoverifactuLinesToBreakdown($invoice)
 		$details->taxAmount = number_format($group['taxAmount'], 2, '.', '');
 
 		if ($group['equivalenceSurchargeType']  ) {
-			/*echo $group['equivalenceSurchargeType'];
-			echo "<br>";
-			echo $group['equivalenceSurchargeTotal'];*/
 			$details->equivalenceSurcharge = new stdClass();
 			$details->equivalenceSurcharge->type = $group['equivalenceSurchargeType'];
 			$details->equivalenceSurcharge->total = number_format($group['equivalenceSurchargeTotal'], 2, '.', '');
 		}
+
 		$breakdown[] = $details;
 	}
-	//var_dump($breakdown);
+
 	return $breakdown;
 }
 
@@ -1636,10 +1605,14 @@ function autoverifactuSetLegalText($invoice)
 /**
  * Checks if the last waiting time reported by the Veri*Factu API responses has been exceeded.
  *
+ * @param int $lasting_time Pointer where the lasting time to the next delivery will be stored.
+ *
  * @return bool
  */
-function autoverifactuIsDeliveryAllowed()
+function autoverifactuIsDeliveryAllowed(&$lasting_time = 0)
 {
-	$now = new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid'));
-	return $now->getTimestamp() >= getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0');
+	$now = (new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid')))->getTimestamp();
+	$time = getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0');
+	$lasting_time = max($time - $now, 0);
+	return $lasting_time === 0;
 }

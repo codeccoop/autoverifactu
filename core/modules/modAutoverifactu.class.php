@@ -130,7 +130,6 @@ class modAutoverifactu extends DolibarrModules
 				'interventioncard',
 				'expeditioncard',
 				'pdfgeneration',
-				'invoicelist', //para añadir estilos al listado de facturas
 			),
 			/* END MODULEBUILDER HOOKSCONTEXTS */
 			// Set this to 1 if features of module are opened to external users
@@ -261,14 +260,11 @@ class modAutoverifactu extends DolibarrModules
 	 */
 	public function init($options = '')
 	{
-		global $db, $langs; // , $conf;
+		global $db, $langs;
 		$langs->loadLangs(array('autoverifactu@autoverifactu'));
-		$now = new DateTimeImmutable(
-			'now',
-			new DateTimeZone('Europe/Madrid'),
-		);
+
 		dolibarr_set_const($db, 'FAC_FORCE_DATE_VALIDATION', '1', 'chaine', 0, '', 0);
-		dolibarr_set_const($db, 'VERIFACTU_NEXT_DELIVERY_ALLOWED', $now->getTimestamp(), 'chaine', 0, '', 0);
+		dolibarr_set_const($db, 'VERIFACTU_NEXT_DELIVERY_ALLOWED', 0, 'chaine', 0, '', 0);
 
 		// Create tables of module at module activation
 		// $result = $this->_load_tables('/autoverifactu/sql/');
