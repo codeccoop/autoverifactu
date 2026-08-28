@@ -29,9 +29,9 @@ require_once dirname(__DIR__) . '/env.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/profid.lib.php';
 
-require_once dirname(__DIR__) . '/lib/autoverifactu.lib.php';
-require_once dirname(__DIR__) . '/lib/setup.lib.php';
-require_once dirname(__DIR__) . '/lib/validation.lib.php';
+require_once AUTOVERIFACTU_DIR . '/lib/autoverifactu.lib.php';
+require_once AUTOVERIFACTU_DIR . '/lib/setup.lib.php';
+require_once AUTOVERIFACTU_DIR . '/lib/validation.lib.php';
 
 /**
  * Global variables.
