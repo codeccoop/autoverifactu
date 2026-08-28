@@ -1629,14 +1629,18 @@ function autoverifactuCollationLink($invoice, $as_json = false)
 {
 	global $mysoc;
 
-	// En caso de tener IRPF hay que substraerlo del tota, ya que en verifactu no lo tiene en cuenta.
+	// En caso de tener IRPF hay que substraerlo del tota, ya que en verifactu no
+	// lo tiene en cuenta.
 	$invoice_total = $invoice->total_ttc;
 	if ($invoice->total_localtax2) {
 		$invoice_total -= $invoice->total_localtax2;
 	}
 
+	// Seleccionamos entorno en base al modo actual de Auto-Veri*Factu.
 	$test_mode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
 	$base_url = $test_mode ? VERIFACTU_TEST_COLLATION_BASE_URL : VERIFACTU_COLLATION_BASE_URL;
+
+	// Endpoint de cotejo de registors de facturación.
 	$endpoint = '/wlpl/TIKE-CONT/ValidarQR';
 
 	$query_args = array(
@@ -1646,6 +1650,8 @@ function autoverifactuCollationLink($invoice, $as_json = false)
 		'importe' => number_format($invoice_total, 2, '.', ''),
 	);
 
+	// El campo formato solo ha de ser informado cuando se espera una
+	// respuesta en formato json.
 	if ($as_json) {
 		$query_args['formato'] = 'json';
 	}
