@@ -462,7 +462,7 @@ class ActionsAutoverifactu extends CommonHookActions
 				if (
 					!$valid_id
 					&& !$thirdparty->tva_intra
-					&& !autoverifactuIsPosInvoice($object)
+					&& !autoverifactuIsSimplifiedInvoice($object)
 					&& !empty($parameters['userRight'])
 				) {
 					$label = $langs->trans('ThirdpartyIdProfRequired');

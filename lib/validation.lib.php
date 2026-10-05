@@ -510,6 +510,33 @@ function autoverifactuIsInvoiceRecorded($invoice)
 }
 
 /**
+ * Checks if an invoices is simplified. A simplified invoice is an invoice that
+ * has as thirdparty the generic customer identified by AUTOVERIFACTU_THIRDPARTY_FOR_SELL.
+ *
+ * @param Facture $invoice Target invoice.
+ *
+ * @return bool
+ */
+function autoverifactuIsSimplifiedInvoice($invoice)
+{
+	$invoice->fetch_thirdparty();
+	$thirdparty = $invoice->thirdparty;
+	$valid_id = $thirdparty->id_prof_check(1, $thirdparty);
+
+	if ($valid_id || $thirdparty->tva_intra) {
+		return false;
+	}
+
+	$is_pos = autoverifactuIsPosInvoice($invoice);
+	if ($is_pos) {
+		return true;
+	}
+
+	$generic_customer_id = getDolGlobalInt('AUTOVERIFACTU_THIRDPARTY_FOR_SELL');
+	return $generic_customer_id == $thirdparty->id;
+}
+
+/**
  * Checks if an invoices is a POS invoice, or a derived invoice from a POS invoice.
  *
  * @param Facture $invoice Target invoice.
