@@ -64,6 +64,9 @@ function autoverifactuSetupPost()
 	$enabled = autoverifactuGetPost('AUTOVERIFACTU_ENABLED');
 	$enabled = $enabled && autoverifactuSystemCheck();
 	autoverifactu_set_const('AUTOVERIFACTU_ENABLED', $enabled);
+
+	$thirdparty = autoverifactuGetPost('AUTOVERIFACTU_THIRDPARTY_FOR_SELL');
+	autoverifactu_set_const('AUTOVERIFACTU_THIRDPARTY_FOR_SELL', (int) $thirdparty);
 }
 
 /**

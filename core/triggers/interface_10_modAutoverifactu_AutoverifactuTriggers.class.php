@@ -33,6 +33,10 @@
 require_once DOL_DOCUMENT_ROOT . '/core/triggers/dolibarrtriggers.class.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
+if (!defined('AUTOVERIFACTU_DIR')) {
+	define('AUTOVERIFACTU_DIR', dirname(__DIR__, 2));
+}
+
 require_once AUTOVERIFACTU_DIR . '/lib/autoverifactu.lib.php';
 require_once AUTOVERIFACTU_DIR . '/lib/verifactu.lib.php';
 require_once AUTOVERIFACTU_DIR . '/lib/validation.lib.php';

@@ -28,6 +28,10 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/commonhookactions.class.php';
 require_once DOL_DOCUMENT_ROOT . '/blockedlog/class/blockedlog.class.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
+if (!defined('AUTOVERIFACTU_DIR')) {
+	define('AUTOVERIFACTU_DIR', dirname(__DIR__));
+}
+
 require_once AUTOVERIFACTU_DIR . '/lib/autoverifactu.lib.php';
 require_once AUTOVERIFACTU_DIR . '/lib/validation.lib.php';
 
@@ -204,18 +208,21 @@ class ActionsAutoverifactu extends CommonHookActions
 					break;
 			}
 		} elseif ($parameters['currentcontext'] === 'admincompany') {
-			if ($action === 'update' && autoverifactuEnabled()) {
-				$forbidden = $mysoc->nom !== GETPOST('name')
-					|| $mysoc->idprof1 !== GETPOST('siren');
-
-				if ($forbidden) {
-					$_POST['name'] = $mysoc->nom;
-					$_POST['siren'] = $mysoc->idprof1;
-					$this->errors[] = $langs->trans('UpdateDisabledBy');
-					$action = 'skip';
+			if ($action === 'update') {
+				if ($mysoc->nom !== GETPOST('name') || $mysoc->idprof1 !== GETPOST('siren')) {
+					if (autoverifactuEnabled()) {
+						$_POST['name'] = $mysoc->nom;
+						$_POST['siren'] = $mysoc->idprof1;
+						$this->errors[] = $langs->trans('UpdateDisabledBy');
+						$action = 'skip';
+					} else {
+						autoverifactu_set_const('AUTOVERIFACTU_COMPANY_NAME', GETPOST('name') ?: $mysoc->nom);
+						autoverifactu_set_const('AUTOVERIFACTU_VAT', GETPOST('siren') ?: $mysoc->idprof1);
+					}
 				}
 			}
 		}
+
 		if (count($this->errors)) {
 			return -1;
 		} elseif (count($this->results)) {
