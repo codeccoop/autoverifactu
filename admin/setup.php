@@ -225,6 +225,12 @@ if ($invalid) {
 	$toggle->fieldOverride = ob_get_clean();
 }
 
+$formSetup->newItem('ADVANCED_SECTION_TITLE')->setAsTitle();
+
+$thirdparty_field = $formSetup->newItem('AUTOVERIFACTU_THIRDPARTY_FOR_SELL')->setAsSelect(array());
+$filter = '((s.client:IN:1,2,3) AND (s.status:=:1))';
+$thirdparty_field->fieldOverride = img_picto('', 'company', 'class="pictfixedwidth"') . ' ' . $formSetup->form->select_company(getDolGlobalInt('AUTOVERIFACTU_THIRDPARTY_FOR_SELL'), 'socid', $filter, 1, 0, 0, array(), 0, 'maxwidth500 widthcentpercentminusx');
+
 $setupnotempty += count($formSetup->items);
 
 /*

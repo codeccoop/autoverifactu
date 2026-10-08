@@ -101,9 +101,10 @@ function autoverifactuRegisterInvoice($invoice, $action)
 	$invoice->fetch_thirdparty();
 	$thirdparty = $invoice->thirdparty;
 	$valid_id = $thirdparty->id_prof_check(1, $thirdparty);
+	$is_simple = autoverifactuIsSimplifiedInvoice($invoice);
 
 	//las facturas simplificadas no tienen tercero y por tanto tienen que evitar esta validación
-	if (!autoverifactuIsPosInvoice($invoice) && $valid_id <= 0 && !$thirdparty->tva_intra) {
+	if ($valid_id <= 0 && !$thirdparty->tva_intra && !$is_simple) {
 		dol_syslog('Skip invoice verifactu record registration due to thirdparty without a vaid idprof1');
 		$invoice->error[] = 'NotNIFThirdparty';
 		return -1;
@@ -578,7 +579,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 	switch ($invoice->type) {
 		case Facture::TYPE_STANDARD:
 		case Facture::TYPE_DEPOSIT:
-			if (autoverifactuIsPosInvoice($invoice)) {
+			if (autoverifactuIsSimplifiedInvoice($invoice)) {
 				// Factura simplificada y facturas sin identificación del destinatario (Art. 6.1.D del R.D. 1619/2012).
 				$invoiceType = 'F2';
 			} else {
@@ -591,7 +592,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 			break;
 		case Facture::TYPE_REPLACEMENT:
 		case Facture::TYPE_CREDIT_NOTE:
-			if (autoverifactuIsPosInvoice($invoice)) {
+			if (autoverifactuIsSimplifiedInvoice($invoice)) {
 				// Factura rectificativa simplificada
 				$invoiceType = 'R5';
 			} else {
@@ -1258,7 +1259,7 @@ function autoverifactuRegisterInvoiceList($invoices)
 		$thirdparty = $invoice->thirdparty;
 		$valid_id = $thirdparty->id_prof_check(1, $thirdparty);
 
-		if (!autoverifactuIsPosInvoice($invoice) && $valid_id <= 0 && !$thirdparty->tva_intra) {
+		if ($valid_id <= 0 && !$thirdparty->tva_intra) {
 			dol_syslog('Skip invoice #' . $invoice->id . ' due to thirdparty without valid idprof1');
 			continue;
 		}
