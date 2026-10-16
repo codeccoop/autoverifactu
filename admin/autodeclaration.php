@@ -121,10 +121,10 @@ $responsability = getDolGlobalString('AUTOVERIFACTU_RESPONSABILITY');
 		<input type="hidden" name="autodeclaration" />
 		<div class="form-setup-button-container">
 			<?php if ($responsability) : ?>
-				<input class="button button-save" type="submit" value="Download" data-action="download">
-				<input class="button button-delete butActionDelete" type="submit" value="Delete" data-action="delete">
+				<input class="button button-save" type="submit" value="<?php echo $langs->trans('DownloadAutodeclaration'); ?>" data-action="download">
+				<input class="button button-delete butActionDelete" type="submit" value="<?php echo $langs->trans('RevokeAutodeclaration'); ?>" data-action="delete">
 			<?php else : ?>
-				<input class="button button-save" type="submit" value="Save" data-action="create">
+				<input class="button button-save" type="submit" value="<?php echo $langs->trans('EmitAutodeclaration') ?>" data-action="create">
 			<?php endif; ?>
 		</div>
 	</form>

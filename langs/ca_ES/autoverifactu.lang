@@ -7,6 +7,7 @@ VeriFactu = Veri*Factu
 Active = Actiu
 Settings = Ajustos
 Others = Altres
+LegalText = Text legal
 
 # Module label 'ModuleAutoverifactuName'
 ModuleAutoverifactuName = Autoverifactu
@@ -87,6 +88,11 @@ FetchSplitInvoicesError = S'ha produït un error al carregar la relació de fact
 MaxInvoiceLinesError = <b>Veri*Factu no permet factures amb més de 12 línies</b>. Agrupa línies per concepte o codi CNAE, o emet factures parcials si l'agrupació no és possible
 MaxInvoiceLinesWarn = <b>Veri*Factu no permet factures amb més de 12 línies. Una factura amb més de 12 línies no podrà ser validada.</b> Agrupa línies per concepte o codi CNAE, o emet factures parcials si l'agrupació no és possible
 MaxEntityLinesWarn = <b>Veri*Factu no permet factures amb més de 12 línies.</b> Les factures generades a partir d'aquesta document no podran ser validades sense aplicar-hi una agrupació de les línies de factura.
+VerifactuFieldsNotEditable = <b>No es poden editar els camps associats a Veri*Factu</b> 
+RectificationTypeRequired = Quan una factura és de tipus rectificatiu, el camp "factura rectificativa" és obligatori
+WaitingTimeoutError = Per tal de corregir una factura amb errors, és necessari esperar %s segons.
+ErrorCode2001 = S'ha detectat un error al processament del NIF (%s) a Veri*Factu. Si us plau, comprova que no es tracti d'un error tipogràfic, o d'una empresa extrangera. Per resoldre l'error, editi el tercer
+ErrorCodeErrorAplication = S'han detectat errors al processament de la factura a Veri*Factu.
 
 #
 # Buttons
@@ -96,6 +102,11 @@ DisabledBy = Deshabilitat per Veri*Factu
 UpdateDisabledBy = Actualització deshabilitada per Veri*Factu
 ThirdpartyIdProfRequired = Veri*Factu requereix que els destinataris de les factures disposin d'un NIF/CIF vàlid 
 MaxInvoiceLines = Veri*Factu no permet factures amb més de 12 línies
+VerifactuResend = Reenviar a Veri*Factu
+EmitAutodeclaration = Emetre
+RevokeAutodeclaration = Revocar
+DownloadAutodeclaration = Descarregar
+FixVerifactuErrors = Corregir errors de Veri*Factu
 
 #
 # Autodeclaration page
@@ -186,3 +197,87 @@ VerifactuDetailsTaxExcemptionE3 = Excempta per l'artícle 22
 VerifactuDetailsTaxExcemptionE4 = Excempta per l'artícle 23 i 24
 VerifactuDetailsTaxExcemptionE5 = Excempta per l'artícle 25
 VerifactuDetailsTaxExcemptionE6 = Excempta per altres
+
+VerifactuStatus = Estat
+VerifactuStatusDescription = Estat de la factura a Veri*Factu
+VerifactuStatusSelect0 = Pendent d'enviament
+VerifactuStatusSelect1 = Registrat correctament
+VerifactuStatusSelect2 = Rebutjat
+VerifactuStatusSelect3 = A la cua (temporal)
+VerifactuStatusSelect4 = Registrat amb errors
+VerifactuStatusSelect5 = Registrat amb errors múltiples cops
+VerifactuStatusSelect6 = Registre anulat
+VerifactuStatusSelect7 = Registre anulat amb errors
+
+VerifactuPdfLegalTextUser = Incloure texts legals
+
+VerifactuLegalTextIRPF = Factura subjecta a retenció d'IRPF de conformitat amb la normativa vigent.
+VerifactuLegalTextTaxExcemptionE1 = Operació exempta d'IVA en virtut de l'Artícle 20 de la Llei 37/1992 de l'IVA.
+VerifactuLegalTextTaxExcemptionE2 = Operació exempta d'IVA en virtut de l'Artícle 21 de la Llei 37/1992 de l'IVA.
+VerifactuLegalTextTaxExcemptionE3 = Operació exempta d'IVA en virtut de l'Artícle 22 de la Llei 37/1992 de l'IVA.
+VerifactuLegalTextTaxExcemptionE4 = Operació exempta d'IVA en virtut de l'Artícle 23 i 24 de la Llei 37/1992 de l'IVA.
+VerifactuLegalTextTaxExcemptionE5 = Operació exempta d'IVA en virtut de l'Artícle 25 de la Llei 37/1992 de l'IVA.
+VerifactuLegalTextTaxExcemptionE6 = Operació exempta d'IVA per altres motius de la Llei 37/1992 del IVA.
+VerifactuLegalTextSujetoPasivo = Operació amb inversió del subjecte passiu conforme amb l'art. 84.U.2º de la Llei 37/1992 del IVA.
+VerifactuLegalTextCriterioCaja = Règim especial del criteri de caixa.
+
+VerifactuTax = Impuesto
+VerifactuTaxDescription = Aquest camp és necessari perquè contribueix a completar el detall de la tipologia de factura.
+VerifactuTax01 = IVA (per defecte)
+VerifactuTax02 = IPSI de Ceuta i Melilla
+VerifactuTax03 = IGIC de Canaries
+VerifactuTax05 = Altres
+
+VerifactuForeignIdType = Tipus d'identificació extrangera
+VerifactuForeignIdTypeDescription = Clau per establir el tipus d'identificador al país de residència del client. El seu valor per defecte és NIF.
+VerifactuForeignIdType02 = NIF
+VerifactuForeignIdType03 = Passaport
+VerifactuForeignIdType04 = Document oficial d'identificació emés pel país
+VerifactuForeignIdType05 = Certificat de residencia
+VerifactuForeignIdType06 = Altres documents provatoris
+VerifactuForeignIdType07 = No censat
+
+#
+# Messages Error
+#
+InvoiceDirError = No existeix el directori de factures als documents de Dolibarr.
+ThirdpartyIdError = El tercer no té NIF, o aquest no és vàlid.
+EmptyInvoiceError = No existeixen línies de factura.
+MakeInvoiceDirError = No s'ha pogut crear el directori de factura als documents de Dolibarr.
+AlreadyRegisterInvoiceError = La factura ja ha estat registrada a Veri*Factu.
+NotFoundSourceInvoiceError = No s'ha trobat la factura d'origen de la factura rectificativa.
+RecordTypeValidationError = El tipus de registre no és vàlid.
+InvoiceTypeValidationError = El tipus de factura no és vàlid.
+DateOperationValidationError = La data d'operació no és vàlida o té un format incorrecte.
+DescriptionValidationError = La descripció no és vàlid o supera els 500 caràcters.
+InvoiceNumberValidationError = El número de factura no és vàlid o supera els 60 caràcters.
+
+NotValidRecordFactureTTC = El importe total de la factura no tiene un formato numérico válido.
+NotValidRecordTTC = El importe total de la factura no tiene un formato numérico válido.
+NotEqualRecordTTCAndRecordFactureTTC = El importe total de la factura no coincide con el importe total calculado.
+NotValidRecordcorrectiveType = "El tipo de factura correctiva (I o S) no es válido."
+NotValidCorrectedBaseAmount = La base rectificada no es válida.
+NotValidCorrectedTaxAmount = La cuota rectificada no es válida.
+NotValidRecordTotalTaxAmount = El total de la cuota impositiva no es válido.
+NotValidRecordTotalAmount = El importe total no es válido.
+NotValidCalculatedTotal = El total y el total calculado no corresponden.
+NotValidCalculatedRate = El total de tasas y las tasas calculadas no corresponden.
+NotValidateTaxType = El tipo de impuesto no es válido (01, 02, 03 o 05).
+NotValidateRegimeType = El tipo de régimen no es válido.
+NotValidateOperationType = El tipo de operación no es Válida (S1,S2, N1 o N2).
+NotValidateTaxRate = El formato de porcentaje de impuestos no es válido.
+NotValidateExcemptionCode = El tipo de exceptción no es válida.
+RequiredValueError = Manquen camps obligatoris.
+SimplifiedInvoiceRecipientsError = Las facturas de tipo F2 y F5 no pueden tener destinatarios.
+InvoceMustBeCorrectiveType = La factura debe de ser tipo rectificativa.
+InvoceNotMustBeCorrectiveType = La factura no debe de ser tipo rectificativa.
+CorrectiveTypeDiferrenceShouldHaveBaseTaxAmounts = Si se trata de una factura rectificativa por Diferencia, debería incluir los importes de la base imponible y del impuesto.
+CorrectiveTypeSubtitutionNotShouldHaveBaseTaxAmounts = Si se trata de una factura rectificativa por substitución, no debería incluir los importes de la base imponible y del impuestos.
+NotValidateTypeF3RemplaceInvoice = Las facturas de tipo F3 deben de tener facturas simplificadas previas a las que va a reemplazar.
+NotValidateTypeNotF3RemplaceInvoice = Las facturas que no son de tipo F3 no deben de tener facturas simplificadas previas a las que va a reemplazar.
+NotValidRegimeTypeEquivalenceSurcharge = Cuando el existe un valor del impuesto de equivalencia el tipo de régimen debe de ser Régimen de recargo de equivalencia (18).
+NotValidTaxAmountEquivalenceSurcharge = El valor del Recargo de Equivalencia no es válido.
+NotValidTaxAmount = Los valores de los impuestos no son válidos.
+NotValueTotal = El valor del total no son válidos.
+UnkownForeignIdTypeError = Cuando el tercero no es de la unión Europea (no tiene CIF Intra.), debe indicar que tipo de documento identificativo esta usando.
+MaxRecordLinesError = Se ha sobrepasado el número máximo de tipos impositivos de una factura.

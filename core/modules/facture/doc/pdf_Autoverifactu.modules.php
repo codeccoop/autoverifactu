@@ -578,21 +578,12 @@ class pdf_Autoverifactu extends ModelePDFFactures
 
 				//echo "<pre>";
 
-				//verifactu_pdfLegalText
-
-
-				if (isset($object->array_options['options_verifactu_pdfLegalText'])) {
-					$langs->load('autoverifactu@autoverifactu');
-					$LegalText = '<strong>Texto Legal</strong> ';
-					$LegalText .= '<br> ' . $object->array_options['options_verifactu_pdfLegalTextUser'] ;
-					$LegalTextArray = explode(',', $object->array_options['options_verifactu_pdfLegalText']);
-
-					foreach ($LegalTextArray as  $value) {
-						$LegalText .= '<br> ' . $langs->trans($value);
-					}
-					$LegalText .= ' <hr><br>';
-					$notetoshow = dol_concatdesc($notetoshow, $LegalText, false, true);
+				$legalText = autoverifactuPDFLegalText($object);
+				if ($legalText) {
+					$notetoshow .= '<br><hr><strong>' . $langs->trans('LegalText') . '</strong><br>';
+					$notetoshow .= $legalText . '<hr><br>';
 				}
+
 				// Extrafields in noteº
 				$extranote = $this->getExtrafieldsInHtml($object, $outputlangs);
 

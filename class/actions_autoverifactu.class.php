@@ -107,13 +107,12 @@ class ActionsAutoverifactu extends CommonHookActions
 	 */
 	public function doActions($parameters, &$object, &$action)
 	{
-
 		global $langs, $mysoc;
 
 		if ($parameters['currentcontext'] === 'invoicecard') {
 			switch ($action) {
-				case 'verifactu':
-					//verificacion de factura enviada a verifactu
+				case 'VERIFACTU_COLLATE':
+					// Verificación de factura enviada a verifactu.
 					$result = autoverifactuIntegrityCheck($object);
 					if (!$result) {
 						$this->errors[] = $langs->trans('BlockedLogNotFound');
@@ -161,18 +160,12 @@ class ActionsAutoverifactu extends CommonHookActions
 				case 'edit_extras':
 					$attribute = GETPOST('attribute', 'alpha');
 
-					//evito que se editen estos campos
-					if (
-						$attribute === 'verifactu_status' ||
-						$attribute === 'verifactu_hash' ||
-						$attribute === 'verifactu_error' ||
-						$attribute === 'verifactu_error_code' ||
-						$attribute === 'verifactu_pdfLegalText' ||
-						$attribute === 'VerifactuTimeStamp'
-					) {
-						$this->errors[] = $langs->trans('NotEdit');
+					// Evito que se editen estos campos.
+					if (strrpos($attribute, 'verifactu_') !== false) {
+						$this->errors[] = $langs->trans('VerifactuFieldsNotEditables');
 						$action = '';
 					}
+
 					break;
 				case 'add':
 					if (in_array($object->type, array(Facture::TYPE_REPLACEMENT,Facture::TYPE_CREDIT_NOTE), true)) {
@@ -185,17 +178,18 @@ class ActionsAutoverifactu extends CommonHookActions
 					}
 
 					break;
-				case 'verifactuResend':
-					//esta accion se da cuando una factura ha tenido un error y se quiere reenviar unavez subsanado el error
-					//compruebo que el a pasado el tiempo de espera par la proxima peticion de la api
+				case 'VERIFACTU_AMEND':
+					// Esta acción se da cuando una factura ha tenido un error y se quiere reenviar una vez subsanado el error.
+					// Compruebo que el a pasado el tiempo de espera par la proxima peticion de la API.
 					if (!autoverifactuIsDeliveryAllowed($lasting_time)) {
-						//en caso de que no se pueda enviar lo indico
 						$langs->load('autoverifactu@autoverifactu');
 						$this->errors[] = $langs->trans('notToDoList', $lasting_time);
 						return 0;
-					} elseif (in_array($object->array_options['options_verifactu_status'], array('2','4','5'), true)) {
-						//en caso de poder enviarla lo envio
+					}
+
+					if (in_array($object->array_options['options_verifactu_status'], array('2', '3', '5'), true)) {
 						$result = autoverifactuRegisterInvoice($object, $action);
+
 						if ($result <= 0) {
 							if (!empty($object->errors)) {
 								$this->errors = array_merge($this->errors, (array) $object->errors);
@@ -203,8 +197,10 @@ class ActionsAutoverifactu extends CommonHookActions
 								$this->errors[] = $langs->trans('RecordCreationFail');
 							}
 						}
+
 						return $result;
 					}
+
 					break;
 			}
 		} elseif ($parameters['currentcontext'] === 'admincompany') {
@@ -244,9 +240,7 @@ class ActionsAutoverifactu extends CommonHookActions
 	 */
 	public function beforePDFCreation($parameters, &$object, &$action)
 	{
-		//?No entiendo por que regeneras el archivo xml. Una vez enviado y guardado es mejor no volver a generar.
-
-		/* if (
+		if (
 			$object->element === 'facture'
 			&& $object->status > Facture::STATUS_DRAFT
 			&& $object->type <= Facture::TYPE_DEPOSIT
@@ -265,7 +259,7 @@ class ActionsAutoverifactu extends CommonHookActions
 					return $result;
 				}
 			}
-		}*/
+		}
 
 		return 0;
 	}
@@ -351,11 +345,12 @@ class ActionsAutoverifactu extends CommonHookActions
 			&& autoverifactuEnabled()
 			&&  $object->array_options['options_verifactu_status'] === '1'
 		) {
+			// Botón para cotejar la validez de la factura.
 			echo dolGetButtonAction(
 				$langs->trans('CheckIntegrity'),
 				'Veri*Factu',
 				'default',
-				$_SERVER['PHP_SELF'] . '?action=verifactu&token=' . newToken() . '&id=' . $object->id,
+				$_SERVER['PHP_SELF'] . '?action=VERIFACTU_COLLATE&token=' . newToken() . '&id=' . $object->id,
 				'',
 				1,
 				array(
@@ -367,18 +362,19 @@ class ActionsAutoverifactu extends CommonHookActions
 			);
 		}
 
-		//Boton para mostrar los errores de factura
-		if ( $object->element === 'facture'
+		if (
+			$object->element === 'facture'
 			&& $object->status > Facture::STATUS_DRAFT
 			&& $object->type <= Facture::TYPE_DEPOSIT
 			&& autoverifactuEnabled()
-			&& $object->array_options['options_verifactu_status'] === '4'
+			&& in_array($object->array_options['options_verifactu_status'], array('2', '3', '5'), true)
 		) {
+			// Botón para mostrar los errores de factura.
 			echo dolGetButtonAction(
-				$langs->trans('fixErrors'),
-				$langs->trans('fixErrors'),
+				$langs->trans('FixVerifactuErrors'),
+				$langs->trans('FixVerifactuErrors'),
 				'default',
-				$_SERVER['PHP_SELF'] . '?action=fixErrors&token=' . newToken() . '&id=' . $object->id,
+				$_SERVER['PHP_SELF'] . '?action=VERIFACTU_ERRORS&token=' . newToken() . '&id=' . $object->id,
 				'',
 				1,
 				array(
@@ -388,21 +384,13 @@ class ActionsAutoverifactu extends CommonHookActions
 					),
 				),
 			);
-		}
 
-		//permitir reenviar la facturas con errores
-		if (
-			$object->element === 'facture'
-			&& $object->status > Facture::STATUS_DRAFT
-			&& $object->type <= Facture::TYPE_DEPOSIT
-			&& autoverifactuEnabled()
-			&& in_array($object->array_options['options_verifactu_status'], array('2','4','5'), true)
-		) {
+			// Botón para subsanar facturas con errores.
 			echo dolGetButtonAction(
 				$langs->trans('VerifactuResend'),
 				$langs->trans('VerifactuResend'),
 				'default',
-				$_SERVER['PHP_SELF'] . '?action=verifactuResend&token=' . newToken() . '&id=' . $object->id,
+				$_SERVER['PHP_SELF'] . '?action=VERIFACTU_AMEND&token=' . newToken() . '&id=' . $object->id,
 				'',
 				1,
 				array(
@@ -487,27 +475,6 @@ class ActionsAutoverifactu extends CommonHookActions
 					$this->resprints = $button;
 					return 1;
 				}
-
-				//$object->fetch_lines();
-
-				/* Lo que limita es el numero de diferentes tipos de taxas
-				las lineas con las mismas tipos de taxas se deben de sumar
-
-				if (count($object->lines) > 12 && !empty($parameters['userRight'])) {
-					$label = $langs->trans('MaxInvoiceLines');
-					$button = dolGetButtonAction(
-						$label,
-						$parameters['html'],
-						$parameters['actionType'],
-						'',
-						$parameters['id'],
-						0,
-						$parameters['params']
-					);
-
-					$this->resprints = $button;
-					return 1;
-				} */
 			}
 		}
 	}
@@ -529,22 +496,18 @@ class ActionsAutoverifactu extends CommonHookActions
 			return;
 		}
 
-		if ($action === 'fixErrors' && $object->id > 0) {
-			// Accion de mostrar los erroes y una explicacion
+		if ($action === 'VERIFACTU_ERRORS' && $object->id > 0) {
+			// Accion de mostrar los erroes y una explicacion.
 			$langs->load('autoverifactu@autoverifactu');
 
+			$url = $_SERVER['PHP_SELF'] . '?id=' . $object->id;
+
 			if ($object->array_options['options_verifactu_error_code'] === '2001' ) {
-				//El NIF del bloque Destinatarios no está identificado en el censo de la AEAT.
+				// El NIF del bloque Destinatarios no está identificado en el censo de la AEAT.
 				$message = $langs->trans('Errorcode2001', $object->thirdparty->idprof1);
-				$parametros = $_GET;
-				$parametros['id'] = $object->id;
-				$url = $_SERVER['PHP_SELF'] . '?id=' . $object->id;
 				$this->formAlert($message, $url);
 			} else {
-				//los demas errores en teoria no deberian producirse porque la aplicación
-				//daria error y no enviaria la petición
-				$message = $langs->trans('ErrorCodeErrorAplication');
-				$url = $_SERVER['PHP_SELF'] . '?id=' . $object->id;
+				$message = $object->array_options['options_verifactu_error'];
 				$this->formAlert($message, $url);
 			}
 

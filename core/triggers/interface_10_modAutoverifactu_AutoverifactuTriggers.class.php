@@ -134,7 +134,7 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 				// en caso de que el tiempo del proximo envio no haya pasado.
 				if (!autoverifactuIsDeliveryAllowed($lasting_time)) {
 					if (in_array($object->array_options['options_verifactu_status'], array('7'), true)) {
-						$this->errors[] = $langs->trans('notToDoList', $lasting_time);
+						$this->errors[] = $langs->trans('VerifactuWaitingTimeoutError', $lasting_time);
 						return -1;
 					}
 
