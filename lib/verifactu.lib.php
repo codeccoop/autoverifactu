@@ -1186,11 +1186,11 @@ function autoverifactuPDFLegalText($invoice)
 /**
  * Checks if the last waiting time reported by the Veri*Factu API responses has been exceeded.
  *
- * @param int $lasting_time Pointer where the lasting time to the next delivery will be stored.
+ * @param int $lastingTime Pointer where the lasting time to the next delivery will be stored.
  *
  * @return bool
  */
-function autoverifactuIsDeliveryAllowed(&$lasting_time = 0)
+function autoverifactuIsDeliveryAllowed(&$lastingTime = 0)
 {
 	$now = (new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid')))->getTimestamp();
 	$time = getDolGlobalString('VERIFACTU_NEXT_DELIVERY_ALLOWED', '0');

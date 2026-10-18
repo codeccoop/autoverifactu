@@ -106,11 +106,11 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 					|| in_array($object->type, array(Facture::TYPE_REPLACEMENT, Facture::TYPE_CREDIT_NOTE), true)
 				) {
 					// Al crear una factura tipo rectificativa tenemos que borrar el hash y los demas campos.
-					$object->array_options['options_verifactu_tms'] = null;
-					$object->array_options['options_verifactu_hash'] = null;
-					$object->array_options['options_verifactu_error'] = null;
-					$object->array_options['options_verifactu_pdfLegalText'] = null;
-					$object->array_options['options_verifactu_status'] = 0;
+					$object->array_options['options_verifactu_tms'] = '';
+					$object->array_options['options_verifactu_hash'] = '';
+					$object->array_options['options_verifactu_error'] = '';
+					$object->array_options['options_verifactu_error_code'] = '';
+					$object->array_options['options_verifactu_status'] = '0';
 					$result = $object->insertExtraFields();
 
 					if ($result < 0) {
@@ -132,18 +132,9 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 
 				// Verifactu obliga a enviar peticiones a la api con unos tiempos de espera determinados enviados en la última respuesta
 				// en caso de que el tiempo del proximo envio no haya pasado.
-				if (!autoverifactuIsDeliveryAllowed($lasting_time)) {
-					if (in_array($object->array_options['options_verifactu_status'], array('7'), true)) {
-						$this->errors[] = $langs->trans('VerifactuWaitingTimeoutError', $lasting_time);
-						return -1;
-					}
-
-					// TODO: No estamos sobreescriviendo el status?
-					$object->array_options['options_verifactu_status'] = '3';
-					$object->insertExtraFields();
-					dol_syslog('Veri*Factu: Facture #' . $object->id . ' added to the delivery queue', LOG_DEBUG);
-
-					return 1;
+				if (!autoverifactuIsDeliveryAllowed($lastingTime)) {
+					$this->errors[] = $langs->trans('VerifactuWaitingTimeoutError', $lastingTime);
+					return -1;
 				}
 
 				// En caso que el tiempo de envio a pasado

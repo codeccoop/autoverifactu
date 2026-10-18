@@ -1,6 +1,5 @@
 <?php
-
-/* Copyright (C) 2023       Laurent Destailleur         <eldy@users.sourceforge.net>
+/* Copyright (C) 2023       Laurent Destailleur     <eldy@users.sourceforge.net>
  * Copyright (C) 2025		Lucas García			<lucas@codeccoop.org>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -228,7 +227,7 @@ class ActionsAutoverifactu extends CommonHookActions
 	}
 
 	/**
-	 * Execute action before PDF (document) creation
+	 * Execute action before PDF (document) creation.
 	 *
 	 * @param array<string,mixed> $parameters Array of parameters.
 	 * @param CommonObject        $object     Object output on PDF.
@@ -246,6 +245,8 @@ class ActionsAutoverifactu extends CommonHookActions
 			&& $object->type <= Facture::TYPE_DEPOSIT
 			&& autoverifactuEnabled()
 		) {
+			// Validates that invoice has not been modified and rewrites the XML recrd
+			// using the BlockedLog invoice data to guarantee consistency.
 			$result = autoverifactuCheckInvoiceImmutableXML($object, 'alta');
 
 			if ($result < 0) {
@@ -253,6 +254,7 @@ class ActionsAutoverifactu extends CommonHookActions
 			}
 
 			if ($object->status >= Facture::STATUS_CLOSED) {
+				// If the invoice is closed, then run the same checks for the anulation record.
 				$result = autoverifactuCheckInvoiceImmutableXML($object, 'anulacion');
 
 				if (!$result < 0) {
@@ -338,6 +340,7 @@ class ActionsAutoverifactu extends CommonHookActions
 	public function addMoreActionsButtons($parameters, &$object, $action)
 	{
 		global $langs;
+
 		if (
 			$object->element === 'facture'
 			&& $object->status > Facture::STATUS_DRAFT
@@ -515,14 +518,8 @@ class ActionsAutoverifactu extends CommonHookActions
 		}
 
 		if (
-			!in_array(
-				$object->type,
-				array(
-					Facture::TYPE_REPLACEMENT,
-					Facture::TYPE_CREDIT_NOTE
-				),
-				true
-			) && $object->id !== null // never hide the field for invoice creation forms
+			!in_array($object->type, array(Facture::TYPE_REPLACEMENT, Facture::TYPE_CREDIT_NOTE), true)
+			&& $object->id !== null /* never hide the field for invoice creation forms */
 		) {
 			$extrafields->attributes['facture']['list']['verifactu_rectification_type'] = '0';
 		} else {
