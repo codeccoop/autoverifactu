@@ -186,7 +186,8 @@ class ActionsAutoverifactu extends CommonHookActions
 						return 0;
 					}
 
-					if (in_array($object->array_options['options_verifactu_status'], array('2', '3', '5'), true)) {
+					$status = $object->array_options['options_verifactu_status'];
+					if (in_array($status, array('2', '3', '5'), true)) {
 						$result = autoverifactuRegisterInvoice($object, $action);
 
 						if ($result <= 0) {
@@ -346,63 +347,57 @@ class ActionsAutoverifactu extends CommonHookActions
 			&& $object->status > Facture::STATUS_DRAFT
 			&& $object->type <= Facture::TYPE_DEPOSIT
 			&& autoverifactuEnabled()
-			&&  $object->array_options['options_verifactu_status'] === '1'
 		) {
-			// Botón para cotejar la validez de la factura.
-			echo dolGetButtonAction(
-				$langs->trans('CheckIntegrity'),
-				'Veri*Factu',
-				'default',
-				$_SERVER['PHP_SELF'] . '?action=VERIFACTU_COLLATE&token=' . newToken() . '&id=' . $object->id,
-				'',
-				1,
-				array(
-					'attr' => array(
-						'class' => 'classfortooltip',
-						'title' => ''
+			$status = $object->array_options['options_verifactu_status'] ?? '0';
+			if ($status === '1') {
+				// Botón para cotejar la validez de la factura.
+				echo dolGetButtonAction(
+					$langs->trans('CheckIntegrity'),
+					'Veri*Factu',
+					'default',
+					$_SERVER['PHP_SELF'] . '?action=VERIFACTU_COLLATE&token=' . newToken() . '&id=' . $object->id,
+					'',
+					1,
+					array(
+						'attr' => array(
+							'class' => 'classfortooltip',
+							'title' => ''
+						),
+					)
+				);
+			} elseif (in_array($status, array('2', '3', '5'), true)) {
+				// Botón para mostrar los errores de factura.
+				echo dolGetButtonAction(
+					$langs->trans('FixVerifactuErrors'),
+					$langs->trans('FixVerifactuErrors'),
+					'default',
+					$_SERVER['PHP_SELF'] . '?action=VERIFACTU_ERRORS&token=' . newToken() . '&id=' . $object->id,
+					'',
+					1,
+					array(
+						'attr' => array(
+							'class' => 'classfortooltip',
+							'title' => ''
+						),
 					),
-				)
-			);
-		}
+				);
 
-		if (
-			$object->element === 'facture'
-			&& $object->status > Facture::STATUS_DRAFT
-			&& $object->type <= Facture::TYPE_DEPOSIT
-			&& autoverifactuEnabled()
-			&& in_array($object->array_options['options_verifactu_status'], array('2', '3', '5'), true)
-		) {
-			// Botón para mostrar los errores de factura.
-			echo dolGetButtonAction(
-				$langs->trans('FixVerifactuErrors'),
-				$langs->trans('FixVerifactuErrors'),
-				'default',
-				$_SERVER['PHP_SELF'] . '?action=VERIFACTU_ERRORS&token=' . newToken() . '&id=' . $object->id,
-				'',
-				1,
-				array(
-					'attr' => array(
-						'class' => 'classfortooltip',
-						'title' => ''
+				// Botón para subsanar facturas con errores.
+				echo dolGetButtonAction(
+					$langs->trans('VerifactuResend'),
+					$langs->trans('VerifactuResend'),
+					'default',
+					$_SERVER['PHP_SELF'] . '?action=VERIFACTU_AMEND&token=' . newToken() . '&id=' . $object->id,
+					'',
+					1,
+					array(
+						'attr' => array(
+							'class' => 'classfortooltip',
+							'title' => ''
+						),
 					),
-				),
-			);
-
-			// Botón para subsanar facturas con errores.
-			echo dolGetButtonAction(
-				$langs->trans('VerifactuResend'),
-				$langs->trans('VerifactuResend'),
-				'default',
-				$_SERVER['PHP_SELF'] . '?action=VERIFACTU_AMEND&token=' . newToken() . '&id=' . $object->id,
-				'',
-				1,
-				array(
-					'attr' => array(
-						'class' => 'classfortooltip',
-						'title' => ''
-					),
-				),
-			);
+				);
+			}
 		}
 	}
 

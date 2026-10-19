@@ -897,8 +897,6 @@ function autoverifactuValidateRegimeType($value, $required = true)
  */
 function autoverifactuValidateOperationType($value, $required = true)
 {
-	// TODO: hay que añadir la opcion de validate
-
 	/**
 	 * List of operation type codes:
 	 *  - S1: Sujeta y no exenta sin inversión
@@ -909,9 +907,6 @@ function autoverifactuValidateOperationType($value, $required = true)
 	 * @var string[]
 	 */
 	$options = array('S1', 'S2', 'N1', 'N2');
-
-	// Add 'validate' internal code.
-	$options[] = 'validate';
 
 	return in_array($value, $options, true) || !$required && empty($value);
 }
