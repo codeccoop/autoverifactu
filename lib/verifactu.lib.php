@@ -1163,15 +1163,19 @@ function autoverifactuPDFLegalText($invoice)
 		}
 
 		$opType = $line->array_options['options_verifactu_operation_type'] ?? null;
-		if ($opType === 'S2' && $sujeto_pasivo) {
-			// Inversión del sujeto pasivo.
+		$regime = $line->array_options['options_verifactu_regime_type'] ?? '01';
+
+		if ($opType === 'S2') {
+			// Sin IVA e inversión del sujeto pasivo.
 			$legalText[] = $langs->trans('VerifactuLegalTextSujetoPasivo');
-		} elseif ($opType === '03' && $rebu) {
+		} elseif ($regime === '03') {
+			// Régimen especial de bienes usados.
 			$legalText[] = $langs->trans('VerifactuLegalTextREBU');
-		} elseif ($opType === '07' && $criterio_caja) {
+		} elseif ($regime === '07') {
 			// Régimen de criterio de caja.
 			$legalText[] = $langs->trans('VerifactuLegalTextCriterioCaja');
-		} elseif ($opType === '09' && $agencia_viajes) {
+		} elseif ($regime === '05' /* || $regime === '09' */) {
+			// Régimen especial de las agencias de viajes.
 			$legalText[] = $langs->trans('VerifactuLegalTextAgenciaViajes');
 		}
 	}
@@ -1179,6 +1183,8 @@ function autoverifactuPDFLegalText($invoice)
 	if (!$legalText) {
 		return;
 	}
+
+	$legalText = array_unique($legalText);
 
 	return implode('<br>', $legalText);
 }
