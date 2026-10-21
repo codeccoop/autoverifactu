@@ -514,11 +514,20 @@ class ActionsAutoverifactu extends CommonHookActions
 
 		if (
 			!in_array($object->type, array(Facture::TYPE_REPLACEMENT, Facture::TYPE_CREDIT_NOTE), true)
-			&& $object->id !== null /* never hide the field for invoice creation forms */
+			&& $object->id !== null
 		) {
+			// Hide rectification type for non corrective invoice types
 			$extrafields->attributes['facture']['list']['verifactu_rectification_type'] = '0';
 		} else {
 			echo '<style>.field_options_verifactu_rectification_type span.valignmiddle{font-weight:bold}</style>';
+		}
+
+		$object->fetch_thirdparty();
+		$thirdparty = $object->thirdparty;
+
+		if ($thirdparty->tva_assuj) {
+			// Hide operation type selector if thirdparty is subject to tva.
+			$extrafields->attributes['facturedet']['list']['verifactu_operation_type'] = '0';
 		}
 	}
 
