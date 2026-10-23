@@ -110,7 +110,7 @@ class ActionsAutoverifactu extends CommonHookActions
 
 		if ($parameters['currentcontext'] === 'invoicecard') {
 			switch ($action) {
-				case 'VERIFACTU_COLLATE':
+				case 'verifactu_collate':
 					// Verificación de factura enviada a verifactu.
 					$result = autoverifactuIntegrityCheck($object);
 					if (!$result) {
@@ -167,28 +167,28 @@ class ActionsAutoverifactu extends CommonHookActions
 
 					break;
 				case 'add':
-					if (in_array($object->type, array(Facture::TYPE_REPLACEMENT,Facture::TYPE_CREDIT_NOTE), true)) {
+					if (in_array($object->type, array(Facture::TYPE_REPLACEMENT, Facture::TYPE_CREDIT_NOTE), true)) {
 						$rectificationType = GETPOST('options_verifactu_rectification_type', 'alpha');
 
 						if (empty($rectificationType)) {
-							$this->errors[] = $langs->trans('RectificationTypeRequired');
+							$this->errors[] = $langs->trans('RequiredError', $langs->trans('VerifactuRectificationType'));
 							header('Location: ' . $_SERVER['PHP_SELF'] . '?action=create');
 						}
 					}
 
 					break;
-				case 'VERIFACTU_AMEND':
+				case 'verifactu_amend':
 					// Esta acción se da cuando una factura ha tenido un error y se quiere reenviar una vez subsanado el error.
 					// Compruebo que el a pasado el tiempo de espera par la proxima peticion de la API.
-					if (!autoverifactuIsDeliveryAllowed($lasting_time)) {
+					if (!autoverifactuIsDeliveryAllowed($lastingTime)) {
 						$langs->load('autoverifactu@autoverifactu');
-						$this->errors[] = $langs->trans('notToDoList', $lasting_time);
+						$this->errors[] = $langs->trans('VerifactuWaitingTimeoutError', $lastingTime);
 						return 0;
 					}
 
 					$status = $object->array_options['options_verifactu_status'];
-					if (in_array($status, array('2', '3', '5'), true)) {
-						$result = autoverifactuRegisterInvoice($object, $action);
+					if (in_array($status, array('2', '3'), true)) {
+						$result = autoverifactuRegisterInvoice($object, strtoupper($action));
 
 						if ($result <= 0) {
 							if (!empty($object->errors)) {
@@ -355,7 +355,7 @@ class ActionsAutoverifactu extends CommonHookActions
 					$langs->trans('CheckIntegrity'),
 					'Veri*Factu',
 					'default',
-					$_SERVER['PHP_SELF'] . '?action=VERIFACTU_COLLATE&token=' . newToken() . '&id=' . $object->id,
+					$_SERVER['PHP_SELF'] . '?action=verifactu_collate&token=' . newToken() . '&id=' . $object->id,
 					'',
 					1,
 					array(
@@ -371,7 +371,7 @@ class ActionsAutoverifactu extends CommonHookActions
 					$langs->trans('FixVerifactuErrors'),
 					$langs->trans('FixVerifactuErrors'),
 					'default',
-					$_SERVER['PHP_SELF'] . '?action=VERIFACTU_ERRORS&token=' . newToken() . '&id=' . $object->id,
+					$_SERVER['PHP_SELF'] . '?action=verifactu_errors&token=' . newToken() . '&id=' . $object->id,
 					'',
 					1,
 					array(
@@ -387,7 +387,7 @@ class ActionsAutoverifactu extends CommonHookActions
 					$langs->trans('VerifactuResend'),
 					$langs->trans('VerifactuResend'),
 					'default',
-					$_SERVER['PHP_SELF'] . '?action=VERIFACTU_AMEND&token=' . newToken() . '&id=' . $object->id,
+					$_SERVER['PHP_SELF'] . '?action=verifactu_amend&token=' . newToken() . '&id=' . $object->id,
 					'',
 					1,
 					array(
@@ -494,7 +494,7 @@ class ActionsAutoverifactu extends CommonHookActions
 			return;
 		}
 
-		if ($action === 'VERIFACTU_ERRORS' && $object->id > 0) {
+		if ($action === 'verifactu_errors' && $object->id > 0) {
 			// Accion de mostrar los erroes y una explicacion.
 			$langs->load('autoverifactu@autoverifactu');
 
@@ -513,21 +513,13 @@ class ActionsAutoverifactu extends CommonHookActions
 		}
 
 		if (
-			!in_array($object->type, array(Facture::TYPE_REPLACEMENT, Facture::TYPE_CREDIT_NOTE), true)
-			&& $object->id !== null
+			in_array($object->type, array(Facture::TYPE_REPLACEMENT, Facture::TYPE_CREDIT_NOTE), true)
+			|| $object->id === null
 		) {
+			echo '<style>.field_options_verifactu_rectification_type span.valignmiddle{font-weight:bold;color:var(--fieldrequiredcolor) !important;}</style>';
+		} else {
 			// Hide rectification type for non corrective invoice types
 			$extrafields->attributes['facture']['list']['verifactu_rectification_type'] = '0';
-		} else {
-			echo '<style>.field_options_verifactu_rectification_type span.valignmiddle{font-weight:bold}</style>';
-		}
-
-		$object->fetch_thirdparty();
-		$thirdparty = $object->thirdparty;
-
-		if ($thirdparty->tva_assuj) {
-			// Hide operation type selector if thirdparty is subject to tva.
-			$extrafields->attributes['facturedet']['list']['verifactu_operation_type'] = '0';
 		}
 	}
 
