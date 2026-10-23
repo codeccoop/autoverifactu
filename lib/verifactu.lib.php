@@ -107,7 +107,7 @@ function autoverifactuRegisterInvoice($invoice, $action)
 	if ($action === 'BILL_VALIDATE') {
 		$file = $dir . '/' . $invoiceref . '-alta.xml';
 		$hidden = $dir . '/.verifactu-alta.xml';
-	} elseif ($action === 'verifactuResend') {
+	} elseif ($action === 'VERIFACTU_AMEND') {
 		$file = $dir . '/' . $invoiceref . '-subsanacion.xml';
 		$hidden = $dir . '/.verifactu-subsanacion.xml';
 	} else {
@@ -200,14 +200,6 @@ function autoverifactuRegisterInvoice($invoice, $action)
 			$invoice->array_options['options_verifactu_hash'] = $record->hash;
 			$invoice->array_options['options_verifactu_tms'] = $record->hashedAt->getTimestamp();
 
-			if ($error = $record->error ?? null) {
-				$invoice->array_options['options_verifactu_error'] = $error->message;
-				$invoice->array_options['options_verifactu_error_code'] = $error->code;
-			} else {
-				$invoice->array_options['options_verifactu_error'] = '';
-				$invoice->array_options['options_verifactu_error_code'] = '';
-			}
-
 			$result = $invoice->insertExtraFields();
 
 			if ($result <= 0) {
@@ -252,9 +244,6 @@ function autoverifactuRegisterInvoice($invoice, $action)
  */
 function autoverifactuSendInvoice($invoice, $recordType, &$xml = '')
 {
-	global $user;
-
-	$records = array();
 	$record = autoverifactuInvoiceToRecord($invoice, $recordType);
 
 	if (!$record) {
@@ -263,7 +252,7 @@ function autoverifactuSendInvoice($invoice, $recordType, &$xml = '')
 
 	global $hookmanager;
 
-	$parameters = array('record' => &$record, 'invoice' => $invoice, 'action' => $action);
+	$parameters = array('record' => &$record, 'invoice' => $invoice);
 	$reshook = $hookmanager->executeHooks(
 		'autoverifactuRecord',
 		$parameters,
@@ -291,39 +280,43 @@ function autoverifactuSendInvoice($invoice, $recordType, &$xml = '')
 	$envelope = $xml = autoverifactuSoapEnvelope($record, $issuer);
 
 	try {
-		$res = autoverifactuSoapRequest($envelope);
+		$response = autoverifactuSoapRequest($envelope);
+		autoverifactuUpdateInvoiceStatus($response, $invoice);
 	} catch (Throwable $th) {
+		dol_syslog('# REJECTED SOAP ENVELOPE', LOG_DEBUG);
+		dol_syslog($envelope, LOG_DEBUG);
 		throw new Exception($th->getMessage(), 400);
 	}
 
-	autoverifactuHandleSoapResponse($res, $invoice, $record);
 	return $record;
 }
 
-function autoverifactuHandleSoapResponse($res, $invoice, $record)
+/**
+ * Based on the Veri*Factu SOAP response, updates the invoice status and stores possible errors.
+ *
+ * @param DOMDocument $response Request response.
+ * @param Facture     $invoice  Invoice object.
+ *
+ * @return null
+ *
+ * @throws Exception            In case the record request has been rejected.
+ */
+function autoverifactuUpdateInvoiceStatus($response, $invoice)
 {
-	$record = $records[$index];
-
-	$operationType = $res->getElementsByTagName('TipoOperacion')->item(0);
-	$state = $res->getElementsByTagName('EstadoRegistro')->item(0);
+	$operationType = $response->getElementsByTagName('TipoOperacion')->item(0);
+	$state = $response->getElementsByTagName('EstadoRegistro')->item(0);
 	$status = $invoice->array_options['options_verifactu_status'] ?? '0';
 
 	if ($state->nodeValue === 'Incorrecto') {
-		dol_syslog('# REJECTED SOAP ENVELOPE', LOG_DEBUG);
-		dol_syslog($envelope, LOG_DEBUG);
-
-		$errCode = $res->getElementsByTagName('CodigoErrorRegistro')->item(0);
-		$errMessage = $res->getElementsByTagName('DescripcionErrorRegistro')->item(0);
+		$errCode = $response->getElementsByTagName('CodigoErrorRegistro')->item(0);
+		$errMessage = $response->getElementsByTagName('DescripcionErrorRegistro')->item(0);
 
 		if (!$errMessage || !$errCode) {
-			dol_syslog('# REJECTED SOAP ENVELOPE', LOG_DEBUG);
-			dol_syslog($envelope, LOG_DEBUG);
-			throw new Exception($res->saveXML(), 500);
+			throw new Exception($response->saveXML(), 500);
 		}
 
-		$record->error = new stdClass();
-		$record->error->code = $errCode->nodeValue;
-		$record->error->message = $errMessage->nodeValue;
+		$invoice->array_options['options_verifactu_error'] = $errMessage->nodeValue;
+		$invoice->array_options['options_verifactu_error_code'] = $errCode->nodeValue;
 
 		if ($operationType->nodeValue === 'Alta') {
 			if (in_array($status, array('0', '5'), true)) {
@@ -335,24 +328,18 @@ function autoverifactuHandleSoapResponse($res, $invoice, $record)
 			}
 		}
 	} elseif ($state->nodeValue === 'AceptadoConErrores') {
-		dol_syslog('# ACCEPTED WITH ERRORS SOAP ENVELOPE', LOG_DEBUG);
-		dol_syslog($envelope, LOG_DEBUG);
-
-		$errCode = $res->getElementsByTagName('CodigoErrorRegistro')->item(0);
-		$errMessage = $res->getElementsByTagName('DescripcionErrorRegistro')->item(0);
+		$errCode = $response->getElementsByTagName('CodigoErrorRegistro')->item(0);
+		$errMessage = $response->getElementsByTagName('DescripcionErrorRegistro')->item(0);
 
 		if (!$errMessage || !$errCode) {
-			dol_syslog('# REJECTED SOAP ENVELOPE', LOG_DEBUG);
-			dol_syslog($envelope, LOG_DEBUG);
-			throw new Exception($res->saveXML(), 500);
+			throw new Exception($response->saveXML(), 500);
 		}
 
-		$record->error = new stdClass();
-		$record->error->code = $errCode->nodeValue;
-		$record->error->message = $errMessage->nodeValue;
+		$invoice->array_options['options_verifactu_error'] = $errMessage->nodeValue;
+		$invoice->array_options['options_verifactu_error_code'] = $errCode->nodeValue;
 
 		if ($operationType->nodeValue === 'Alta') {
-			if (in_array($queueState, array('2', '3'), true)) {
+			if (in_array($status, array('2', '3'), true)) {
 				// Aceptado con errores múltiples veces.
 				$invoice->array_options['options_verifactu_status'] = '3';
 			} else {
@@ -366,9 +353,9 @@ function autoverifactuHandleSoapResponse($res, $invoice, $record)
 		} else {
 			$invoice->array_options['options_verifactu_status'] = '4';
 		}
-
-		autoverifactuDequeueRecord($invoice->id);
 	}
+
+	$invoice->insertExtraFields();
 }
 
 /**
