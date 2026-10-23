@@ -378,10 +378,17 @@ function autoverifactuIsInvoiceRecorded($invoice)
 	return !empty($invoice->array_options['options_verifactu_hash']);
 }
 
+/**
+ * Checks if an invoice is amendable. This is true when the invoice is recorded with errors.
+ *
+ * @param Facture $invoice Target invoice instance.
+ *
+ * @return bool
+ */
 function autoverifactuIsInvoiceAmendable($invoice)
 {
 	$invoice->fetch_optionals();
-	return autoverifactuIsInvoiceRecorded($invoice) && !in_array($invoice->array_options['options_verifactu_status'], array('2', '4', '5'), true);
+	return autoverifactuIsInvoiceRecorded($invoice) && in_array($invoice->array_options['options_verifactu_status'], array('2', '3'), true);
 }
 
 /**

@@ -490,10 +490,10 @@ class modAutoverifactu extends DolibarrModules
 			'01',
 			array(
 				'options' => array(
-					'01' => $langs->trans('VerifactuTax01'),
+					// '01' => $langs->trans('VerifactuTax01'),
 					'02' => $langs->trans('VerifactuTax02'),
 					'03' => $langs->trans('VerifactuTax03'),
-					'05' => $langs->trans('VerifactuTax05'),
+					// '05' => $langs->trans('VerifactuTax05'),
 				),
 			),
 			0,

@@ -97,6 +97,11 @@ $langs->load('autoverifactu@autoverifactu');
 	text-transform: uppercase;
 }
 
+/* INVOICE CARD */
+#addproduct #tablelines .linecoldescription .valuefieldcreate {
+  opacity: 0.6;
+}
+
 /* SELECTOR STATUS */
 td[data-key="facture.verifactu_status"] {
 	font-family: sans-serif;
@@ -114,7 +119,8 @@ td[data-key="facture.verifactu_status"] {
 	height: auto !important;
 }
 
-/* --- VARIACIONES DE COLOR SEGÚN EL ESTADO DE VERI*FACTU --- */
+/* VARIACIONES DE COLOR SEGÚN EL ESTADO DE VERI*FACTU */
+
 /* Pendiente de envío */
 td[data-key="facture.verifactu_status"][title="<?php echo html_entity_decode($langs->transnoentitiesnoconv('verifactuStatusSelect0'), ENT_QUOTES, 'UTF-8');?>"] {
 	background-color: #2b82a4 !important;

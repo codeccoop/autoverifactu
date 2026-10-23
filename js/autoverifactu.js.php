@@ -189,23 +189,109 @@ function autoverifactuHandleInvoiceDetailsReactivity() {
 	const form = document.querySelector("form#addproduct");
 	if (!form) return;
 
-	const regimeField = form.querySelector(".fieldline_options_verifactu_regime_type select");
-	const optTypeField = form.querySelector(".fieldline_options_verifactu_operation_type select");
-	const excemptionField = form.querySelector(".fieldline_options_verifactu_tax_excemption select");
-	if (!(regimeField && optTypeField && excemptionField)) return;
+	const rows = form.querySelectorAll("tbody tr");
+	for (let row of rows) {
+		if (!row.dataset.id) {
+			autoverifactuHandleInvoideDetailFormReactivity(row);
+		} else {
+			autoverifactuHandleInvoiceDetailReactivity(row);
+		}
+	}
+}
 
-	$(regimeField).val("<?php echo $defaultRegime ?>").trigger("change");
-	$(optTypeField).val("S1").trigger("change");
+function autoverifactuHandleInvoiceDetailReactivity(row) {
+	const regimeField = row.querySelector(".fieldline_options_verifactu_regime_type");
+	const taxField = row.querySelector(".fieldline_options_verifactu_tax");
+	const optTypeField = row.querySelector(".fieldline_options_verifactu_operation_type");
+	const excemptionField = row.querySelector(".fieldline_options_verifactu_tax_excemption");
+	const tvaField = row.querySelector(".linecolvat");
 
-	$(optTypeField).on("change", function () {
-		if (this.value) {
-			$(excemptionField).val("").trigger("change");
+	if (!(regimeField && taxField && optTypeField && excemptionField)) {
+		return;
+	}
+
+	const regime = regimeField.children[1].innerText;
+	console.log({ regime })
+	if (regime !== "<?php echo $langs->trans('VerifactuDetailsRegimeType08'); ?>") {
+		$(taxField).hide();
+	}
+
+	if (regime === "<?php echo $langs->trans('VerifactuDetailsRegimeType01'); ?>") {
+		$(regimeField).hide();
+	}
+
+	const tva = tvaField.children[0].innerText;
+	if (tva !== "0%") {
+		$(optTypeField).hide();
+		$(excemptionField).hide();
+	}
+}
+
+function autoverifactuHandleInvoideDetailFormReactivity(row) {
+	const regimeField = row.querySelector(".fieldline_options_verifactu_regime_type");
+	const taxField = row.querySelector(".fieldline_options_verifactu_tax");
+	const optTypeField = row.querySelector(".fieldline_options_verifactu_operation_type");
+	const excemptionField = row.querySelector(".fieldline_options_verifactu_tax_excemption");
+
+	if (!(regimeField && taxField && optTypeField && excemptionField)) {
+		return;
+	}
+
+	const regimeSelect = regimeField.querySelector("select");
+	const taxSelect = taxField.querySelector("select");
+	const optTypeSelect = optTypeField.querySelector("select");
+	const excemptionSelect = excemptionField.querySelector("select");
+
+	const tvaSelect = row.querySelector("#tva_tx");
+	let tva = tvaSelect.value;
+
+	let regime = regimeSelect.value;
+	if (!regime) {
+		$(regimeSelect).val("<?php echo $defaultRegime ?>").trigger("change");
+	}
+
+	$(taxSelect).val("").trigger("change");
+	if (regime !== "08") {
+		$(taxField).hide();
+	}
+
+	if (tva === "0") {
+		$(optTypeSelect).val("S1").trigger("change");
+	} else {
+		$(excemptionField).hide();
+		$(optTypeField).hide();
+	}
+
+	$(regimeSelect).on("change", function () {
+		if (this.value === "08") {
+			$(taxField).show();
+		} else {
+			$(taxField).hide();
 		}
 	});
 
-	$(excemptionField).on("change", function () {
+	// TODO: Entender como se relacionan estos dos campos!!
+	$(optTypeSelect).on("change", function () {
 		if (this.value) {
-			$(optTypeField).val("").trigger("change");
+			$(excemptionSelect).val("").trigger("change");
+		}
+	});
+
+	$(excemptionSelect).on("change", function () {
+		if (this.value) {
+			$(optTypeSelect).val("").trigger("change");
+		}
+	});
+
+	tvaSelect.addEventListener("change", function () {
+		tva = tvaSelect.value;
+
+		if (tva === "0") {
+			$(excemptionField).show();
+			$(optTypeField).show();
+		} else {
+			$(excemptionField).hide();
+			$(optTypeField).hide();
 		}
 	});
 }
