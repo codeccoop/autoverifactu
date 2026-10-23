@@ -65,7 +65,6 @@ function autoverifactuRegisterInvoice($invoice, $action)
 		return 0;
 	}
 
-	// TODO: Maybe include DON_VALIDATE and CASHCONTROL_VALIDATE.
 	$validActions = array('BILL_VALIDATE');
 	if ($invoice->status === Facture::STATUS_DRAFT && !in_array($action, $validActions, true)) {
 		return 0;

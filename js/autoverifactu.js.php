@@ -211,7 +211,6 @@ function autoverifactuHandleInvoiceDetailReactivity(row) {
 	}
 
 	const regime = regimeField.children[1].innerText;
-	console.log({ regime })
 	if (regime !== "<?php echo $langs->trans('VerifactuDetailsRegimeType08'); ?>") {
 		$(taxField).hide();
 	}
@@ -223,6 +222,14 @@ function autoverifactuHandleInvoiceDetailReactivity(row) {
 	const tva = tvaField.children[0].innerText;
 	if (tva !== "0%") {
 		$(optTypeField).hide();
+		$(excemptionField).hide();
+	}
+
+	const optType = optTypeField.children[1].innerText;
+	if (
+		optType !== "<?php echo $langs->trans('VerifactuOperationTypeS1'); ?>"
+		&& optType !== "<?php echo $langs->trans('VerifactuOperationTypeS2'); ?>"
+	) {
 		$(excemptionField).hide();
 	}
 }
@@ -250,16 +257,8 @@ function autoverifactuHandleInvoideDetailFormReactivity(row) {
 		$(regimeSelect).val("<?php echo $defaultRegime ?>").trigger("change");
 	}
 
-	$(taxSelect).val("").trigger("change");
 	if (regime !== "08") {
 		$(taxField).hide();
-	}
-
-	if (tva === "0") {
-		$(optTypeSelect).val("S1").trigger("change");
-	} else {
-		$(excemptionField).hide();
-		$(optTypeField).hide();
 	}
 
 	$(regimeSelect).on("change", function () {
@@ -270,18 +269,12 @@ function autoverifactuHandleInvoideDetailFormReactivity(row) {
 		}
 	});
 
-	// TODO: Entender como se relacionan estos dos campos!!
-	$(optTypeSelect).on("change", function () {
-		if (this.value) {
-			$(excemptionSelect).val("").trigger("change");
-		}
-	});
-
-	$(excemptionSelect).on("change", function () {
-		if (this.value) {
-			$(optTypeSelect).val("").trigger("change");
-		}
-	});
+	if (tva === "0") {
+		$(optTypeSelect).val("S1").trigger("change");
+	} else {
+		$(excemptionField).hide();
+		$(optTypeField).hide();
+	}
 
 	tvaSelect.addEventListener("change", function () {
 		tva = tvaSelect.value;
@@ -292,6 +285,21 @@ function autoverifactuHandleInvoideDetailFormReactivity(row) {
 		} else {
 			$(excemptionField).hide();
 			$(optTypeField).hide();
+		}
+	});
+
+	// TODO: Entender como se relacionan estos dos campos!!
+	const optType = optTypeSelect.value;
+	if (optType === "0" || optType === "S2") {
+		$(excemptionField).hide();
+	}
+
+	$(optTypeSelect).on("change", function () {
+		if (this.value === "0" || this.value === "S2") {
+			$(excemptionSelect).val("").trigger("change");
+			$(excemptionField).hide();
+		} else {
+			$(excemptionField).show();
 		}
 	});
 }

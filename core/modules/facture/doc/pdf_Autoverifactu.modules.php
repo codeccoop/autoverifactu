@@ -793,7 +793,6 @@ class pdf_Autoverifactu extends ModelePDFFactures
 					$localtax1_type = $object->lines[$i]->localtax1_type;
 					$localtax2_type = $object->lines[$i]->localtax2_type;
 
-					// TODO remise_percent is an obsolete field for object parent
 					/*if ($object->remise_percent) {
 						$tvaligne -= ($tvaligne * $object->remise_percent) / 100;
 					}
@@ -1065,7 +1064,6 @@ class pdf_Autoverifactu extends ModelePDFFactures
 		}
 
 		// Loop on each payment
-		// TODO Call getListOfPaymentsgetListOfPayments instead of hard coded sql
 		$sql = 'SELECT p.datep as date, p.fk_paiement, p.num_paiement as num, pf.amount as amount, pf.multicurrency_amount,';
 		$sql .= ' cp.code';
 		$sql .= ' FROM ' . MAIN_DB_PREFIX . 'paiement_facture as pf, ' . MAIN_DB_PREFIX . 'paiement as p';

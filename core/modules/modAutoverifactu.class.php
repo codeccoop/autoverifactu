@@ -519,7 +519,7 @@ class modAutoverifactu extends DolibarrModules
 			'S1',
 			array(
 				'options' => array(
-					'S1' => $langs->trans('VerifactuDetailsOperationTypeS1'),
+					// 'S1' => $langs->trans('VerifactuDetailsOperationTypeS1'),
 					'S2' => $langs->trans('VerifactuDetailsOperationTypeS2'),
 					'N1' => $langs->trans('VerifactuDetailsOperationTypeN1'),
 					'N2' => $langs->trans('VerifactuDetailsOperationTypeN2'),
