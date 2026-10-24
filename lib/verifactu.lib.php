@@ -534,11 +534,14 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 				$invoiceType = 'F1';
 			}
 
-			// Factura emitida en sustitución de facturas simplificadas facturadas y declaradas.
-			// $invoiceType = 'F3';
+			break;
+		case Facture::TYPE_CREDIT_NOTE:
+			// Art. 80.Uno.2
+			// Los descuentos y bonificaciones otorgados con posterioridad al momento en que la
+			// operación se haya realizado siempre que sean debidamente justificados.
+			$invoiceType = 'R1';
 			break;
 		case Facture::TYPE_REPLACEMENT:
-		case Facture::TYPE_CREDIT_NOTE:
 			if (autoverifactuIsSimplifiedInvoice($invoice)) {
 				// Factura rectificativa simplificada.
 				$invoiceType = 'R5';
@@ -552,6 +555,9 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 				$invoiceType = $invoice->array_options['options_verifactu_rectification_type'] ;
 			}
 
+			// TODO: Esto no hay forma de hacerlo en Dolibarr sin tener que montar un pifostio grande, no?
+			// Factura emitida en sustitución de facturas simplificadas facturadas y declaradas.
+			// $invoiceType = 'F3';
 			break;
 		default:
 			$invoiceType = 'F1';
@@ -607,13 +613,12 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 		$record->recipients[0] = $recipient;
 	}
 
-	$correctiveTypes = array('R1', 'R2', 'R3', 'R4', 'R5');
-	if (in_array($record->invoiceType, $correctiveTypes, true)) {
+	if (preg_match('/^R[1-5]$/', $record->invoiceType)) {
 		if ( $invoice->type === Facture::TYPE_REPLACEMENT) {
-			// Fix by substitution
+			// Fix by substitution.
 			$record->correctiveType = 'S';
 		} else {
-			// Fix by differences
+			// Fix by differences, for credit notes.
 			$record->correctiveType = 'I';
 		}
 	} else {
@@ -654,6 +659,8 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 		}
 	}
 
+	// Only used for F3 invoices, a kind of invoice not supported by this module.
+	// This should always be an empty array.
 	$record->replacedInvoices = array();
 
 	$record->breakdown = autoverifactuLinesToBreakdown($invoice);

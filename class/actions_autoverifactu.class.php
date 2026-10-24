@@ -167,7 +167,7 @@ class ActionsAutoverifactu extends CommonHookActions
 
 					break;
 				case 'add':
-					if (in_array($object->type, array(Facture::TYPE_REPLACEMENT, Facture::TYPE_CREDIT_NOTE), true)) {
+					if ($object->type === Facture::TYPE_REPLACEMENT) {
 						$rectificationType = GETPOST('options_verifactu_rectification_type', 'alpha');
 
 						if (empty($rectificationType)) {
@@ -512,10 +512,7 @@ class ActionsAutoverifactu extends CommonHookActions
 			return 0;
 		}
 
-		if (
-			in_array($object->type, array(Facture::TYPE_REPLACEMENT, Facture::TYPE_CREDIT_NOTE), true)
-			|| $object->id === null
-		) {
+		if ($object->type === Facture::TYPE_REPLACEMENT || $object->id === null) {
 			echo '<style>.field_options_verifactu_rectification_type span.valignmiddle{font-weight:bold;color:var(--fieldrequiredcolor) !important;}</style>';
 		} else {
 			// Hide rectification type for non corrective invoice types

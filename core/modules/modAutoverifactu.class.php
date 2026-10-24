@@ -315,7 +315,7 @@ class modAutoverifactu extends DolibarrModules
 		// Estado de los envios a verifactu en funcion de si esta permitio o no hacer una peticion a la API
 		$extrafields->addExtraField(
 			'verifactu_status',
-			'Estado Veri*Factu',
+			'VerifactuStatus',
 			'select',
 			4,
 			1,

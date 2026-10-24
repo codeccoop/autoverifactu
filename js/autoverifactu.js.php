@@ -48,7 +48,6 @@ if (!defined('NOREQUIREAJAX')) {
 	define('NOREQUIREAJAX', '1');
 }
 
-
 /**
  * \file    htdocs/autoverifactu/js/autoverifactu.js.php
  * \ingroup autoverifactu
