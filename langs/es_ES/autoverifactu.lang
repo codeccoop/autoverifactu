@@ -199,12 +199,12 @@ VerifactuDetailsTaxExcemptionE6 = Exenta por otros
 
 VerifactuStatus = Estado
 VerifactuStatusDescription = Estado de la factura en Veri*Factu
-VerifactuStatusSelect0 = Pendiente de envío
-VerifactuStatusSelect1 = Registrado correctamente
-VerifactuStatusSelect2 = Registrado correctamente pero con errores
-VerifactuStatusSelect3 = Registrado correctamente pero con errores múltiples veces
-VerifactuStatusSelect4 = Anulado
-VerifactuStatusSelect5 = Rechazado
+VerifactuStatus0 = Pendiente de envío
+VerifactuStatus1 = Registrado correctamente
+VerifactuStatus2 = Registrado correctamente pero con errores
+VerifactuStatus3 = Registrado correctamente pero con errores múltiples veces
+VerifactuStatus4 = Anulado
+VerifactuStatus5 = Rechazado
 
 VerifactuLegalTextIRPF = Factura sujeta a retención del IRPF de conformidad con la normativa vigente.
 VerifactuLegalTextTaxExcemptionE1 = Operación exenta de IVA en virtud del Artículo 20 de la Ley 37/1992 del IVA.

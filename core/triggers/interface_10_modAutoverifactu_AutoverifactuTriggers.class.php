@@ -86,7 +86,7 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 		 *   0: Default ✓
 		 *   1: Replacement ✓
 		 *   2: Credit note ✓
-		 *   3: Down payment ✓
+		 *   3: Down payment ✕
 		 *   4: Proforma ✕
 		 *   5: Situation ✕
 		 *

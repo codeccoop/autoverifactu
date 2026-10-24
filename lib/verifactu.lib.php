@@ -109,7 +109,7 @@ function autoverifactuRegisterInvoice($invoice, $action)
 	} elseif ($action === 'VERIFACTU_AMEND') {
 		$file = $dir . '/' . $invoiceref . '-subsanacion.xml';
 		$hidden = $dir . '/.verifactu-subsanacion.xml';
-	} else {
+	} elseif ($action === 'BILL_CANCEL') {
 		$file = $dir . '/' . $invoiceref . '-anulacion.xml';
 		$hidden = $dir . '/.verifactu-anulacion.xml';
 	}
