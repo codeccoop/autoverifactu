@@ -28,12 +28,16 @@ require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 
 require_once __DIR__ . '/validation.lib.php';
 
+/* Uncomment for dev environment */
+define('AUTOVERIFACTU_DEV_MODE', '1');
 
 /* Veri*Factu API URLs */
 define('VERIFACTU_BASE_URL', 'https://www1.agenciatributaria.gob.es'); // Production API host
 define('VERIFACTU_TEST_BASE_URL', 'https://prewww1.aeat.es'); // >Test API host
+define('VERIFACTU_DEV_BASE_URL', 'http://10.0.64.1:8080'); // >Test API host
 define('VERIFACTU_COLLATION_BASE_URL', 'https://www2.agenciatributaria.gob.es'); // Invoice collation host
 define('VERIFACTU_TEST_COLLATION_BASE_URL', 'https://prewww2.aeat.es'); // Invoice collation test host
+define('VERIFACTU_DEV_COLLATION_BASE_URL', 'http://10.0.64.1:8080'); // Invoice collation test host
 
 /* XML namespaces */
 define('AUTOVERIFACTU_SOAPENV_NS', 'http://schemas.xmlsoap.org/soap/envelope/');
@@ -370,10 +374,16 @@ function autoverifactuUpdateInvoiceStatus($response, $invoice)
 function autoverifactuSoapRequest($body, $ttl = 3)
 {
 	global  $db;
-	$testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
-	$base_url = $testMode ? VERIFACTU_TEST_BASE_URL : VERIFACTU_BASE_URL;
+	if (defined('AUTOVERIFACTU_DEV_MODE')) {
+		$baseUrl = VERIFACTU_DEV_BASE_URL;
+	} elseif (boolval(getDolGlobalString('AUTOVERIFACTU_TEST_MODE'))) {
+		$baseUrl = VERIFACTU_TEST_BASE_URL;
+	} else {
+		$baseUrl = VERIFACTU_BASE_URL;
+	}
+
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, $base_url . '/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP');
+	curl_setopt($ch, CURLOPT_URL, $baseUrl . '/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP');
 	curl_setopt($ch, CURLOPT_POST, 1);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
@@ -999,7 +1009,7 @@ function autoverifactuLinesToBreakdown($invoice)
 	$defaultRegime = getDolGlobalString('AUTOVERIFACTU_DEFAULT_REGIME') ?: '01';
 
 	foreach ($invoice->lines as $line) {
-		$taxType = $line->array_options['options_verifactu_tax'] ?: '01';
+		$taxType = getDolGlobalString('AUTOVERIFACTU_TAX') ?: '01';
 		$regimeType = $line->array_options['options_verifactu_regime_type'] ?: $defaultRegime;
 		$operationType = $line->array_options['options_verifactu_operation_type'] ?: 'S1';
 		$exemptionCode = $line->array_options['options_verifactu_tax_excemption'] ?: null;
@@ -1201,11 +1211,11 @@ function autoverifactuIsDeliveryAllowed(&$lastingTime = 0)
  * Returns the validation URL corresponding to the giving invoice.
  *
  * @param Facture $invoice Invoice object.
- * @param bool    $as_json Switch to json response format.
+ * @param bool    $asJson Switch to json response format.
  *
  * @return string.
  */
-function autoverifactuCollationLink($invoice, $as_json = false)
+function autoverifactuCollationLink($invoice, $asJson = false)
 {
 	global $mysoc;
 
@@ -1216,9 +1226,13 @@ function autoverifactuCollationLink($invoice, $as_json = false)
 		$invoiceTotal -= $invoice->total_localtax2;
 	}
 
-	// Seleccionamos entorno en base al modo actual de Auto-Veri*Factu.
-	$testMode = (bool) getDolGlobalString('AUTOVERIFACTU_TEST_MODE');
-	$baseUrl = $testMode ? VERIFACTU_TEST_COLLATION_BASE_URL : VERIFACTU_COLLATION_BASE_URL;
+	if (defined('AUTOVERIFACTU_DEV_MODE')) {
+		$baseUrl = VERIFACTU_DEV_COLLATION_BASE_URL;
+	} elseif (boolval(getDolGlobalString('AUTOVERIFACTU_TEST_MODE'))) {
+		$baseUrl = VERIFACTU_TEST_COLLATION_BASE_URL;
+	} else {
+		$baseUrl = VERIFACTU_COLLATION_BASE_URL;
+	}
 
 	// Endpoint de cotejo de registors de facturación.
 	$endpoint = '/wlpl/TIKE-CONT/ValidarQR';

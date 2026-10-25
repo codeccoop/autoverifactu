@@ -42,7 +42,7 @@ require_once AUTOVERIFACTU_DIR . '/lib/validation.lib.php';
  * @var Translate $langs
  * @var User $user
  */
-global $db, $langs, $conf;
+global $db, $langs, $conf, $mysoc;
 
 /* Translations */
 $langs->loadLangs(array('admin', 'autoverifactu@autoverifactu'));

@@ -474,35 +474,6 @@ class modAutoverifactu extends DolibarrModules
 			'isModEnabled("autoverifactu")',
 		);
 
-		// Type of tax of the line of invoice.
-		$extrafields->addExtraField(
-			'verifactu_tax',
-			'VerifactuTax',
-			'select',
-			2,
-			2,
-			'facturedet',
-			0,
-			0,
-			'01',
-			array(
-				'options' => array(
-					// '01' => $langs->trans('VerifactuTax01'),
-					'02' => $langs->trans('VerifactuTax02'),
-					'03' => $langs->trans('VerifactuTax03'),
-					// '05' => $langs->trans('VerifactuTax05'),
-				),
-			),
-			0,
-			'',
-			'3',
-			$langs->trans('VerifactuTaxDescription'),
-			'',
-			'',
-			'autoverifactu@autoverifactu',
-			'isModEnabled("autoverifactu")',
-		);
-
 		// Tipo de operación de la línea de factura.
 		$extrafields->addExtraField(
 			'verifactu_operation_type',
