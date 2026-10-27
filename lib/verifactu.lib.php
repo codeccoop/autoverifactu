@@ -190,7 +190,7 @@ function autoverifactuRegisterInvoice($invoice, $action)
 
 		// Skip document generation if send does not succeed.
 		if (!$record) {
-			return 0;
+			return -1;
 		}
 
 		$result = file_put_contents($file, $xml);
@@ -280,7 +280,7 @@ function autoverifactuSendInvoice($invoice, $recordType, &$xml = '')
 
 	$issuer = array('name' => $mysoc->nom, 'idprof1' => $mysoc->idprof1);
 
-	$envelope = $xml = autoverifactuSoapEnvelope($record, $issuer);
+	$envelope = $xml = autoverifactuSoapEnvelope(array($record), $issuer);
 
 	try {
 		$response = autoverifactuSoapRequest($envelope);

@@ -123,9 +123,13 @@ function autoverifactuCheckInvoiceImmutableXML($invoice, $type = 'alta')
 		}
 
 		$record = autoverifactuRecordFromLog($blockedlog);
+		if (!$record) {
+			dol_syslog('Unable to regenerate record from immutable log for invoice #' . $invoice->id, LOG_ERR);
+			return -1;
+		}
 
 		$xml = autoverifactuSoapEnvelope(
-			$record,
+			array($record),
 			array(
 				'name' => $mysoc->nom,
 				'idprof1' => $mysoc->idprof1,
@@ -684,7 +688,7 @@ function autoverifactuValidateRecordValues($record, &$errors)
 function autoverifactuValidateRecordType($value, $required = true)
 {
 	$options = array('alta', 'anulacion');
-	return in_array($value, $options, true) || !$required && empty($value);
+	return in_array($value, $options, true) || !$required && !$value;
 }
 
 /**
@@ -698,7 +702,7 @@ function autoverifactuValidateRecordType($value, $required = true)
 function autoverifactuValidateDate($value, $required = true)
 {
 	// If no value and no required, is valid.
-	$valid = !$required && empty($value);
+	$valid = !$required && !$value;
 
 	// If value is an instance of DateTime, then is valid.
 	$valid = $valid || $value instanceof DateTimeInterface;
@@ -737,7 +741,7 @@ function autoverifactuValidateInvoiceType($value, $required = true)
 	 */
 	$options = array('F1', 'F2', 'F3', 'R1', 'R2', 'R3', 'R4', 'R5');
 
-	return in_array($value, $options, true) || !$required && empty($value);
+	return in_array($value, $options, true) || !$required && !$value;
 }
 
 /**
@@ -759,7 +763,7 @@ function autoverifactuValidateCorrectiveType($value, $required = true)
 	*/
 	$options = array('I', 'S');
 
-	return in_array($value, $options, true) || !$required && empty($value);
+	return in_array($value, $options, true) || !$required && !$value;
 }
 
 /**
@@ -773,8 +777,12 @@ function autoverifactuValidateCorrectiveType($value, $required = true)
  */
 function autoverifactuValidateString($value, $max_length, $required = true)
 {
-	$invalid = $required && empty($value) || !is_string($value);
-	if ($invalid) {
+	$valid = !$required && !$value;
+	if ($valid) {
+		return true;
+	}
+
+	if (!is_string($value)) {
 		return false;
 	}
 
@@ -795,13 +803,17 @@ function autoverifactuValidateString($value, $max_length, $required = true)
  */
 function autoverifactuValidateNumber($value, $digits = 12, $precission = 2, $required = true)
 {
-	$invalid = $required && (empty($value) || !is_numeric($value));
-	if ($invalid) {
+	$valid = !$required && !$value;
+	if ($valid) {
+		return true;
+	}
+
+	if (!is_numeric($value)) {
 		return false;
 	}
 
 	$regexp = '/^-?([0-9]{1,' . $digits . '})(\.([0-9]{1,' . $precission . '}))?$/';
-	if (!preg_match($regexp, trim($value), $matches)) {
+	if (!preg_match($regexp, trim(strval($value)), $matches)) {
 		return false;
 	}
 
@@ -836,7 +848,7 @@ function autoverifactuValidateTaxType($value, $required = true)
 	 */
 	$options = array('01', '02', '03', '05');
 
-	return in_array($value, $options, true) || !$required && empty($value);
+	return in_array($value, $options, true) || !$required && !$value;
 }
 
 /**
@@ -891,7 +903,7 @@ function autoverifactuValidateRegimeType($value, $required = true)
 		'20',
 	);
 
-	return in_array($value, $options, true) || !$required && empty($value);
+	return in_array($value, $options, true) || !$required && !$value;
 }
 
 /**
@@ -915,7 +927,7 @@ function autoverifactuValidateOperationType($value, $required = true)
 	 */
 	$options = array('S1', 'S2', 'N1', 'N2');
 
-	return in_array($value, $options, true) || !$required && empty($value);
+	return in_array($value, $options, true) || !$required && !$value;
 }
 
 /**
@@ -939,7 +951,7 @@ function autoverifactuValidateExcemptionCode($value, $required = true)
 	 */
 	$options = array('E1', 'E2', 'E3', 'E4', 'E5', 'E6');
 
-	return in_array($value, $options, true) || !$required && empty($value);
+	return in_array($value, $options, true) || !$required && !$value;
 }
 
 function autoverifactuValidateRecipientIdType($value, $required = true)
@@ -957,5 +969,5 @@ function autoverifactuValidateRecipientIdType($value, $required = true)
 	 */
 	$options = array('02', '03', '04', '05', '06', '07');
 
-	return in_array($value, $options, true) || !$required && empty($value);
+	return in_array($value, $options, true) || !$required && !$value;
 }
