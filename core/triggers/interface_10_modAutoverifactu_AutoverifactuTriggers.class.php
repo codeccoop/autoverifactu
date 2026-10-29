@@ -99,15 +99,6 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 
 		switch ($action) {
 			case 'BILL_CREATE':
-				if ($object->type === Facture::TYPE_REPLACEMENT) {
-					$rectificationType = GETPOST('options_verifactu_rectification_type');
-
-					if (empty($rectificationType)) {
-						$this->errors[] = $langs->trans('RequiredError', $langs->trans('VerifactuRectificationType'));
-						return -1;
-					}
-				}
-
 				if (
 					isset($object->context['createfromclone'])
 					|| in_array($object->type, array(Facture::TYPE_REPLACEMENT, Facture::TYPE_CREDIT_NOTE), true)
@@ -161,6 +152,16 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 				return $result;
 			case 'BILL_VALIDATE':
 				// case 'DON_VALIDATE':
+				if ($object->type === Facture::TYPE_REPLACEMENT) {
+					$object->fetch_optionals();
+					$rectificationType = $object->array_options['options_verifactu_rectification_type'] ?? null;
+
+					if (!$rectificationType) {
+						$this->errors[] = $langs->trans('RequiredError', $langs->trans('VerifactuRectificationType'));
+						return -1;
+					}
+				}
+
 				if (!autoverifactuIsDeliveryAllowed($lasting_time)) {
 					if (in_array($object->array_options['options_verifactu_status'], array('2','4','5'), true)) {
 						// En caso de eser facturas con errores, no las enviamos a la lista de espera ya que no sabemos

@@ -501,9 +501,7 @@ class ActionsAutoverifactu extends CommonHookActions
 			return 0;
 		}
 
-		if ($object->type === Facture::TYPE_REPLACEMENT || $object->id === null) {
-			echo '<style>.field_options_verifactu_rectification_type span.valignmiddle{font-weight:bold;color:var(--fieldrequiredcolor) !important;}</style>';
-		} else {
+		if (intval($object->type) !== Facture::TYPE_REPLACEMENT) {
 			// Hide rectification type for non corrective invoice types
 			$extrafields->attributes['facture']['list']['verifactu_rectification_type'] = '0';
 		}
