@@ -35,9 +35,16 @@ AUTOVERIFACTU_PASSWORD = Contraseña del certificado
 AUTOVERIFACTU_PASSWORDTooltip = Auto-Veri*Factu solamente soporta certificados PKCS#12, el mismo formato con el que las autoridades españolas distribyen sus certificados electrónicos. Este tipo de ficheros estan encriptados con una contraseña y esta es requerida con tal de usar el certificado al autenticar Dolibarr frente a los endpoints de la AEAT.
 FISCAL_SECTION_TITLE = Fiscal
 AUTOVERIFACTU_DEFAULT_REGIME = Régimen fiscal por defecto
-AUTOVERIFACTU_DEFAULT_REGIMETooltip = El valor seleccionado será utilizado como valor por defecto en las línias de factura
-AUTOVERIFACTU_TAX = Tipo de impuesto
-AUTOVERIFACTU_TAXTooltip = Tipo de impuesto al que está sujeta tu actividad económica. IVA es el valor por defecto.
+AUTOVERIFACTU_DEFAULT_REGIMETooltip = Régimen fiscal por defecto bajo el cual se declararan las operaciones registradas en tus facturas.<br><b>Puede ser sobreescrito a través de la configuración del tercero</b>.
+AUTOVERIFACTU_DEFAULT_TAX = Tipo de impuesto
+AUTOVERIFACTU_DEFAULT_TAXTooltip = Tipo de impuesto al que está sujeta tu actividad económica. IVA es el valor por defecto.<br><b>Puede ser sobreescrito a través de la configuración del tercero</b>.
+
+AUTOVERIFACTU_DEFAULT_OPTYPE = Calificación de operación
+AUTOVERIFACTU_DEFAULT_OPTYPETooltip = Valor por defecto con el que se calificaran las operaciones. La calificación de la operación define si la operación está sujeta o no a tributos.<br><b>Puede ser sobreescrito a través de la configuración del tercero</b>.
+
+AUTOVERIFACTU_DEFAULT_EXEMPTION = Código de exención
+AUTOVERIFACTU_DEFAULT_EXEMPTIONTooltip = Código de exención que se aplicará por defecto a tus operaciones. El código de exención y la calificación de operación són excluyentes. En caso que se indique algun código de exención, no se enviara información relativa a la calificación de la operación.<br><b>Puede ser sobreescrito a través de la configuración del tercero</b>.
+
 AUTOVERIFACTU_DATE_VALIDATION = ¿Es obligatorio el uso de la fecha de valicación como fecha de emision de las facturas?
 AUTOVERIFACTU_DATE_VALIDATIONTooltip = La fecha de las facturas ha de coincidir con su fecha de validación. Ve a Configuración > Módulos > Facturas para cambiar el valor de la configuración.
 AUTOVERIFACTU_BLOCKEDLOG_ENABLED = ¿Esta el módulo BlockedLog habilitado?
@@ -162,41 +169,56 @@ VerifactuRectificationTypeR5 = Factura Rectificativa en facturas simplificadas
 VerifactuDateOperation = Fecha de operación
 VerifactuDateOperation = Fecha en la que se produce el devengo del impuesto
 
-VerifactuDetailsRegimeType = Régimen fiscal
-VerifactuDetailsRegimeTypeDescription = Régimen fiscal de la operación
-VerifactuDetailsRegimeType01 = Operación de régimen general
-VerifactuDetailsRegimeType02 = Exportación
-VerifactuDetailsRegimeType03 = Régimen especial de bienes usados
-VerifactuDetailsRegimeType04 = Régimen especial del oro de inversión
-VerifactuDetailsRegimeType05 = Régimen especial de las agencias de viajes
-VerifactuDetailsRegimeType06 = Régimen especial grupo de entidades en IVA
-VerifactuDetailsRegimeType07 = Régimen especial del criterio de caja
-VerifactuDetailsRegimeType08 = Operaciones sujetas al IPSI / IGIC
-VerifactuDetailsRegimeType09 = Prestación de servicios de agencias de viaje que actúan como mediadoras
-VerifactuDetailsRegimeType10 = Cobros por cuenta de terceros de honorarios profesionales o de derechos derivados de la propiedad
-VerifactuDetailsRegimeType11 = Operaciones de arrendamiento de local de negocio
-VerifactuDetailsRegimeType14 = Factura con IVA pendiente de devengo en certificaciones de obra a la Administración Pública
-VerifactuDetailsRegimeType15 = Factura con IVA pendiente de devengo en operaciones de tracto sucesivo
-VerifactuDetailsRegimeType17 = Operación acogida a alguno de los regímenes previstos en el capítulo XI del título IX
-VerifactuDetailsRegimeType18 = Recargo de equivalencia
-VerifactuDetailsRegimeType19 = Actividades incluidas en el régimen especial de agricultura, ganadería y pesca
-VerifactuDetailsRegimeType20 = Régimen simplificado
+VerifactuRegime = Régimen fiscal
+VerifactuRegimeDescription = Régimen fiscal bajo el que opera el tercero.<br><b>Este valor sobreescribirá el valor por defecto de la configuración del módulo Auto-Veri*Factu</b>
+VerifactuRegime01 = Operación de régimen general
+VerifactuRegime02 = Exportación
+VerifactuRegime03 = Régimen especial de bienes usados
+VerifactuRegime04 = Régimen especial del oro de inversión
+VerifactuRegime05 = Régimen especial de las agencias de viajes
+VerifactuRegime06 = Régimen especial grupo de entidades en IVA
+VerifactuRegime07 = Régimen especial del criterio de caja
+VerifactuRegime08 = Operaciones sujetas al IPSI / IGIC
+VerifactuRegime09 = Prestación de servicios de agencias de viaje que actúan como mediadoras
+VerifactuRegime10 = Cobros por cuenta de terceros de honorarios profesionales o de derechos derivados de la propiedad
+VerifactuRegime11 = Operaciones de arrendamiento de local de negocio
+VerifactuRegime14 = Factura con IVA pendiente de devengo en certificaciones de obra a la Administración Pública
+VerifactuRegime15 = Factura con IVA pendiente de devengo en operaciones de tracto sucesivo
+VerifactuRegime17 = Operación acogida a alguno de los regímenes previstos en el capítulo XI del título IX
+VerifactuRegime18 = Recargo de equivalencia
+VerifactuRegime19 = Actividades incluidas en el régimen especial de agricultura, ganadería y pesca
+VerifactuRegime20 = Régimen simplificado
 
-VerifactuDetailsOperationType = Tipo de operación
-VerifactuDetailsOperationTypeDescription = Calificación de la operación en caso de no estar exenta
-VerifactuDetailsOperationTypeS1 = Operación sujeta y no exenta
-VerifactuDetailsOperationTypeS2 = Operación sujeta y no exenta - Con inversión del sujeto pasivo
-VerifactuDetailsOperationTypeN1 = Operación no sujeta artículo 7, 14, otros
-VerifactuDetailsOperationTypeN2 = Operación no sujeta por reglas de localización
+VerifactuOperationType = Calificación de operación
+VerifactuOperationTypeDescription = Calificación de la operación como sujeta o no sujeta.<br><b>Este valor sobreescribirá el valor por defecto de la configuración del módulo Auto-Veri*Factu</b>
+VerifactuOperationTypeS1 = Operación sujeta y no exenta
+VerifactuOperationTypeS2 = Operación sujeta y no exenta - Con inversión del sujeto pasivo
+VerifactuOperationTypeN1 = Operación no sujeta artículo 7, 14, otros
+VerifactuOperationTypeN2 = Operación no sujeta por reglas de localización
 
-VerifactuDetailsTaxExcemption = Código de exención
-VerifactuDetailsTaxExcemptionDescription = Indicar solamente en caso de que la operación esté exenta de impuestos
-VerifactuDetailsTaxExcemptionE1 = Exenta por el artículo 20
-VerifactuDetailsTaxExcemptionE2 = Exenta por el artículo 21
-VerifactuDetailsTaxExcemptionE3 = Exenta por el artículo 22
-VerifactuDetailsTaxExcemptionE4 = Exenta por el artículo 23 y 24
-VerifactuDetailsTaxExcemptionE5 = Exenta por el artículo 25
-VerifactuDetailsTaxExcemptionE6 = Exenta por otros
+VerifactuTaxExemption = Código de exención
+VerifactuTaxExemptionDescription = Indicar solamente en caso de que la operación esté sujeta pero exenta de impuestos. Este valor es excluyente con el campo <b>Calificación de operación</b>. En caso de ser informado, la calificación de la operación no se enviara con el registro de factura.<br><b>Este valor sobreescribirá el valor por defecto de la configuración del módulo Auto-Veri*Factu</b>
+VerifactuTaxExemptionE1 = Exenta por el artículo 20
+VerifactuTaxExemptionE2 = Exenta por el artículo 21
+VerifactuTaxExemptionE3 = Exenta por el artículo 22
+VerifactuTaxExemptionE4 = Exenta por el artículo 23 y 24
+VerifactuTaxExemptionE5 = Exenta por el artículo 25
+VerifactuTaxExemptionE6 = Exenta por otros
+
+VerifactuTaxDescription = Tipo de impuesto al que está sujeto el tercero.<br><b>Este valor sobreescribirá el valor por defecto de la configuración del módulo Auto-Veri*Factu</b>
+VerifactuTax01 = Impuesto IVA
+VerifactuTax02 = Impuesto IPSI de Ceuta y Melilla
+VerifactuTax03 = Impuesto IGIC de Canarias
+VerifactuTax05 = Otros
+
+VerifactuForeignIdType = Tipo de identificación extranjera
+VerifactuForeignIdTypeDescription = Clave para establecer el tipo de identificación en el pais de residencia del cliente. Su valor por defecto es NIF.<br><b>Requerido únicamente para clientes extranjeros</b>.
+VerifactuForeignIdType02 = NIF
+VerifactuForeignIdType03 = Pasaporte
+VerifactuForeignIdType04 = Documento oficial de identificación expedido por el país
+VerifactuForeignIdType05 = Certificado de residencia
+VerifactuForeignIdType06 = Otro documento probatorio
+VerifactuForeignIdType07 = No censado
 
 VerifactuStatus = Estado
 VerifactuStatusDescription = Estado de la factura en Veri*Factu
@@ -207,6 +229,7 @@ VerifactuStatus3 = Registrado correctamente pero con errores múltiples veces
 VerifactuStatus4 = Anulado
 VerifactuStatus5 = Rechazado
 
+VerifactuTax = Impuesto
 VerifactuLegalTextIRPF = Factura sujeta a retención del IRPF de conformidad con la normativa vigente.
 VerifactuLegalTextTaxExcemptionE1 = Operación exenta de IVA en virtud del Artículo 20 de la Ley 37/1992 del IVA.
 VerifactuLegalTextTaxExcemptionE2 = Operación exenta de IVA en virtud del Artículo 21 de la Ley 37/1992 del IVA.
@@ -216,22 +239,6 @@ VerifactuLegalTextTaxExcemptionE5 = Operación exenta de IVA en virtud del Artí
 VerifactuLegalTextTaxExcemptionE6 = Operación exenta de IVA en virtud por otros motivos de la Ley 37/1992 del IVA.
 VerifactuLegalTextSujetoPasivo = Operación con inversión del sujeto pasivo conforme al artículo 84.Uno.2º de la Ley 37/1992 del IVA.
 VerifactuLegalTextCriterioCaja = Régimen especial del criterio de caja.
-
-VerifactuTax = Impuesto
-VerifactuTaxDescription = Este campo es necesario porque contribuye a completar el detalle de la tipología de la factura.
-VerifactuTax01 = Impuesto IVA (por defecto)
-VerifactuTax02 = Impuesto IPSI de Ceuta y Melilla
-VerifactuTax03 = Impuesto IGIC de Canarias
-VerifactuTax05 = Otros
-
-VerifactuForeignIdType = Tipo de identificación extranjera
-VerifactuForeignIdTypeDescription = Clave para establecer el tipo de identificación en el pais de residencia del cliente. Su valor por defecto es NIF.
-VerifactuForeignIdType02 = NIF
-VerifactuForeignIdType03 = Pasaporte
-VerifactuForeignIdType04 = Documento oficial de identificación expedido por el país
-VerifactuForeignIdType05 = Certificado de residencia
-VerifactuForeignIdType06 = Otro documento probatorio
-VerifactuForeignIdType07 = No censado
 
 #
 # Messages Error

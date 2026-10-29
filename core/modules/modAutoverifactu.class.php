@@ -259,7 +259,8 @@ class modAutoverifactu extends DolibarrModules
 		include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
 		$extrafields = new ExtraFields($this->db);
 
-		//----------------------------------------Invoice ----------------------------------------
+		/* INVOICE */
+
 		// Tipo de rectificación en caso de que la factura sea rectificativa.
 		$extrafields->addExtraField(
 			'verifactu_rectification_type', // name
@@ -280,7 +281,7 @@ class modAutoverifactu extends DolibarrModules
 					// 'R5' => $langs->trans('VerifactuRectificationTypeR5')
 				),
 			), // parameters
-			0, // always editable
+			1, // always editable
 			'', // permissions
 			'3', // Visibility (0=never, 1=all, 2=list 3=form)
 			$langs->trans('VerifactuRectificationTypeDescription'), // help
@@ -431,43 +432,73 @@ class modAutoverifactu extends DolibarrModules
 			'isModEnabled("autoverifactu")',
 		);
 
-		//----------------------------------------line ----------------------------------------
+		/* THIRDPARTY */
+
 		// Régimen de facturación de la línea de factura.
 		$extrafields->addExtraField(
-			'verifactu_regime_type',
-			'VerifactuDetailsRegimeType',
+			'verifactu_regime',
+			'VerifactuRegime',
 			'select',
 			1,
 			2,
-			'facturedet',
+			'societe',
 			0,
-			0,
-			'01',
-			array(
-				'options' => array(
-					'01' => $langs->trans('VerifactuDetailsRegimeType01'),
-					'02' => $langs->trans('VerifactuDetailsRegimeType02'),
-					'03' => $langs->trans('VerifactuDetailsRegimeType03'),
-					'04' => $langs->trans('VerifactuDetailsRegimeType04'),
-					'05' => $langs->trans('VerifactuDetailsRegimeType05'),
-					'06' => $langs->trans('VerifactuDetailsRegimeType06'),
-					'07' => $langs->trans('VerifactuDetailsRegimeType07'),
-					'08' => $langs->trans('VerifactuDetailsRegimeType08'),
-					'09' => $langs->trans('VerifactuDetailsRegimeType09'),
-					'10' => $langs->trans('VerifactuDetailsRegimeType10'),
-					'11' => $langs->trans('VerifactuDetailsRegimeType11'),
-					'14' => $langs->trans('VerifactuDetailsRegimeType14'),
-					'15' => $langs->trans('VerifactuDetailsRegimeType15'),
-					'17' => $langs->trans('VerifactuDetailsRegimeType17'),
-					'18' => $langs->trans('VerifactuDetailsRegimeType18'),
-					'19' => $langs->trans('VerifactuDetailsRegimeType19'),
-					'20' => $langs->trans('VerifactuDetailsRegimeType20'),
-				),
-			),
 			0,
 			'',
+			array(
+				'options' => array(
+					'01' => $langs->trans('VerifactuRegime01'),
+					'02' => $langs->trans('VerifactuRegime02'),
+					'03' => $langs->trans('VerifactuRegime03'),
+					'04' => $langs->trans('VerifactuRegime04'),
+					'05' => $langs->trans('VerifactuRegime05'),
+					'06' => $langs->trans('VerifactuRegime06'),
+					'07' => $langs->trans('VerifactuRegime07'),
+					'08' => $langs->trans('VerifactuRegime08'),
+					'09' => $langs->trans('VerifactuRegime09'),
+					'10' => $langs->trans('VerifactuRegime10'),
+					'11' => $langs->trans('VerifactuRegime11'),
+					'14' => $langs->trans('VerifactuRegime14'),
+					'15' => $langs->trans('VerifactuRegime15'),
+					'17' => $langs->trans('VerifactuRegime17'),
+					'18' => $langs->trans('VerifactuRegime18'),
+					'19' => $langs->trans('VerifactuRegime19'),
+					'20' => $langs->trans('VerifactuRegime20'),
+				),
+			),
+			1,
+			'',
 			'3',
-			$langs->trans('VerifactuDetailsRegimeTypeDescription'),
+			$langs->trans('VerifactuRegimeDescription'),
+			'',
+			'',
+			'autoverifactu@autoverifactu',
+			'isModEnabled("autoverifactu")',
+		);
+
+		// Type of tax
+		$extrafields->addExtraField(
+			'verifactu_tax',
+			'VerifactuTax',
+			'select',
+			2,
+			2,
+			'societe',
+			0,
+			0,
+			'',
+			array(
+				'options' => array(
+					'01' => $langs->trans('VerifactuTax01'),
+					'02' => $langs->trans('VerifactuTax02'),
+					'03' => $langs->trans('VerifactuTax03'),
+					'05' => $langs->trans('VerifactuTax05'),
+				),
+			),
+			1,
+			'',
+			'3',
+			$langs->trans('VerifactuTaxDescription'),
 			'',
 			'',
 			'autoverifactu@autoverifactu',
@@ -477,26 +508,26 @@ class modAutoverifactu extends DolibarrModules
 		// Tipo de operación de la línea de factura.
 		$extrafields->addExtraField(
 			'verifactu_operation_type',
-			'VerifactuDetailsOperationType',
+			'VerifactuOperationType',
 			'select',
 			3,
 			2,
-			'facturedet',
+			'societe',
 			0,
-			0,
-			'S1',
-			array(
-				'options' => array(
-					// 'S1' => $langs->trans('VerifactuDetailsOperationTypeS1'),
-					'S2' => $langs->trans('VerifactuDetailsOperationTypeS2'),
-					'N1' => $langs->trans('VerifactuDetailsOperationTypeN1'),
-					'N2' => $langs->trans('VerifactuDetailsOperationTypeN2'),
-				),
-			),
 			0,
 			'',
+			array(
+				'options' => array(
+					'S1' => $langs->trans('VerifactuOperationTypeS1'),
+					'S2' => $langs->trans('VerifactuOperationTypeS2'),
+					'N1' => $langs->trans('VerifactuOperationTypeN1'),
+					'N2' => $langs->trans('VerifactuOperationTypeN2'),
+				),
+			),
+			1,
+			'',
 			'3',
-			$langs->trans('VerifactuDetailsOperationTypeDescription'),
+			$langs->trans('VerifactuOperationTypeDescription'),
 			'',
 			'',
 			'autoverifactu@autoverifactu',
@@ -506,35 +537,34 @@ class modAutoverifactu extends DolibarrModules
 		// Tipos de excepción.
 		$extrafields->addExtraField(
 			'verifactu_tax_excemption',
-			'VerifactuDetailsTaxExcemption',
+			'VerifactuTaxExemption',
 			'select',
 			4,
 			2,
-			'facturedet',
+			'societe',
 			0,
 			0,
 			'',
 			array(
 				'options' => array(
-					'E1' => $langs->trans('VerifactuDetailsTaxExcemptionE1'),
-					'E2' => $langs->trans('VerifactuDetailsTaxExcemptionE2'),
-					'E3' => $langs->trans('VerifactuDetailsTaxExcemptionE3'),
-					'E4' => $langs->trans('VerifactuDetailsTaxExcemptionE4'),
-					'E5' => $langs->trans('VerifactuDetailsTaxExcemptionE5'),
-					'E6' => $langs->trans('VerifactuDetailsTaxExcemptionE6'),
+					'E1' => $langs->trans('VerifactuTaxExemptionE1'),
+					'E2' => $langs->trans('VerifactuTaxExemptionE2'),
+					'E3' => $langs->trans('VerifactuTaxExemptionE3'),
+					'E4' => $langs->trans('VerifactuTaxExemptionE4'),
+					'E5' => $langs->trans('VerifactuTaxExemptionE5'),
+					'E6' => $langs->trans('VerifactuTaxExemptionE6'),
 				),
 			),
-			0,
+			1,
 			'',
 			'3',
-			$langs->trans('VerifactuDetailsTaxExcemptionDescription'),
+			$langs->trans('VerifactuTaxExemptionDescription'),
 			'',
 			'',
 			'autoverifactu@autoverifactu',
 			'isModEnabled("autoverifactu")',
 		);
 
-		//----------------------------------------thirdparty----------------------------------------
 		// Tipo de identificacion fiscal del tercero, en caso de ser exte extranjero.
 		$extrafields->addExtraField(
 			'verifactu_foreign_id_type',
@@ -545,7 +575,7 @@ class modAutoverifactu extends DolibarrModules
 			'societe',
 			0,
 			0,
-			'02',
+			'',
 			array(
 				'options' => array(
 					'02' => $langs->trans('VerifactuForeignIdType02'),

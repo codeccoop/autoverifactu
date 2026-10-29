@@ -154,39 +154,62 @@ $invalid = $invalid || $pass_field->fieldAttr['error'];
 $formSetup->newItem('FISCAL_SECTION_TITLE')->setAsTitle();
 
 $taxes = array(
-	'01' => 'IVA',
-	'02' => 'IPSI',
-	'03' => 'IGIC',
-	'05' => $langs->trans('Others'),
+	'01' => $langs->trans('VerifactuTax01'),
+	'02' => $langs->trans('VerifactuTax02'),
+	'03' => $langs->trans('VerifactuTax03'),
+	'05' => $langs->trans('VerifactuTax05'),
 );
 
-$taxField = $formSetup->newItem('AUTOVERIFACTU_TAX')->setAsSelect($taxes);
+$taxField = $formSetup->newItem('AUTOVERIFACTU_DEFAULT_TAX')->setAsSelect($taxes);
 $taxField->fieldParams['isMandatory'] = 1;
 $taxField->defaultFieldValue = '01';
 
 $regimes = array(
-	'01' => $langs->trans('VerifactuDetailsRegimeType01'),
-	'02' => $langs->trans('VerifactuDetailsRegimeType02'),
-	'03' => $langs->trans('VerifactuDetailsRegimeType03'),
-	'04' => $langs->trans('VerifactuDetailsRegimeType04'),
-	'05' => $langs->trans('VerifactuDetailsRegimeType05'),
-	'06' => $langs->trans('VerifactuDetailsRegimeType06'),
-	'07' => $langs->trans('VerifactuDetailsRegimeType07'),
-	'08' => $langs->trans('VerifactuDetailsRegimeType08'),
-	'09' => $langs->trans('VerifactuDetailsRegimeType09'),
-	'10' => $langs->trans('VerifactuDetailsRegimeType10'),
-	'11' => $langs->trans('VerifactuDetailsRegimeType11'),
-	'14' => $langs->trans('VerifactuDetailsRegimeType14'),
-	'15' => $langs->trans('VerifactuDetailsRegimeType15'),
-	'17' => $langs->trans('VerifactuDetailsRegimeType17'),
-	'18' => $langs->trans('VerifactuDetailsRegimeType18'),
-	'19' => $langs->trans('VerifactuDetailsRegimeType19'),
-	'20' => $langs->trans('VerifactuDetailsRegimeType20'),
+	'01' => $langs->trans('VerifactuRegime01'),
+	'02' => $langs->trans('VerifactuRegime02'),
+	'03' => $langs->trans('VerifactuRegime03'),
+	'04' => $langs->trans('VerifactuRegime04'),
+	'05' => $langs->trans('VerifactuRegime05'),
+	'06' => $langs->trans('VerifactuRegime06'),
+	'07' => $langs->trans('VerifactuRegime07'),
+	'08' => $langs->trans('VerifactuRegime08'),
+	'09' => $langs->trans('VerifactuRegime09'),
+	'10' => $langs->trans('VerifactuRegime10'),
+	'11' => $langs->trans('VerifactuRegime11'),
+	'14' => $langs->trans('VerifactuRegime14'),
+	'15' => $langs->trans('VerifactuRegime15'),
+	'17' => $langs->trans('VerifactuRegime17'),
+	'18' => $langs->trans('VerifactuRegime18'),
+	'19' => $langs->trans('VerifactuRegime19'),
+	'20' => $langs->trans('VerifactuRegime20'),
 );
 
 $regimeField = $formSetup->newItem('AUTOVERIFACTU_DEFAULT_REGIME')->setAsSelect($regimes);
 $regimeField->fieldParams['isMandatory'] = 1;
-// $regimeField->defaultFieldValue = '01';
+$regimeField->defaultFieldValue = '01';
+
+$opTypes = array(
+	'S1' => $langs->trans('VerifactuOperationTypeS1'),
+	'S2' => $langs->trans('VerifactuOperationTypeS2'),
+	'N1' => $langs->trans('VerifactuOperationTypeN1'),
+	'N2' => $langs->trans('VerifactuOperationTypeN2'),
+);
+
+$opTypeField = $formSetup->newItem('AUTOVERIFACTU_DEFAULT_OPTYPE')->setAsSelect($opTypes);
+$opTypeField->fieldParams['isMandatory'] = 1;
+$opTypeField->defaultFieldValue = 'S1';
+
+$exemptionCodes = array(
+	'' => '',
+	'E1' => $langs->trans('VerifactuTaxExemptionE1'),
+	'E2' => $langs->trans('VerifactuTaxExemptionE2'),
+	'E3' => $langs->trans('VerifactuTaxExemptionE3'),
+	'E4' => $langs->trans('VerifactuTaxExemptionE4'),
+	'E5' => $langs->trans('VerifactuTaxExemptionE5'),
+	'E6' => $langs->trans('VerifactuTaxExemptionE6'),
+);
+
+$exemptionField = $formSetup->newItem('AUTOVERIFACTU_DEFAULT_EXEMPTION')->setAsSelect($exemptionCodes);
 
 $formSetup->newItem('SYSTEM_SECTION_TITLE')->setAsTitle();
 

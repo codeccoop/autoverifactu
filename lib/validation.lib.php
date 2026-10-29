@@ -470,7 +470,7 @@ function autoverifactuValidateRecord($record, &$errors)
 	}
 
 	if ($record->correctiveType) {
-		if ($record->correctiveType === 'I') {
+		if ($record->correctiveType === 'S') {
 			if (!$record->correctedBaseAmount || !$record->correctedTaxAmount) {
 				$errors[] = array('RequiredError', 'correctedBaseAmount');
 				return 0;
@@ -488,12 +488,12 @@ function autoverifactuValidateRecord($record, &$errors)
 		}
 	}
 
-	if ($record->invoiceType === 'F3' && empty($record->replacedInvoices)) {
-		$errors[] = array('RequiredError', 'replacedInvoices');
-		return 0;
-	}
-
-	if (count($record->replacedInvoices)) {
+	if ($record->invoiceType === 'F3') {
+		if (empty($record->replacedInvoices)) {
+			$errors[] = array('RequiredError', 'replacedInvoices');
+			return 0;
+		}
+	} elseif (count($record->replacedInvoices)) {
 		$errors[] = array('ForbiddenError', 'replacedInvoices');
 		return 0;
 	}

@@ -568,10 +568,10 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 	$invoice->fetch_optionals();
 	$invoice->fetch_thirdparty();
 	$thirdparty = $invoice->thirdparty;
+	$thirdparty->fetch_optionals();
 
 	switch ($invoice->type) {
 		case Facture::TYPE_STANDARD:
-		case Facture::TYPE_DEPOSIT:
 			if (autoverifactuIsSimplifiedInvoice($invoice)) {
 				// Factura simplificada y facturas sin identificación del destinatario (Art. 6.1.D del R.D. 1619/2012).
 				$invoiceType = 'F2';
@@ -1031,24 +1031,30 @@ function autoverifactuLinesToBreakdown($invoice)
 {
 	$groups = array();
 	$group_template = array(
-		'taxType' => null,
-		'regimeType' => null,
-		'operationType' => null,
-		'excemptionCode' => null,
 		'taxRate' => 0,
 		'baseAmount' => 0,
 		'taxAmount' => 0,
-		'equivalenceSurcharge' => null,
+		'equivalenceSurchargeType' => null,
 		'equivalenceSurchargeTotal' => 0,
 	);
 
 	$defaultRegime = getDolGlobalString('AUTOVERIFACTU_DEFAULT_REGIME') ?: '01';
+	$defaultTax = getDolGlobalString('AUTOVERIFACTU_DEFAULT_TAX') ?: '01';
+	$defaultOpType = getDolGlobalString('AUTOVERIFACTU_DEFAULT_OPTYPE') ?: 'S1';
+	$defaultExemption = getDolGlobalString('AUTOVERIFACTU_DEFAULT_EXEMPTION') ?: null;
+
+	$thirdparty = $invoice->thirdparty;
+
+	$regimeType = $thirdparty->array_options['options_verifactu_regime'] ?? null ?: $defaultRegime;
+	$taxType = $thirdparty->array_options['options_verifactu_tax'] ?? null ?: $defaultTax;
+	$operationType = $thirdparty->array_options['options_verifactu_operation_type'] ?? null ?: $defaultOpType;
+	$exemptionCode = $thirdparty->array_options['options_verifactu_exemption'] ?? null ?: $defaultExemption;
+
+	if ($exemptionCode) {
+		$operationType = null;
+	}
 
 	foreach ($invoice->lines as $line) {
-		$taxType = getDolGlobalString('AUTOVERIFACTU_TAX') ?: '01';
-		$regimeType = $line->array_options['options_verifactu_regime_type'] ?: $defaultRegime;
-		$operationType = $line->array_options['options_verifactu_operation_type'] ?: 'S1';
-		$exemptionCode = $line->array_options['options_verifactu_tax_excemption'] ?: null;
 		$taxRate = number_format((float) $line->tva_tx, 2, '.', '');
 		$baseAmount = (float) $line->total_ht;
 		$taxAmount = (float) $line->total_tva;
@@ -1056,24 +1062,11 @@ function autoverifactuLinesToBreakdown($invoice)
 		$equivalenceSurchargeType = !$line->localtax1_tx && $line->product_type === '0' ? number_format((float) $line->localtax1_tx, 2, '.', '') : null;
 		$equivalenceSurchargeTotal = $line->total_localtax1 ? (float) $line->total_localtax1 : 0.0;
 
-		$key = implode('|', array(
-			$taxType,
-			$regimeType,
-			$operationType,
-			$exemptionCode ?: '',
-			$taxRate,
-			$equivalenceSurchargeType ?: null
-		));
+		$key = implode('|', array($taxRate, $equivalenceSurchargeType ?: null));
 
 		if (!isset($grouped[$key])) {
-			$groups[$key] = array_merge($group_template, array(
-				'taxType' => $taxType,
-				'regimeType' => $regimeType,
-				'operationType' => $operationType,
-				'exemptionCode' => $exemptionCode,
-				'taxRate' => $taxRate,
-				'equivalenceSurchargeType' => $equivalenceSurchargeType,
-			));
+			$group_data = array('taxRate' => $taxRate, 'equivalenceSurchargeType' => $equivalenceSurchargeType);
+			$groups[$key] = array_merge($group_template, $group_data);
 		}
 
 		$groups[$key]['baseAmount'] += $baseAmount;
@@ -1089,16 +1082,15 @@ function autoverifactuLinesToBreakdown($invoice)
 
 	foreach ($groups as $group) {
 		$details = new stdClass();
-		$details->taxType = $group['taxType'];
-		$details->regimeType = $group['regimeType'];
-		$details->operationType = $group['operationType'];
-		$details->exemptionCode = $group['exemptionCode'];
-		$details->excemptionCode = $group['exemptionCode'];
+		$details->taxType = $taxType;
+		$details->regimeType = $regimeType;
+		$details->operationType = $operationType;
+		$details->exemptionCode = $exemptionCode;
 		$details->taxRate = $group['taxRate'];
 		$details->baseAmount = number_format($group['baseAmount'], 2, '.', '');
 		$details->taxAmount = number_format($group['taxAmount'], 2, '.', '');
 
-		if ($group['equivalenceSurchargeType']  ) {
+		if ($group['equivalenceSurchargeType']) {
 			$details->equivalenceSurcharge = new stdClass();
 			$details->equivalenceSurcharge->type = $group['equivalenceSurchargeType'];
 			$details->equivalenceSurcharge->total = number_format($group['equivalenceSurchargeTotal'], 2, '.', '');
