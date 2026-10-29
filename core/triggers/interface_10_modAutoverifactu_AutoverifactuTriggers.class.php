@@ -131,7 +131,7 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 				// Verifactu obliga a enviar peticiones a la api con unos tiempos de espera determinados enviados en la última respuesta
 				// en caso de que el tiempo del proximo envio no haya pasado.
 				if (!autoverifactuIsDeliveryAllowed($lastingTime)) {
-					$this->errors[] = $langs->trans('VerifactuWaitingTimeoutError', $lastingTime);
+					$this->errors[] = $langs->trans('WaitingTimeoutError', $lastingTime);
 					return -1;
 				}
 
@@ -156,7 +156,7 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 					if (in_array($object->array_options['options_verifactu_status'], array('2','4','5'), true)) {
 						// En caso de eser facturas con errores, no las enviamos a la lista de espera ya que no sabemos
 						// si han sido arregladas o no.
-						$this->errors[] = $langs->trans('notToDoList', $lasting_time);
+						$this->errors[] = $langs->trans('WaitingTimeoutError', $lasting_time);
 						return -1;
 					}
 

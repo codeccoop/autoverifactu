@@ -52,7 +52,7 @@ define(
 define('AUTOVERIFACTU_XD_NS', 'http://www.w3.org/2000/09/xmldsig');
 
 /**
- * Verifactu invoice record registration.
+ * Public proxy to invoice registration method with errors internationalization.
  *
  * @param Facture $invoice Target invoice. Invoice should not be validated, or
  *                         action should be BILL_CANCEL.
@@ -61,6 +61,41 @@ define('AUTOVERIFACTU_XD_NS', 'http://www.w3.org/2000/09/xmldsig');
  * @return int              Return <0 if KO, 0 if skipped, >0 if OK.
 */
 function autoverifactuRegisterInvoice($invoice, $action)
+{
+	global $langs;
+
+	if (!is_array($invoice->errors)) {
+		$invoice->errors = array();
+	}
+
+	$result = _autoverifactuRegisterInvoice($invoice, $action);
+
+	$count = count($invoice->errors);
+	for ($i = 0; $i < $count; ++$i) {
+		$error = $invoice->errors[$i];
+
+		if (is_array($error)) {
+			$key = array_shift($error);
+			$error = $langs->trans($key, ...$error);
+		} else {
+			$error = $langs->trans($error);
+		}
+
+		$invoice->errors[$i] = $error;
+	}
+
+	return $result;
+}
+
+/**
+ * Verifactu invoice record registration.
+ *
+ * @param Facture $invoice Target invoice. Invoice should not be validated, or
+ *                         action should be BILL_CANCEL.
+ * @param string  $action  Current action.
+ *
+ * @return int              Return <0 if KO, 0 if skipped, >0 if OK.
+*/function _autoverifactuRegisterInvoice($invoice, $action)
 {
 	global $db, $conf, $hookmanager;
 
@@ -79,8 +114,9 @@ function autoverifactuRegisterInvoice($invoice, $action)
 		return 0;
 	}
 
-	if (!is_array($invoice->errors ?? null)) {
-		$invoice->errors = array();
+	if (!autoverifactuIsDeliveryAllowed($lastingTime)) {
+		$invoice->errors[] = array('WaitingTimeoutError', $lastingTime);
+		return -1;
 	}
 
 	if (empty($conf->facture->multidir_output[$conf->entity])) {
@@ -558,7 +594,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 			} else {
 				// Factura rectificativa corriente.
 				if (!isset($invoice->array_options['options_verifactu_rectification_type'])) {
-					$invoice->errors['rectification_type'] = 'RequiredError';
+					$invoice->errors[] = array('RequiredError', 'rectification_type');
 					return;
 				}
 
@@ -644,7 +680,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 		$sourceInvoice = autoverifactuGetSourceInvoice($invoice);
 
 		if (!$sourceInvoice) {
-			$invoice->errors['sourceInvoice'] = 'RequiredError';
+			$invoice->errors[] = array('RequiredError', 'sourceInvoice');
 			return;
 		} else {
 			$sourceInvoice->fetch_thirdparty();

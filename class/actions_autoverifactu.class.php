@@ -179,10 +179,10 @@ class ActionsAutoverifactu extends CommonHookActions
 					break;
 				case 'verifactu_amend':
 					// Esta acción se da cuando una factura ha tenido un error y se quiere reenviar una vez subsanado el error.
-					// Compruebo que el a pasado el tiempo de espera par la proxima peticion de la API.
+					// Compruebo que a pasado el tiempo de espera par la proxima peticion de la API.
 					if (!autoverifactuIsDeliveryAllowed($lastingTime)) {
 						$langs->load('autoverifactu@autoverifactu');
-						$this->errors[] = $langs->trans('VerifactuWaitingTimeoutError', $lastingTime);
+						$this->errors[] = $langs->trans('WaitingTimeoutError', $lastingTime);
 						return 0;
 					}
 

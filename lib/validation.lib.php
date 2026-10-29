@@ -465,39 +465,36 @@ function autoverifactuValidateRecord($record, &$errors)
 		in_array($record->invoiceType, array('F2', 'R5'), true)
 		&& count($record->recipients)
 	) {
-		$errors['recipients'] = 'ForbiddenError';
+		$errors[] = array('ForbiddenError', 'recipients');
 		return 0;
 	}
 
-	if ($record->correctiveType === 'S') {
-		if (!$record->correctedBaseAmount || !$record->correctedTaxAmount) {
-			$errors['correctedBaseAmount'] = 'RequiredError';
-			return 0;
+	if ($record->correctiveType) {
+		if ($record->correctiveType === 'I') {
+			if (!$record->correctedBaseAmount || !$record->correctedTaxAmount) {
+				$errors[] = array('RequiredError', 'correctedBaseAmount');
+				return 0;
+			}
+		} else {
+			if ($record->correctedBaseAmount || $record->correctedTaxAmount) {
+				$errors[] = array('ForbiddenError', 'correctedBaseAmount');
+				return 0;
+			}
 		}
 
 		if (empty($record->correctedInvoices)) {
-			$errors['correctedInvoices'] = 'RequiredError';
-			return 0;
-		}
-	} else {
-		if ($record->correctedBaseAmount || $record->correctedTaxAmount) {
-			$errors['correctedBaseAmount'] = 'ForbiddenError';
-			return 0;
-		}
-
-		if (!empty($record->correctedInvoices)) {
-			$errors['correctedInvoices'] = 'ForbiddenError';
+			$errors[] = array('ForbiddenError', 'correctedInvoices');
 			return 0;
 		}
 	}
 
 	if ($record->invoiceType === 'F3' && empty($record->replacedInvoices)) {
-		$errors['replacedInvoices'] = 'RequiredError';
+		$errors[] = array('RequiredError', 'replacedInvoices');
 		return 0;
 	}
 
 	if (count($record->replacedInvoices)) {
-		$errors['replacedInvoices'] = 'ForbiddenError';
+		$errors[] = array('ForbiddenError', 'replacedInvoices');
 		return 0;
 	}
 
@@ -512,7 +509,7 @@ function autoverifactuValidateRecord($record, &$errors)
 
 		if (isset($details->equivalenceSurcharge)) {
 			if ($record->regimeType !== '18') {
-				$errors['regimeType'] = 'EnumError';
+				$errors[] = array('EnumError', 'regimeType');
 			}
 
 			$expectedLineEquivalenceSurcharge = $details->baseAmount * ($details->equivalenceSurcharge->type / 100);
@@ -525,7 +522,7 @@ function autoverifactuValidateRecord($record, &$errors)
 			}
 
 			if (!$validTaxAmountEquivalenceSurcharge) {
-				$errors['line.equivalenceSurcharge.total'] = 'ValueError';
+				$errors[] = array('ValueError', 'line.equivalenceSurcharge.total');
 				return 0;
 			}
 
@@ -541,7 +538,7 @@ function autoverifactuValidateRecord($record, &$errors)
 		}
 
 		if (!$validTaxAmount) {
-			$errors['line.taxAmount'] = 'ValueError';
+			$errors[] = array('ValueError', 'line.taxAmount');
 			return 0;
 		}
 
@@ -563,7 +560,7 @@ function autoverifactuValidateRecord($record, &$errors)
 	}
 
 	if (!$isTotalValid) {
-		$errors['totalAmount'] = 'ValueError';
+		$errors[] = array('ValueError', 'totalAmount');
 		return 0;
 	}
 
@@ -581,95 +578,95 @@ function autoverifactuValidateRecord($record, &$errors)
 function autoverifactuValidateRecordValues($record, &$errors)
 {
 	if (!autoverifactuValidateRecordType($record->type)) {
-		$errors['recordType'] = 'EnumError';
+		$errors[] = array('EnumError', 'recordType');
 		return 0;
 	}
 
 	if (!autoverifactuValidateInvoiceType($record->invoiceType)) {
-		$errors['invoiceType'] = 'EnumError';
+		$errors[] = array('EnumError', 'invoiceType');
 		return 0;
 	}
 
 	if (!autoverifactuValidateDate($record->dateOperation, false)) {
-		$errors['dateOperation'] = 'DateError';
+		$errors[] = array('DateError', 'dateOperation');
 		return 0;
 	}
 
 	if (!autoverifactuValidateString($record->description, 500)) {
-		$errors['description'] = 'StringError';
+		$errors[] = array('StringError', 'description');
 		return 0;
 	}
 
 	if (!autoverifactuValidateString($record->invoiceId->invoiceNumber, 60)) {
-		$errors['invoiceNumber'] = 'StringError';
+		$errors[] = array('StringError', 'invoiceNumber');
 		return 0;
 	}
 
 	if (!autoverifactuValidateCorrectiveType($record->correctiveType, false)) {
-		$errors['correctiveType'] = 'EnumError';
+		$errors[] = array('EnumError', 'correctiveType');
 		return 0;
 	}
 
 	if (!autoverifactuValidateNumber($record->correctedBaseAmount, 12, 2, false)) {
-		$errors['correctedBaseAmount'] = 'NumberError';
+		$errors[] = array('NumberError', 'correctedBaseAmount');
 		return 0;
 	}
 
 	if (!autoverifactuValidateNumber($record->correctedTaxAmount, 12, 2, false)) {
-		$errors['correctedTaxAmount'] = 'NumberError';
+		$errors[] = array('NumberError', 'correctedTaxAmount');
 		return 0;
 	}
 
 	if (!autoverifactuValidateNumber($record->totalTaxAmount, 12, 2)) {
-		$errors['totalTaxAmount'] = 'NumberError';
+		$errors[] = array('NumberError', 'totalTaxAmount');
 		return 0;
 	}
 
 	if (!autoverifactuValidateNumber($record->totalAmount, 12, 2)) {
-		$errors['totalAmount'] = 'NumberError';
+		$errors[] = array('NumberError', 'totalAmount');
 		return 0;
 	}
 
 	if (isset($record->recipient->type)) {
-		if (autoverifactuValidateRecipientType($record->recipient->type)) {
-			$errors['recipient.type'] = 'EnumError';
+		if (autoverifactuValidateRecipientIdType($record->recipient->type)) {
+			$errors[] = array('EnumError', 'recipient.type');
 			return 0;
 		}
 	}
 
 	foreach ($record->breakdown as $breakdownDetails) {
 		if (!autoverifactuValidateTaxType($breakdownDetails->taxType)) {
-			$errors['line.taxType'] = 'EnumError';
+			$errors[] = array('EnumError', 'line.taxType');
 			return 0;
 		}
 
 		if (!autoverifactuValidateRegimeType($breakdownDetails->regimeType)) {
-			$errors['line.regimeType'] = 'EnumError';
+			$errors[] = array('EnumError', 'line.regimeType');
 			return 0;
 		}
 
 		if (!autoverifactuValidateOperationType($breakdownDetails->operationType)) {
-			$errors['line.operationType'] = 'EnumError';
+			$errors[] = array('EnumError', 'line.operationType');
 			return 0;
 		}
 
 		if (!autoverifactuValidateNumber($breakdownDetails->taxRate, 4, 2)) {
-			$errors['line.taxRate'] = 'NumberError';
+			$errors[] = array('NumberError', 'line.taxRate');
 			return 0;
 		}
 
 		if (!autoverifactuValidateNumber($breakdownDetails->taxAmount, 12, 2)) {
-			$errors['line.taxRate'] = 'NumberError';
+			$errors[] = array('NumberError', 'line.taxRate');
 			return 0;
 		}
 
 		if (!autoverifactuValidateNumber($breakdownDetails->baseAmount, 12, 2)) {
-			$errors['line.baseAmount'] = 'NumberError';
+			$errors[] = array('NumberError', 'line.baseAmount');
 			return 0;
 		}
 
 		if (!autoverifactuValidateExcemptionCode($breakdownDetails->excemptionCode, false)) {
-			$errors['line.excemptionCode'] = 'EnumError';
+			$errors[] = array('EnumError', 'line.excemptionCode');
 			return 0;
 		}
 	}
