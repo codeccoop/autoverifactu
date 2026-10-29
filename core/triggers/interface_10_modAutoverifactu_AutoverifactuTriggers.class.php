@@ -128,14 +128,6 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 					return 0;
 				}
 
-				// Verifactu obliga a enviar peticiones a la api con unos tiempos de espera determinados enviados en la última respuesta
-				// en caso de que el tiempo del proximo envio no haya pasado.
-				if (!autoverifactuIsDeliveryAllowed($lastingTime)) {
-					$this->errors[] = $langs->trans('WaitingTimeoutError', $lastingTime);
-					return -1;
-				}
-
-				// En caso que el tiempo de envio a pasado
 				$result = autoverifactuRegisterInvoice($object, $action);
 				if ($result < 0) {
 					dol_syslog('Error while sending a cancel record to the Veri*Factu API', LOG_ERR);
@@ -160,23 +152,6 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 						$this->errors[] = $langs->trans('RequiredError', $langs->trans('VerifactuRectificationType'));
 						return -1;
 					}
-				}
-
-				if (!autoverifactuIsDeliveryAllowed($lasting_time)) {
-					if (in_array($object->array_options['options_verifactu_status'], array('2','4','5'), true)) {
-						// En caso de eser facturas con errores, no las enviamos a la lista de espera ya que no sabemos
-						// si han sido arregladas o no.
-						$this->errors[] = $langs->trans('WaitingTimeoutError', $lasting_time);
-						return -1;
-					}
-
-					// Para incluir la facturas anuladas en las acciones lista temporal habria que modificar la funcion autoverifactuRegisterInvoiceList
-					// y obtener de alguna forma la un identificador del tipo de factura de alta o anulacion.
-					$object->array_options['options_verifactu_status'] = '3';
-					$object->insertExtraFields();
-					dol_syslog('VERI*FACTU: FACTURE ID ' . $object->id . ' TEMPORARILY QUEUED.', LOG_DEBUG);
-
-					return 1;
 				}
 
 				$result = autoverifactuRegisterInvoice($object, $action);
