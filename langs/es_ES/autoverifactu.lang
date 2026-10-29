@@ -241,7 +241,7 @@ EnumError = El campo %s presenta un valor no permitido.
 DateError = El campo %s presenta una fecha con formato inválido.
 NumberError = El campo %s presenta un valor númerico inválido.
 StringError = El campo %s presenta un texto demasiado largo o con carácteres no permitidos.
-RequiredError = El campo %s del es obligatorio.
+RequiredError = El campo %s es obligatorio.
 ForbiddenError = El campo %s no está permitido.
 MaxLenError = El campo %s es una lista demasiado larga.
 

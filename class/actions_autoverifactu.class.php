@@ -166,17 +166,6 @@ class ActionsAutoverifactu extends CommonHookActions
 					}
 
 					break;
-				case 'add':
-					if ($object->type === Facture::TYPE_REPLACEMENT) {
-						$rectificationType = GETPOST('options_verifactu_rectification_type', 'alpha');
-
-						if (empty($rectificationType)) {
-							$this->errors[] = $langs->trans('RequiredError', $langs->trans('VerifactuRectificationType'));
-							header('Location: ' . $_SERVER['PHP_SELF'] . '?action=create');
-						}
-					}
-
-					break;
 				case 'verifactu_amend':
 					// Esta acción se da cuando una factura ha tenido un error y se quiere reenviar una vez subsanado el error.
 					// Compruebo que a pasado el tiempo de espera par la proxima peticion de la API.
