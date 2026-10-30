@@ -168,7 +168,7 @@ VerifactuRectificationTypeR4 = Factura Rectificativa (Resto)
 VerifactuRectificationTypeR5 = Factura Rectificativa en facturas simplificadas
 
 VerifactuDateOperation = Fecha de operación
-VerifactuDateOperation = Fecha en la que se produce el devengo del impuesto
+VerifactuDateOperationDescription = Fecha en la que se produce el devengo, y del cual se deriva la obligación de pagar un impuesto. El campo es opcional para aquellas facturas en que coincidan la fecha de emsisión y de operación.
 
 VerifactuRegime = Régimen fiscal
 VerifactuRegimeDescription = Régimen fiscal bajo el que opera el tercero.<br><b>Este valor sobreescribirá el valor por defecto de la configuración del módulo Auto-Veri*Factu</b>

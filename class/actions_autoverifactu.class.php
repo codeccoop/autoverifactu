@@ -499,6 +499,11 @@ class ActionsAutoverifactu extends CommonHookActions
 			// Hide rectification type for non corrective invoice types
 			$extrafields->attributes['facture']['list']['verifactu_rectification_type'] = '0';
 		}
+
+		if (!$object->id) {
+			// Hide date operation on bill creation forms.
+			$extrafields->attributes['facture']['list']['verifactu_date_operation'] = '0';
+		}
 	}
 
 	/**
