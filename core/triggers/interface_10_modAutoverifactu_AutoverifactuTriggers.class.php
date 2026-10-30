@@ -143,13 +143,39 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 
 				return $result;
 			case 'BILL_VALIDATE':
-				// case 'DON_VALIDATE':
-				if ($object->type === Facture::TYPE_REPLACEMENT) {
+				if (intval($object->type) === Facture::TYPE_REPLACEMENT) {
 					$object->fetch_optionals();
 					$rectificationType = $object->array_options['options_verifactu_rectification_type'] ?? null;
 
 					if (!$rectificationType) {
 						$this->errors[] = $langs->trans('RequiredError', $langs->trans('VerifactuRectificationType'));
+						return -1;
+					}
+				} elseif (intval($object->type) === Facture::TYPE_CREDIT_NOTE) {
+					global $db;
+
+					$sourceId = $object->fk_facture_source;
+					$sourceInvoice = new Facture($db);
+					$sourceInvoice->fetch($sourceId);
+					$sourceInvoice->getListIdAvoirFromInvoice();
+
+					$totalCredit = 0;
+
+					foreach ($sourceInvoice->creditnote_ids as $siblingId) {
+						$siblingInvoice = new Facture($db);
+						$siblingInvoice->fetch($siblingId);
+
+						if (intval($siblingInvoice->status) !== Facture::STATUS_VALIDATED) {
+							continue;
+						}
+
+						$totalCredit += abs($siblingInvoice->total_ttc);
+					}
+
+					$totalCredit += abs($object->total_ttc);
+
+					if ($totalCredit > $sourceInvoice->total_ttc) {
+						$this->errors[] = $langs->trans('TooMuchCreditNoteError');
 						return -1;
 					}
 				}

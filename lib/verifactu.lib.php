@@ -105,12 +105,12 @@ function autoverifactuRegisterInvoice($invoice, $action)
 	}
 
 	$validActions = array('BILL_VALIDATE');
-	if ($invoice->status === Facture::STATUS_DRAFT && !in_array($action, $validActions, true)) {
+	if (intval($invoice->status) === Facture::STATUS_DRAFT && !in_array($action, $validActions, true)) {
 		return 0;
 	}
 
 	$validActions = array('BILL_CANCEL', 'VERIFACTU_AMEND');
-	if ($invoice->status === Facture::STATUS_VALIDATED && !in_array($action, $validActions, true)) {
+	if (intval($invoice->status) === Facture::STATUS_VALIDATED && !in_array($action, $validActions, true)) {
 		return 0;
 	}
 
@@ -660,7 +660,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 	}
 
 	if (preg_match('/^R[1-5]$/', $record->invoiceType)) {
-		if ( $invoice->type === Facture::TYPE_REPLACEMENT) {
+		if (intval($invoice->type) === Facture::TYPE_REPLACEMENT) {
 			// Fix by substitution.
 			$record->correctiveType = 'S';
 		} else {

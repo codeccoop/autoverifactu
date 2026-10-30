@@ -100,6 +100,7 @@ VerifactuFieldsNotEditable = <b>No se puede editar los campos asociados a Veri*F
 WaitingTimeoutError = Para corregir una factura con errores es necesario esperar %s segundos.
 ErrorCode2001 = Se ha detectado un error en el procesamiento del NIF (%s) en Veri*Factu. Por favor, compruebe que no se trate de un error tipográfico, o de una empresa extranjera. Para solucionar el error, edite el tercero
 ErrorCodeErrorAplication = Se han detectado un error en el procesamiento de la factura en Veri*Factu.
+TooMuchCreditNoteError = El importe de los abonos relacionados con la factura supera el importe de original.
 
 #
 # Buttons

@@ -430,7 +430,7 @@ class ActionsAutoverifactu extends CommonHookActions
 
 				$this->resprints = $button;
 				return 1;
-			} elseif ($object->status == Facture::STATUS_DRAFT && $action === 'valid') {
+			} elseif (intval($object->status) === Facture::STATUS_DRAFT && $action === 'valid') {
 				$object->fetch_thirdparty();
 				$thirdparty = $object->thirdparty;
 				$valid_id = $thirdparty->idprof1 && $thirdparty->id_prof_check(1, $thirdparty);
