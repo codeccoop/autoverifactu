@@ -160,7 +160,7 @@ class ActionsAutoverifactu extends CommonHookActions
 					$attribute = GETPOST('attribute', 'alpha');
 
 					// Evito que se editen estos campos.
-					if (strrpos($attribute, 'verifactu_') !== false) {
+					if (strrpos($attribute, 'verifactu_') !== false && $attribute !== 'verifactu_date_operation') {
 						$this->errors[] = $langs->trans('VerifactuFieldsNotEditables');
 						$action = '';
 					}
@@ -501,7 +501,6 @@ class ActionsAutoverifactu extends CommonHookActions
 		}
 
 		if (!$object->id) {
-			// Hide date operation on bill creation forms.
 			$extrafields->attributes['facture']['list']['verifactu_date_operation'] = '0';
 		}
 	}

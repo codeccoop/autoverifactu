@@ -162,6 +162,10 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 					$totalCredit = 0;
 
 					foreach ($sourceInvoice->creditnote_ids as $siblingId) {
+						if (intval($siblingId) === intval($object->id)) {
+							continue;
+						}
+
 						$siblingInvoice = new Facture($db);
 						$siblingInvoice->fetch($siblingId);
 

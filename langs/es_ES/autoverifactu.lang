@@ -97,10 +97,10 @@ MaxInvoiceLinesError = <b>Veri*Factu no permite facturas con más de 12 líneas<
 MaxInvoiceLinesError = <b>Veri*Factu no permite facturas con más de 12 líneas. Una factura con más de 12 líneas no podrá ser validada.</b> Agrupa líneas por concepto o código CNAE, o emite facturas parciales en caso de no ser posible la agrupación
 MaxEntityLinesWarn = <b>Veri*Factu no permite facturas con más de 12 líneas.</b> Las facturas generadas a partir de este documento no podran ser validadas sin antes aplicar una agrupación de líneas de factura.
 VerifactuFieldsNotEditable = <b>No se puede editar los campos asociados a Veri*Factu</b> 
-WaitingTimeoutError = Para corregir una factura con errores es necesario esperar %s segundos.
+WaitingTimeoutError = El tiempo de espera necesario para poder volver a comunicar con Veri*Factu es de %s segundos.
 ErrorCode2001 = Se ha detectado un error en el procesamiento del NIF (%s) en Veri*Factu. Por favor, compruebe que no se trate de un error tipográfico, o de una empresa extranjera. Para solucionar el error, edite el tercero
 ErrorCodeErrorAplication = Se han detectado un error en el procesamiento de la factura en Veri*Factu.
-TooMuchCreditNoteError = El importe de los abonos relacionados con la factura supera el importe de original.
+TooMuchCreditNoteError = El importe de los abonos relacionados con la factura supera el importe original.
 
 #
 # Buttons

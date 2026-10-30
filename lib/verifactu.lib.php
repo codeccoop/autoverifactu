@@ -585,7 +585,14 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 			// Art. 80.Uno.2
 			// Los descuentos y bonificaciones otorgados con posterioridad al momento en que la
 			// operación se haya realizado siempre que sean debidamente justificados.
-			$invoiceType = 'R1';
+
+			if (autoverifactuIsSimplifiedInvoice($invoice)) {
+				// Factura rectificativa simplificada.
+				$invoiceType = 'R5';
+			} else {
+				$invoiceType = 'R1';
+			}
+
 			break;
 		case Facture::TYPE_REPLACEMENT:
 			if (autoverifactuIsSimplifiedInvoice($invoice)) {
