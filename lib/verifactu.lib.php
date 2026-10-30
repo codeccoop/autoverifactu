@@ -746,15 +746,6 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 
 	$record->system = autoverifactuGetRecordComputerSystem();
 
-	/*
-	! Cuando obentenos el registro horario guardado , y genereamos una factura de
-	! anulacion o corregimos algun error despues del margen que nos dan (240 seg)
-	! nos indica un error de tiempo. de la otra forma no nos indica ese error. (Inicado la hora de envio)
-	$record->hashedAt = new DateTimeImmutable(
-		date('Y-m-d H:i:s', $invoice->array_options['options_verifactu_tms'] ?: $now),
-		new DateTimeZone('Europe/Madrid'),
-	);*/
-
 	$record->hashedAt = new DateTimeImmutable(
 		date('Y-m-d H:i:s', $now),
 		new DateTimeZone('Europe/Madrid'),

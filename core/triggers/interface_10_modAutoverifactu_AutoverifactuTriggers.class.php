@@ -177,7 +177,6 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 
 				break;
 			case 'BILL_DELETE':
-				// case 'DON_DELETE':
 				if (
 					$object->status != Facture::STATUS_DRAFT
 					&& $object->type <= Facture::TYPE_DEPOSIT
