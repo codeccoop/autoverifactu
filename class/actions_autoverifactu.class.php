@@ -160,9 +160,13 @@ class ActionsAutoverifactu extends CommonHookActions
 					$attribute = GETPOST('attribute', 'alpha');
 
 					// Evito que se editen estos campos.
-					if (strrpos($attribute, 'verifactu_') !== false && $attribute !== 'verifactu_date_operation') {
-						$this->errors[] = $langs->trans('VerifactuFieldsNotEditables');
-						$action = '';
+					if (strrpos($attribute, 'verifactu_') !== false) {
+						$allowed_fields = array('verifactu_date_operation', 'verifactu_rectification_type');
+
+						if (!in_array($attribute, $allowed_fields, true)) {
+							$this->errors[] = $langs->trans('VerifactuFieldsNotEditable');
+							$action = '';
+						}
 					}
 
 					break;
@@ -170,7 +174,7 @@ class ActionsAutoverifactu extends CommonHookActions
 					// Esta acción se da cuando una factura ha tenido un error y se quiere reenviar una vez subsanado el error.
 					// Compruebo que a pasado el tiempo de espera par la proxima peticion de la API.
 					$status = $object->array_options['options_verifactu_status'];
-					if (in_array($status, array('2', '3'), true)) {
+					if (in_array($status, array('21', '22'), true)) {
 						$result = autoverifactuRegisterInvoice($object, strtoupper($action));
 
 						if ($result <= 0) {
@@ -331,7 +335,7 @@ class ActionsAutoverifactu extends CommonHookActions
 			&& $object->type <= Facture::TYPE_DEPOSIT
 			&& autoverifactuEnabled()
 		) {
-			$status = $object->array_options['options_verifactu_status'] ?? '0';
+			$status = $object->array_options['options_verifactu_status'] ?? '10';
 			if ($status === '1') {
 				// Botón para cotejar la validez de la factura.
 				echo dolGetButtonAction(
@@ -348,23 +352,7 @@ class ActionsAutoverifactu extends CommonHookActions
 						),
 					)
 				);
-			} elseif (in_array($status, array('2', '3', '5'), true)) {
-				// Botón para mostrar los errores de factura.
-				echo dolGetButtonAction(
-					$langs->trans('FixVerifactuErrors'),
-					$langs->trans('FixVerifactuErrors'),
-					'default',
-					$_SERVER['PHP_SELF'] . '?action=verifactu_errors&token=' . newToken() . '&id=' . $object->id,
-					'',
-					1,
-					array(
-						'attr' => array(
-							'class' => 'classfortooltip',
-							'title' => ''
-						),
-					),
-				);
-
+			} elseif (in_array($status, array('2', '3'), true)) {
 				// Botón para subsanar facturas con errores.
 				echo dolGetButtonAction(
 					$langs->trans('VerifactuResend'),
@@ -471,28 +459,10 @@ class ActionsAutoverifactu extends CommonHookActions
 	 */
 	public function formObjectOptions($parameters, $object, $action)
 	{
-		global $extrafields, $langs;
+		global $extrafields;
 
 		if ($parameters['currentcontext'] !== 'invoicecard' || $object->element !== 'facture') {
 			return;
-		}
-
-		if ($action === 'verifactu_errors' && $object->id > 0) {
-			// Accion de mostrar los erroes y una explicacion.
-			$langs->load('autoverifactu@autoverifactu');
-
-			$url = $_SERVER['PHP_SELF'] . '?id=' . $object->id;
-
-			if ($object->array_options['options_verifactu_error_code'] === '2001' ) {
-				// El NIF del bloque Destinatarios no está identificado en el censo de la AEAT.
-				$message = $langs->trans('Errorcode2001', $object->thirdparty->idprof1);
-				$this->formAlert($message, $url);
-			} else {
-				$message = $object->array_options['options_verifactu_error'];
-				$this->formAlert($message, $url);
-			}
-
-			return 0;
 		}
 
 		if (intval($object->type) !== Facture::TYPE_REPLACEMENT) {
@@ -502,50 +472,11 @@ class ActionsAutoverifactu extends CommonHookActions
 
 		if (!$object->id) {
 			$extrafields->attributes['facture']['list']['verifactu_date_operation'] = '0';
+			$extrafields->attributes['facture']['list']['verifactu_status'] = '0';
 		}
-	}
 
-	/**
-	 * Funcion que genera una ventana emergente con el mensaje parado por parametro con un btn de aceptar,
-	 * que te lleva a la url pasada por parametro.
-	 *
-	 * @param string $message Mensaje a mostrar en la ventana.
-	 * @param string $url URL de destino del enlace de la notificación.
-	 *
-	 * @return null
-	 */
-	private function formAlert($message, $url)
-	{
-		?>
-			<div id="dialog-veri-factu-alert" title="Corregir Errores de Veri*Factu" style="display: none;">
-				<div class="error" style="text-align: left; padding: 15px; margin-top: 15px;">
-					<span class="fa fa-exclamation-triangle" style="color: #bd2130; font-size: 1.5em; margin-right: 10px; vertical-align: middle;"></span>
-					<span style="vertical-align: middle; font-size: 1.1em; color: #333;">
-						<?php echo $message?>
-					</span>
-				</div>
-			</div>
-			<script type="text/javascript">
-				jQuery(document).ready(function() {
-					jQuery("#dialog-veri-factu-alert").dialog({
-						modal: true,
-						resizable: false,
-						closeOnEscape: true,
-						width: 550,
-						height: "auto",
-						buttons: [
-							{
-								text: "Aceptar",
-								class: "button", // Clase CSS nativa de los botones de Dolibarr
-								click: function() {
-									jQuery(this).dialog("close");
-									window.location.href = '<?php echo $url ?>';
-								}
-							}
-						]
-					});
-				});
-			</script>
-		<?php
+		if (!in_array($object->array_options['options_verifactu_status'], array('21', '22', '90'), true)) {
+			$extrafields->attributes['facture']['list']['verifactu_error'] = '0';
+		}
 	}
 }

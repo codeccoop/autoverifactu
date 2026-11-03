@@ -392,7 +392,7 @@ function autoverifactuIsInvoiceRecorded($invoice)
 function autoverifactuIsInvoiceAmendable($invoice)
 {
 	$invoice->fetch_optionals();
-	return autoverifactuIsInvoiceRecorded($invoice) && in_array($invoice->array_options['options_verifactu_status'], array('2', '3'), true);
+	return autoverifactuIsInvoiceRecorded($invoice) && in_array($invoice->array_options['options_verifactu_status'], array('21', '22'), true);
 }
 
 /**

@@ -29,7 +29,7 @@ require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 require_once __DIR__ . '/validation.lib.php';
 
 /* Uncomment for dev environment */
-define('AUTOVERIFACTU_DEV_MODE', '1');
+// define('AUTOVERIFACTU_DEV_MODE', '1');
 
 /* Veri*Factu API URLs */
 define('VERIFACTU_BASE_URL', 'https://www1.agenciatributaria.gob.es'); // Production API host
@@ -222,44 +222,51 @@ function autoverifactuRegisterInvoice($invoice, $action)
 	}
 
 	try {
-		$record = autoverifactuSendInvoice($invoice, $recordType, $xml);
+		$recorded = autoverifactuSendInvoice($invoice, $recordType, $xml);
 
-		// Skip document generation if send does not succeed.
-		if (!$record) {
-			return -1;
-		}
+		if ($xml) {
+			$result = file_put_contents($file, $xml);
+			$result = $result && file_put_contents($hidden, $xml);
 
-		$result = file_put_contents($file, $xml);
-		$result = $result && file_put_contents($hidden, $xml);
-
-		if (!$result) {
-			throw new Exception('Unable to store XML invoice record', 500);
-		} else {
-			// Store invoice verifactu extrafields after record registration
-			$invoice->array_options['options_verifactu_hash'] = $record->hash;
-			$invoice->array_options['options_verifactu_tms'] = $record->hashedAt->getTimestamp();
-
-			$result = $invoice->insertExtraFields();
-
-			if ($result <= 0) {
-				throw new Exception('Unable to update invoice extra fields', 500);
+			if (!$result) {
+				throw new Exception('Unable to store XML invoice record', 500);
 			}
-
-			$parameters['record'] = $record;
-			$parameters['xml'] = $xml;
-
-			$reshook = $hookmanager->executeHooks(
-				'afterAutoverifactuRecord',
-				$parameters,
-				$invoice,
-			);
 		}
-	} catch (Error | Exception $e) {
+
+		if (!$recorded) {
+			throw new Exception('Record registration error');
+		}
+
+		// Store invoice verifactu extrafields after record registration
+		$invoice->array_options['options_verifactu_hash'] = $recorded->hash;
+		$invoice->array_options['options_verifactu_tms'] = $recorded->hashedAt->getTimestamp();
+
+		$result = $invoice->insertExtraFields();
+
+		if ($result <= 0) {
+			throw new Exception('Unable to update invoice extra fields', 500);
+		}
+
+		$parameters['record'] = $recorded;
+		$parameters['xml'] = $xml;
+
+		$reshook = $hookmanager->executeHooks(
+			'afterAutoverifactuRecord',
+			$parameters,
+			$invoice,
+		);
+	} catch (Throwable $e) {
 		if (isset($xml) && $xml) {
 			file_put_contents($file, $xml);
 		}
 
-		if (isset($record) && $record) {
+		if ($invoice->array_options['options_verifactu_hash']) {
+			$invoice->array_options['options_verifactu_hash'] = null;
+			$invoice->array_options['options_verifactu_tms'] = null;
+			$result = $invoice->insertExtraFields();
+		}
+
+		if (isset($recorded) && $recorded) {
 			autoverifactuSendInvoice($invoice, 'anulacion');
 		}
 
@@ -320,11 +327,15 @@ function autoverifactuSendInvoice($invoice, $recordType, &$xml = '')
 
 	try {
 		$response = autoverifactuSoapRequest($envelope);
-		autoverifactuUpdateInvoiceStatus($response, $invoice);
+		$succeed = autoverifactuUpdateInvoiceStatus($response, $invoice);
 	} catch (Throwable $th) {
+		$succeed = false;
+	}
+
+	if (!$succeed) {
 		dol_syslog('# REJECTED SOAP ENVELOPE', LOG_DEBUG);
 		dol_syslog($envelope, LOG_DEBUG);
-		throw new Exception($th->getMessage(), 400);
+		return;
 	}
 
 	return $record;
@@ -344,57 +355,63 @@ function autoverifactuUpdateInvoiceStatus($response, $invoice)
 {
 	$operationType = $response->getElementsByTagName('TipoOperacion')->item(0);
 	$state = $response->getElementsByTagName('EstadoRegistro')->item(0);
-	$status = $invoice->array_options['options_verifactu_status'] ?? '0';
+	$status = $invoice->array_options['options_verifactu_status'] ?? '10';
 
 	if ($state->nodeValue === 'Incorrecto') {
 		$errCode = $response->getElementsByTagName('CodigoErrorRegistro')->item(0);
 		$errMessage = $response->getElementsByTagName('DescripcionErrorRegistro')->item(0);
 
 		if (!$errMessage || !$errCode) {
-			throw new Exception($response->saveXML(), 500);
+			throw new Exception('Invalid SOAP response', 500);
 		}
 
 		$invoice->array_options['options_verifactu_error'] = $errMessage->nodeValue;
 		$invoice->array_options['options_verifactu_error_code'] = $errCode->nodeValue;
 
 		if ($operationType->nodeValue === 'Alta') {
-			if (in_array($status, array('0', '5'), true)) {
+			if (in_array($status, array('10', '90'), true)) {
 				// Rechazado.
-				$invoice->array_options['options_verifactu_status'] = '5';
+				$invoice->array_options['options_verifactu_status'] = '90';
 			} else {
 				// Aceptado con errores múltiples veces.
-				$invoice->array_options['options_verifactu_status'] = '3';
+				$invoice->array_options['options_verifactu_status'] = '22';
 			}
 		}
+
+		$invoice->errors[] = $errMessage->nodeValue;
 	} elseif ($state->nodeValue === 'AceptadoConErrores') {
 		$errCode = $response->getElementsByTagName('CodigoErrorRegistro')->item(0);
 		$errMessage = $response->getElementsByTagName('DescripcionErrorRegistro')->item(0);
 
 		if (!$errMessage || !$errCode) {
-			throw new Exception($response->saveXML(), 500);
+			throw new Exception('Invalid SOAP response', 500);
 		}
 
 		$invoice->array_options['options_verifactu_error'] = $errMessage->nodeValue;
 		$invoice->array_options['options_verifactu_error_code'] = $errCode->nodeValue;
 
 		if ($operationType->nodeValue === 'Alta') {
-			if (in_array($status, array('2', '3'), true)) {
+			if (in_array($status, array('21', '22'), true)) {
 				// Aceptado con errores múltiples veces.
-				$invoice->array_options['options_verifactu_status'] = '3';
+				$invoice->array_options['options_verifactu_status'] = '22';
 			} else {
 				// Aceptado con errores.
-				$invoice->array_options['options_verifactu_status'] = '2';
+				$invoice->array_options['options_verifactu_status'] = '21';
 			}
+		} else {
+			// No puede aceptarse una anulación con errores!
+			throw new Exception('Invalid SOAP response', 500);
 		}
 	} else {
 		if ($operationType->nodeValue === 'Alta') {
-			$invoice->array_options['options_verifactu_status'] = '1';
+			$invoice->array_options['options_verifactu_status'] = '20';
 		} else {
-			$invoice->array_options['options_verifactu_status'] = '4';
+			$invoice->array_options['options_verifactu_status'] = '30';
 		}
 	}
 
 	$invoice->insertExtraFields();
+	return $invoice->array_options['options_verifactu_status'] !== '90';
 }
 
 /**
@@ -618,7 +635,7 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 
 	$record = new stdClass();
 	$record->type = $recordType;
-	$record->status = $invoice->array_options['options_verifactu_status'] ?? '0';
+	$record->status = $invoice->array_options['options_verifactu_status'] ?? '10';
 
 	if (!empty($invoice->array_options['options_verifactu_date_operation'])) {
 		$record->dateOperation = new DateTimeImmutable(
@@ -639,6 +656,13 @@ function autoverifactuInvoiceToRecord($invoice, $recordType = 'alta')
 		date('Y-m-d H:i:s', $invoice->array_options['options_verifactu_tms'] ?: $now),
 		new DateTimeZone('Europe/Madrid'),
 	);
+
+	if (
+		$record->dateOperation &&
+		$record->dateOperation->format('Y-m-d') === $record->invoiceId->issueDate->format('Y-m-d')
+	) {
+		$record->dateOperation = null;
+	}
 
 	$record->recipients = array();
 

@@ -108,7 +108,7 @@ class InterfaceAutoverifactuTriggers extends DolibarrTriggers
 					$object->array_options['options_verifactu_hash'] = '';
 					$object->array_options['options_verifactu_error'] = '';
 					$object->array_options['options_verifactu_error_code'] = '';
-					$object->array_options['options_verifactu_status'] = '0';
+					$object->array_options['options_verifactu_status'] = '10';
 					$result = $object->insertExtraFields();
 
 					if ($result < 0) {

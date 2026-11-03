@@ -111,7 +111,6 @@ UpdateDisabledBy = Actualización deshabilitada por Veri*Factu
 ThirdpartyIdProfRequired = Veri*Factu requiere que los destinatarios de las facturas dispongan de un NIF/CIF válido 
 MaxInvoiceLines = Veri*Factu no permite facturas con más de 12 líneas
 VerifactuResend = Reenviar a Veri*Factu
-FixVerifactuErrors = Corregir errores de Veri*Factu
 
 #
 # Autodeclaration page
@@ -170,6 +169,9 @@ VerifactuRectificationTypeR5 = Factura Rectificativa en facturas simplificadas
 VerifactuDateOperation = Fecha de operación
 VerifactuDateOperationDescription = Fecha en la que se produce el devengo, y del cual se deriva la obligación de pagar un impuesto. El campo es opcional para aquellas facturas en que coincidan la fecha de emsisión y de operación.
 
+VerifactuError = Error Veri*Factu
+VerifactuErrorDescription = Mensaje de error de la respuesta a la última petición de registro de la factura en el sistema Veri*Factu.
+
 VerifactuRegime = Régimen fiscal
 VerifactuRegimeDescription = Régimen fiscal bajo el que opera el tercero.<br><b>Este valor sobreescribirá el valor por defecto de la configuración del módulo Auto-Veri*Factu</b>
 VerifactuRegime01 = Operación de régimen general
@@ -221,14 +223,14 @@ VerifactuForeignIdType05 = Certificado de residencia
 VerifactuForeignIdType06 = Otro documento probatorio
 VerifactuForeignIdType07 = No censado
 
-VerifactuStatus = Estado
-VerifactuStatusDescription = Estado de la factura en Veri*Factu
-VerifactuStatus0 = Pendiente de envío
-VerifactuStatus1 = Registrado correctamente
-VerifactuStatus2 = Registrado correctamente pero con errores
-VerifactuStatus3 = Registrado correctamente pero con errores múltiples veces
-VerifactuStatus4 = Anulado
-VerifactuStatus5 = Rechazado
+VerifactuStatus = Estado Veri*Factu
+VerifactuStatusDescription = Estado de registro de la factura en Veri*Factu
+VerifactuStatus10 = Pendiente de envío
+VerifactuStatus20 = Registrado correctamente
+VerifactuStatus21 = Registrado correctamente pero con errores
+VerifactuStatus22 = Registrado correctamente pero con errores múltiples veces
+VerifactuStatus30 = Anulado
+VerifactuStatus90 = Rechazado
 
 VerifactuTax = Impuesto
 VerifactuLegalTextIRPF = Factura sujeta a retención del IRPF de conformidad con la normativa vigente.
