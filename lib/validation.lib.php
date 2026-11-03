@@ -951,6 +951,14 @@ function autoverifactuValidateExcemptionCode($value, $required = true)
 	return in_array($value, $options, true) || !$required && !$value;
 }
 
+/**
+ * RecipientIdType validation.
+ *
+ * @param string $value    ID type code.
+ * @param bool   $required Whether to treat the value as required or not.
+ *
+ * @return bool
+ */
 function autoverifactuValidateRecipientIdType($value, $required = true)
 {
 	/**
