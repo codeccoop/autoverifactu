@@ -48,7 +48,7 @@ Una vez cumplidos los requisitos, podrás activar Auto-Veri\*Factu. **Ten en cue
 
 ## Desarrollo
 
-Des de el panel de configuración de **Auto-Veri*Factu** se puede activar el **modo de pruebas**. En este modo, los registros de facturación seran enviados al entorno de pruebas de la AEAT sin generar ningún tipo de obligación fiscal ante hacienda.
+Des de el panel de configuración de **Auto-Veri\*Factu** se puede activar el **modo de pruebas**. En este modo, los registros de facturación seran enviados al entorno de pruebas de la AEAT sin generar ningún tipo de obligación fiscal ante hacienda.
 
 El módulo, testeado en la versión 20.0 de Dolibarr, se distribuye sin dependencias. Sin embargo, se requiere de [composer](https://getcomposer.org/) para instalar los paquetes necesarios para preparar el entorno de desarrollo. En concreto, se hace uso de [PHP CodeSniffers](https://github.com/PHPCSStandards/PHP_CodeSniffer/) como formateador y validador de código.
 

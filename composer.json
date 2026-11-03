@@ -1,6 +1,6 @@
 {
   "name": "codeccoop/auto-verifactu-dolibarr",
-  "version": "0.0.10",
+  "version": "1.0.0",
   "require": {
     "php": ">=8.0"
   },
