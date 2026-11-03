@@ -16,6 +16,7 @@ jobs:
   release:
     name: Release pushed tag
     runs-on: ubuntu-latest
+    needs: tests
     env:
       TAG: ${{ github.ref_name }}
     steps:
