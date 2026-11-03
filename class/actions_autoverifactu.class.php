@@ -173,7 +173,7 @@ class ActionsAutoverifactu extends CommonHookActions
 				case 'verifactu_amend':
 					// Esta acción se da cuando una factura ha tenido un error y se quiere reenviar una vez subsanado el error.
 					// Compruebo que a pasado el tiempo de espera par la proxima peticion de la API.
-					$status = $object->array_options['options_verifactu_status'];
+					$status = $object->array_options['options_verifactu_status'] ?? '10';
 					if (in_array($status, array('21', '22'), true)) {
 						$result = autoverifactuRegisterInvoice($object, strtoupper($action));
 
@@ -336,7 +336,7 @@ class ActionsAutoverifactu extends CommonHookActions
 			&& autoverifactuEnabled()
 		) {
 			$status = $object->array_options['options_verifactu_status'] ?? '10';
-			if ($status === '1') {
+			if ($status === '20') {
 				// Botón para cotejar la validez de la factura.
 				echo dolGetButtonAction(
 					$langs->trans('CheckIntegrity'),
@@ -352,7 +352,7 @@ class ActionsAutoverifactu extends CommonHookActions
 						),
 					)
 				);
-			} elseif (in_array($status, array('2', '3'), true)) {
+			} elseif (in_array($status, array('21', '22'), true)) {
 				// Botón para subsanar facturas con errores.
 				echo dolGetButtonAction(
 					$langs->trans('VerifactuResend'),

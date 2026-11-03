@@ -267,7 +267,7 @@ function autoverifactuRegisterInvoice($invoice, $action)
 		}
 
 		if (isset($recorded) && $recorded) {
-			autoverifactuSendInvoice($invoice, 'anulacion');
+			// autoverifactuSendInvoice($invoice, 'anulacion');
 		}
 
 		dol_syslog('Error on verifactu request ' . print_r($e, true), LOG_ERR);
@@ -358,15 +358,13 @@ function autoverifactuUpdateInvoiceStatus($response, $invoice)
 	$status = $invoice->array_options['options_verifactu_status'] ?? '10';
 
 	if ($state->nodeValue === 'Incorrecto') {
-		$errCode = $response->getElementsByTagName('CodigoErrorRegistro')->item(0);
-		$errMessage = $response->getElementsByTagName('DescripcionErrorRegistro')->item(0);
+		$error = $response->getElementsByTagName('DescripcionErrorRegistro')->item(0);
 
-		if (!$errMessage || !$errCode) {
+		if (!$error) {
 			throw new Exception('Invalid SOAP response', 500);
 		}
 
-		$invoice->array_options['options_verifactu_error'] = $errMessage->nodeValue;
-		$invoice->array_options['options_verifactu_error_code'] = $errCode->nodeValue;
+		$invoice->array_options['options_verifactu_error'] = $error->nodeValue;
 
 		if ($operationType->nodeValue === 'Alta') {
 			if (in_array($status, array('10', '90'), true)) {
@@ -378,17 +376,15 @@ function autoverifactuUpdateInvoiceStatus($response, $invoice)
 			}
 		}
 
-		$invoice->errors[] = $errMessage->nodeValue;
+		$invoice->errors[] = $error->nodeValue;
 	} elseif ($state->nodeValue === 'AceptadoConErrores') {
-		$errCode = $response->getElementsByTagName('CodigoErrorRegistro')->item(0);
-		$errMessage = $response->getElementsByTagName('DescripcionErrorRegistro')->item(0);
+		$error = $response->getElementsByTagName('DescripcionErrorRegistro')->item(0);
 
-		if (!$errMessage || !$errCode) {
+		if (!$error) {
 			throw new Exception('Invalid SOAP response', 500);
 		}
 
-		$invoice->array_options['options_verifactu_error'] = $errMessage->nodeValue;
-		$invoice->array_options['options_verifactu_error_code'] = $errCode->nodeValue;
+		$invoice->array_options['options_verifactu_error'] = $error->nodeValue;
 
 		if ($operationType->nodeValue === 'Alta') {
 			if (in_array($status, array('21', '22'), true)) {
